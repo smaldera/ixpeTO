@@ -24,7 +24,6 @@ import os
 import numpy
 
 import matplotlib.pyplot as plt
-
 import ROOT
 
 
@@ -88,15 +87,22 @@ def threshold_scan(zeroSupThreshold=5, num_events=1):
         #num_events=binary_file.numEvents()
         print " n event  = ",num_events
 
+        
         for i in range (0, num_events):
             try:    
                 evt = binary_file.next()
             except RuntimeError  as  e:
-                print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
-                if str(e)=='End of file':
-                        break
-                
+                #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
+                if str(e)=='Header mismatch':
+                        continue
+                else:
+                    break         
+
             tracks = clustering.dbScan(evt)    
+            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
+               continue
+
+
             track = tracks[0]
             rec_and_draw(track)
             #threshold=5
