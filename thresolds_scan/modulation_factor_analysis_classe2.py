@@ -78,7 +78,7 @@ class modulationFactor:
     
         #GET hist from input file
         self.c_init.Clear()
-        #cc = TCanvas("cc","cc",0)
+        #c = TCanvas("c","c",0)
         self.c_init.cd()
 
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
@@ -91,7 +91,6 @@ class modulationFactor:
                 #DA PROVARE: usare self.hist_matrix dall'altra classe, cosi' sovrascrivo gli istogrammi e posso salvarli su ROOT
                 h = inFile.Get(name_matrix[i][j])
                 fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi())
-                #fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -180, 180)  #LBaldini, presentazione per csn2, p. 11
 
                 fitFunc.SetParLimits(0,0,100000000)     # offset >0
                 fitFunc.SetParLimits(1,0,100000000)     # se c'e' bisogno di un'inversione, che la becchi con la fase [2]!!! 
@@ -108,7 +107,13 @@ class modulationFactor:
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
         self.h_modulation_factors.GetXaxis().SetTitle("1st pass threshold")
         self.h_modulation_factors.GetYaxis().SetTitle("2nd pass threshold")
+        cc = TCanvas("cc", "cc", 0)
+        cc.cd()
         self.h_modulation_factors.Draw("colZ")
+        ccc = TCanvas("ccc", "ccc", 0) #NEW
+        ccc.cd() #NEW
+        self.h_modulation_factors.Draw("surf2") #NEW
+
         self.h_modulation_factors.Write()
     
         valore = raw_input('continue?')
@@ -134,14 +139,14 @@ class modulationFactor:
 
 def test():
 
-    cc = TCanvas("cc","cc",0)
+    c = TCanvas("c","c",0)
 
     thresholdScanObj = thresholdScan()  # oggetto della classe thresholdScan
                                         # definita in mom_analysis_threshold_scan_classe.py
 
     modFact = modulationFactor(thresholdScanObj)    # oggetto della classe modulationFactor
                                                     # definita in questo file
-    modFact.c_init = cc
+    modFact.c_init = c
     modFact.histogram_fitter()
 
 
