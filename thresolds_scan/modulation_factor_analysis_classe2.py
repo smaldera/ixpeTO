@@ -60,6 +60,7 @@ class modulationFactor:
         #self.c_init=0
         self.h_modulation_factors = TH2F()
         self.h_reduced_chi_square = TH1F()
+        self.markerMaxModulationFactor = TMarker()
 
     def histogram_fitter(self):
         
@@ -87,10 +88,14 @@ class modulationFactor:
         c = TCanvas("c","c",0)
         c.cd()
 
-        maxReducedChiSquare = 0
+        maxReducedChiSquare  = 0
+        maxModulationFactor  = 0
+        xMaxModulationFactor = 0
+        yMaxModulationFactor = 0
 
         for i in range (0,len_thresholds1):
             for j in range (0,len_thresholds2):
+
                 h = inFile.Get(name_matrix[i][j])
                 fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi())
                 fitFunc.SetParLimits(0,0,100000000)     # offset >0
@@ -110,8 +115,16 @@ class modulationFactor:
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) #NO!!! Da cambiare!!!!
                 print modulationFactor
+                if modulationFactor>maxModulationFactor:
+                    maxModulationFactor  = modulationFactor
+                    xMaxModulationFactor = thresholds1[i]
+                    yMaxModulationFactor = thresholds2[j]
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
                 self.h_reduced_chi_square.Fill(reducedChiSquare)
+
+        self.markerMaxModulationFactor = TMarker(xMaxModulationFactor, yMaxModulationFactor, 34)
+        self.markerMaxModulationFactor.SetMarkerColor(2)
+        self.markerMaxModulationFactor.SetMarkerSize(1.5)
 
         cc = TCanvas("cc", "cc", 0)
         cc.cd()
@@ -120,13 +133,20 @@ class modulationFactor:
         self.h_modulation_factors.GetYaxis().SetTitle("2nd pass threshold")
         self.h_modulation_factors.GetZaxis().SetTitle("modulation factor")
         self.h_modulation_factors.GetZaxis().SetTitleOffset(1.5)
+        self.h_modulation_factors.GetZaxis().SetLabelFont(10)
         gStyle.SetOptStat(0)
+        #self.h_modulation_factors.UseCurrentStyle()
         self.h_modulation_factors.Draw("colZ")
+        self.markerMaxModulationFactor.Draw("same")
+        cc.Write()
 
         ccc = TCanvas("ccc", "ccc", 0) #NEW
         ccc.cd() #NEW
         self.h_modulation_factors.SetTitle("Modulation Factor - threshold scan")
+        gStyle.SetOptStat(0)
+        #self.h_modulation_factors.UseCurrentStyle()
         self.h_modulation_factors.Draw("surf2") #NEW
+        self.markerMaxModulationFactor.Draw("same")
         self.h_modulation_factors.Write()
 
         cccc = TCanvas("cccc", "cccc", 0)
@@ -134,13 +154,13 @@ class modulationFactor:
         self.h_reduced_chi_square.SetAxisRange(0, maxReducedChiSquare, "X")
         self.h_reduced_chi_square.SetTitle("Reduced Chi Square")
         #self.h_reduced_chi_square.SetBins()
-        gStyle.SetOptStat("emr")
         gStyle.SetStatW(0.15)
         gStyle.SetStatH(0.13)
         gStyle.SetHistFillColor(kSpring+6)
         gStyle.SetHistLineColor(kSpring-6)
         gStyle.SetHistLineStyle(3)
         gStyle.SetHistLineWidth(2)
+        gStyle.SetOptStat("emr")
         self.h_reduced_chi_square.UseCurrentStyle()
         self.h_reduced_chi_square.Draw()
         self.h_reduced_chi_square.Write()
@@ -156,7 +176,7 @@ class modulationFactor:
         #set Stat per chi quadro (opzione di TH1/2 o canvas?? altrimenti da TBrowser View-->Editor-->Chi!! DONE
         #istogramma del chi quadro ridotto!! 
         #che errore da' di default sull'altezza delle barre dell'istogramma
-        #soglie t.c. mod_factor == max ---> draw on the TH2 --> write canvas con h_modulation_factors + TMarker
+        #soglie t.c. mod_factor == max ---> draw on the TH2 --> write canvas con h_modulation_factors + TMarker DONE
         #angolo fisso, diverse energie
         #energia fissa, diversi angoli
         #con diverso asse di polarizzazione non dovrebbe cambiare
