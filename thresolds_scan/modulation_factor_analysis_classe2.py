@@ -57,7 +57,7 @@ class modulationFactor:
         self.len_thresholds2 = thresholdScanObj.lenThresholds2
         self.name_matrix = thresholdScanObj.name_matrix
 
-        self.c_init=0
+        #self.c_init=0
         self.h_modulation_factors = TH2F()
 
     def histogram_fitter(self):
@@ -77,14 +77,15 @@ class modulationFactor:
         #print inFile.ls()
     
         #GET hist from input file
-        self.c_init.Clear()
-        #c = TCanvas("c","c",0)
-        self.c_init.cd()
+        #self.c_init.Clear()
+        #self.c_init.cd()
 
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
 
         out_file = TFile("out_file.root", "recreate")
 
+        c = TCanvas("c","c",0)
+        c.cd()
 
         for i in range (0,len_thresholds1):
             for j in range (0,len_thresholds2):
@@ -139,24 +140,20 @@ class modulationFactor:
 
 def test():
 
-    c = TCanvas("c","c",0)
+    #c = TCanvas("c","c",0)
 
     thresholdScanObj = thresholdScan()  # oggetto della classe thresholdScan
                                         # definita in mom_analysis_threshold_scan_classe.py
 
     modFact = modulationFactor(thresholdScanObj)    # oggetto della classe modulationFactor
                                                     # definita in questo file
-    modFact.c_init = c
+    #modFact.c_init = c
     modFact.histogram_fitter()
 
 
 
 if __name__ == "__main__":
 
-
-
-    #c = TCanvas("c","c",0)
-    #c.cd()
 
     import argparse
     formatter = argparse.ArgumentDefaultsHelpFormatter
