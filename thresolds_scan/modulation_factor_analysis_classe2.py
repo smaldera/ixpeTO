@@ -62,10 +62,7 @@ class modulationFactor:
 
     def histogram_fitter(self):
         
-        #valore = raw_input('continue?')
 
-        #momAnalysisThresholdScan = thresholdScan() #from mom_analysis_threshold_scan_class.py
-        #name_matrix = momAnalysisThresholdScan.getNameMatrix()
         name_matrix = self.name_matrix
         thresholds1 = self.thresholds1
         thresholds2 = self.thresholds2
@@ -74,7 +71,7 @@ class modulationFactor:
 
     
         inFile = TFile(FILE_PATH)
-        #print inFile.ls()
+
     
         #GET hist from input file
         #self.c_init.Clear()
@@ -83,24 +80,21 @@ class modulationFactor:
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
 
         out_file = TFile("out_file.root", "recreate")
+        out_file.cd()
 
         c = TCanvas("c","c",0)
         c.cd()
 
         for i in range (0,len_thresholds1):
             for j in range (0,len_thresholds2):
-                #DA PROVARE: usare self.hist_matrix dall'altra classe, cosi' sovrascrivo gli istogrammi e posso salvarli su ROOT
                 h = inFile.Get(name_matrix[i][j])
                 fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi())
 
                 fitFunc.SetParLimits(0,0,100000000)     # offset >0
                 fitFunc.SetParLimits(1,0,100000000)     # se c'e' bisogno di un'inversione, che la becchi con la fase [2]!!! 
-                #c = TCanvas("c","c",0) #si puo' pensare di definirlo altrove
-                #c.cd()
-                h.Fit("fitFunc","MR")   # opzione N
+
+                h.Fit("fitFunc","MR")
                 h.Draw()
-                #valore = raw_input('continue?')
-                out_file.cd()
                 h.Write()
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) #NO!!! Da cambiare!!!!
