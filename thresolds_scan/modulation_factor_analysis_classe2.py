@@ -59,6 +59,7 @@ class modulationFactor:
 
         #self.c_init=0
         self.h_modulation_factors = TH2F()
+        self.h_reduced_chi_square = TH1F()
 
     def histogram_fitter(self):
         
@@ -78,6 +79,7 @@ class modulationFactor:
         #self.c_init.cd()
 
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
+        self.h_reduced_chi_square = TH1F("h_reduced_chi_square", "h_reduced_chi_square", 50, 0, 5)
 
         out_file = TFile("out_file.root", "recreate")
         out_file.cd()
@@ -99,25 +101,32 @@ class modulationFactor:
                 h.Draw()
                 c.Update()
                 h.Write()
+                reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF()
 
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) #NO!!! Da cambiare!!!!
                 print modulationFactor
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
+                self.h_reduced_chi_square.Fill(reducedChiSquare)
 
+        cc = TCanvas("cc", "cc", 0)
+        cc.cd()
         self.h_modulation_factors.GetXaxis().SetTitle("1st pass threshold")
         self.h_modulation_factors.GetYaxis().SetTitle("2nd pass threshold")
         self.h_modulation_factors.GetZaxis().SetTitle("modulation factor")
         self.h_modulation_factors.GetZaxis().SetTitleOffset(1.5)
-        cc = TCanvas("cc", "cc", 0)
-        cc.cd()
         gStyle.SetOptStat(0)
         self.h_modulation_factors.Draw("colZ")
+
         ccc = TCanvas("ccc", "ccc", 0) #NEW
         ccc.cd() #NEW
         self.h_modulation_factors.Draw("surf2") #NEW
-
         self.h_modulation_factors.Write()
+
+        cccc = TCanvas("cccc", "cccc", 0)
+        cccc.cd()
+        self.h_reduced_chi_square.Draw()
+        self.h_reduced_chi_square.Write()
     
         valore = raw_input('continue?')
     
@@ -127,7 +136,7 @@ class modulationFactor:
         #TO DO:
 
         #draw TH2 in 3-d??? (surf2) DONE
-        #set Stat per chi quadro (opzione di TH1/2 o canvas?? altrimenti da TBrowser View-->Editor-->Chi!!
+        #set Stat per chi quadro (opzione di TH1/2 o canvas?? altrimenti da TBrowser View-->Editor-->Chi!! DONE
         #istogramma del chi quadro ridotto!! 
         #che errore da' di default sull'altezza delle barre dell'istogramma
         #soglie t.c. mod_factor == max ---> draw on the TH2 --> write canvas con h_modulation_factors + TMarker
