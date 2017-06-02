@@ -87,6 +87,8 @@ class modulationFactor:
         c = TCanvas("c","c",0)
         c.cd()
 
+        maxReducedChiSquare = 0
+
         for i in range (0,len_thresholds1):
             for j in range (0,len_thresholds2):
                 h = inFile.Get(name_matrix[i][j])
@@ -102,6 +104,8 @@ class modulationFactor:
                 c.Update()
                 h.Write()
                 reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF()
+                if reducedChiSquare>maxReducedChiSquare:
+                    maxReducedChiSquare = reducedChiSquare
 
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) #NO!!! Da cambiare!!!!
@@ -111,6 +115,7 @@ class modulationFactor:
 
         cc = TCanvas("cc", "cc", 0)
         cc.cd()
+        self.h_modulation_factors.SetTitle("Modulation Factor - threshold scan")
         self.h_modulation_factors.GetXaxis().SetTitle("1st pass threshold")
         self.h_modulation_factors.GetYaxis().SetTitle("2nd pass threshold")
         self.h_modulation_factors.GetZaxis().SetTitle("modulation factor")
@@ -120,11 +125,23 @@ class modulationFactor:
 
         ccc = TCanvas("ccc", "ccc", 0) #NEW
         ccc.cd() #NEW
+        self.h_modulation_factors.SetTitle("Modulation Factor - threshold scan")
         self.h_modulation_factors.Draw("surf2") #NEW
         self.h_modulation_factors.Write()
 
         cccc = TCanvas("cccc", "cccc", 0)
         cccc.cd()
+        self.h_reduced_chi_square.SetAxisRange(0, maxReducedChiSquare, "X")
+        self.h_reduced_chi_square.SetTitle("Reduced Chi Square")
+        #self.h_reduced_chi_square.SetBins()
+        gStyle.SetOptStat("emr")
+        gStyle.SetStatW(0.15)
+        gStyle.SetStatH(0.13)
+        gStyle.SetHistFillColor(kSpring+6)
+        gStyle.SetHistLineColor(kSpring-6)
+        gStyle.SetHistLineStyle(3)
+        gStyle.SetHistLineWidth(2)
+        self.h_reduced_chi_square.UseCurrentStyle()
         self.h_reduced_chi_square.Draw()
         self.h_reduced_chi_square.Write()
     
