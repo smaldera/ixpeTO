@@ -106,7 +106,8 @@ def threshold_scan(zeroSupThreshold=5, num_events=1):
             track = tracks[0]
             rec_and_draw(track)
             #threshold=5
-            #track.reconstruct(threshold, threshold, False)      # la soglia deve essere un intero (ADC)
+            track.reconstruct(threshold, threshold, False)      # la soglia deve essere un intero (ADC)
+            
             #phi = track.secondPassMomentsAnalysis().phi()
             #phiDeg = ixpeMath.radToDeg(phi)
             #print "i = ",i," phi = ",phiDeg
