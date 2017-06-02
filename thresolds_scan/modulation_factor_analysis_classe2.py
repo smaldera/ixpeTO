@@ -89,21 +89,29 @@ class modulationFactor:
             for j in range (0,len_thresholds2):
                 h = inFile.Get(name_matrix[i][j])
                 fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi())
-
                 fitFunc.SetParLimits(0,0,100000000)     # offset >0
                 fitFunc.SetParLimits(1,0,100000000)     # se c'e' bisogno di un'inversione, che la becchi con la fase [2]!!! 
-
                 h.Fit("fitFunc","MR")
+                gStyle.SetOptStat("nem")
+                gStyle.SetOptFit(100)
+                gStyle.SetStatW(0.1)
+                gStyle.SetStatH(0.09)
                 h.Draw()
+                c.Update()
                 h.Write()
+
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) #NO!!! Da cambiare!!!!
                 print modulationFactor
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
+
         self.h_modulation_factors.GetXaxis().SetTitle("1st pass threshold")
         self.h_modulation_factors.GetYaxis().SetTitle("2nd pass threshold")
+        self.h_modulation_factors.GetZaxis().SetTitle("modulation factor")
+        self.h_modulation_factors.GetZaxis().SetTitleOffset(1.5)
         cc = TCanvas("cc", "cc", 0)
         cc.cd()
+        gStyle.SetOptStat(0)
         self.h_modulation_factors.Draw("colZ")
         ccc = TCanvas("ccc", "ccc", 0) #NEW
         ccc.cd() #NEW
@@ -118,7 +126,7 @@ class modulationFactor:
     
         #TO DO:
 
-        #draw TH2 in 3-d??? (surf2)
+        #draw TH2 in 3-d??? (surf2) DONE
         #set Stat per chi quadro (opzione di TH1/2 o canvas?? altrimenti da TBrowser View-->Editor-->Chi!!
         #istogramma del chi quadro ridotto!! 
         #che errore da' di default sull'altezza delle barre dell'istogramma
@@ -129,6 +137,7 @@ class modulationFactor:
         #fissa range di variazione colore sul TH2
         #per vedere la dipendenza dalle due soglie (quanto dipende dalla variazione della prima? quanto della seconda?)
         #       --> possiamo soppare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2
+        #sistemare nomi file output e i titoli dei grafici
 
 
 
