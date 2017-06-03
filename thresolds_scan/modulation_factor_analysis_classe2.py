@@ -105,7 +105,7 @@ class modulationFactor:
                 gStyle.SetOptFit(100)
                 gStyle.SetStatW(0.1)
                 gStyle.SetStatH(0.09)
-                h.Draw()
+                h.Draw("E1") #"E1" to show error bars
                 c.Update()
                 h.Write()
                 reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF()
@@ -145,7 +145,7 @@ class modulationFactor:
         self.h_modulation_factors.SetTitle("Modulation Factor - threshold scan")
         gStyle.SetOptStat(0)
         #self.h_modulation_factors.UseCurrentStyle()
-        self.h_modulation_factors.Draw("surf2") #NEW
+        self.h_modulation_factors.Draw("surf1Z") #NEW
         self.markerMaxModulationFactor.Draw("same")
         self.h_modulation_factors.Write()
 
