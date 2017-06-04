@@ -49,10 +49,7 @@ class modulationFactor:
 
         self.thresholds1 = thresholdScanObj.thresholds1
         self.thresholds2 = thresholdScanObj.thresholds2
-        '''
-        self.len_thresholds1 = thresholdScanObj.getLenThresholds1()
-        self.len_thresholds2 = thresholdScanObj.getLenThresholds2()
-        '''
+
         self.len_thresholds1 = thresholdScanObj.lenThresholds1
         self.len_thresholds2 = thresholdScanObj.lenThresholds2
         self.name_matrix = thresholdScanObj.name_matrix
@@ -74,15 +71,14 @@ class modulationFactor:
     
         inFile = TFile(FILE_PATH)
 
-    
-        #GET hist from input file
         #self.c_init.Clear()
         #self.c_init.cd()
 
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
         self.h_reduced_chi_square = TH1F("h_reduced_chi_square", "h_reduced_chi_square", 50, 0, 5)
 
-        out_file = TFile("out_file.root", "recreate")
+        out_file = TFile('mod_fact_%s' %os.path.basename(FILE_PATH).replace('thr_scan_',''), "recreate") #NEW # %.3f = float con 3 cifre dopo la virgola
+        #out_file = TFile("out_file.root", "recreate") #OLD
         out_file.cd()
 
         c = TCanvas("c","c",0)
@@ -135,7 +131,9 @@ class modulationFactor:
         self.h_modulation_factors.GetZaxis().SetTitleOffset(1.5)
         self.h_modulation_factors.GetZaxis().SetLabelFont(10)
         gStyle.SetOptStat(0)
+        #gROOT.ForceStyle()
         #self.h_modulation_factors.UseCurrentStyle()
+        #gPad.SetRightMargin(2)
         self.h_modulation_factors.Draw("colZ")
         self.markerMaxModulationFactor.Draw("same")
         cc.Write()
@@ -175,15 +173,15 @@ class modulationFactor:
         #draw TH2 in 3-d??? (surf2) DONE
         #set Stat per chi quadro (opzione di TH1/2 o canvas?? altrimenti da TBrowser View-->Editor-->Chi!! DONE
         #istogramma del chi quadro ridotto!! 
-        #che errore da' di default sull'altezza delle barre dell'istogramma
+        #che errore da' di default sull'altezza delle barre dell'istogramma (sembra sqrt(N_in_bin))
         #soglie t.c. mod_factor == max ---> draw on the TH2 --> write canvas con h_modulation_factors + TMarker DONE
         #angolo fisso, diverse energie
         #energia fissa, diversi angoli
         #con diverso asse di polarizzazione non dovrebbe cambiare
         #fissa range di variazione colore sul TH2
         #per vedere la dipendenza dalle due soglie (quanto dipende dalla variazione della prima? quanto della seconda?)
-        #       --> possiamo soppare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2
-        #sistemare nomi file output e i titoli dei grafici
+        #       --> possiamo sommare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2
+        #sistemare nomi file output (DONE) e i titoli dei grafici
 
 
 
@@ -203,18 +201,15 @@ def test():
 
 if __name__ == "__main__":
 
-
     import argparse
     formatter = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=formatter)
     parser.add_argument('infile', type=str,
                         help='the input root file')
 
-
     args = parser.parse_args()
 
     FILE_PATH = args.infile
-
 
     test()
     

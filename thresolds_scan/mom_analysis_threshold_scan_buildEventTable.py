@@ -25,7 +25,7 @@
 
 
 
-#BUONO
+#DA USARE QUANDO SI SARÀ RISOLTO IL PROBLEMA DELLA CLASSE ixpesw/Io/ixpeEventBinaryFile
 
 import os
 import numpy
@@ -125,6 +125,24 @@ class thresholdScan:
     
     
         for i in range(0,16):
+            '''
+            self.hist_array0[i] = ROOT.TH1F(self.name_h0[i],self.name_h0[i],80,-200,200)
+            self.hist_array1[i] = ROOT.TH1F(self.name_h1[i],self.name_h1[i],80,-200,200)
+            self.hist_array2[i] = ROOT.TH1F(self.name_h2[i],self.name_h2[i],80,-200,200)
+            self.hist_array3[i] = ROOT.TH1F(self.name_h3[i],self.name_h3[i],80,-200,200)
+            self.hist_array4[i] = ROOT.TH1F(self.name_h4[i],self.name_h4[i],80,-200,200)
+            self.hist_array5[i] = ROOT.TH1F(self.name_h5[i],self.name_h5[i],80,-200,200)
+            self.hist_array6[i] = ROOT.TH1F(self.name_h6[i],self.name_h6[i],80,-200,200)
+            self.hist_array7[i] = ROOT.TH1F(self.name_h7[i],self.name_h7[i],80,-200,200)
+            self.hist_array8[i] = ROOT.TH1F(self.name_h8[i],self.name_h8[i],80,-200,200)
+            self.hist_array9[i] = ROOT.TH1F(self.name_h9[i],self.name_h9[i],80,-200,200)
+            self.hist_array10[i] = ROOT.TH1F(self.name_h10[i],self.name_h10[i],80,-200,200)
+            self.hist_array11[i] = ROOT.TH1F(self.name_h11[i],self.name_h11[i],80,-200,200)
+            self.hist_array12[i] = ROOT.TH1F(self.name_h12[i],self.name_h12[i],80,-200,200)
+            self.hist_array13[i] = ROOT.TH1F(self.name_h13[i],self.name_h13[i],80,-200,200)
+            self.hist_array14[i] = ROOT.TH1F(self.name_h14[i],self.name_h14[i],80,-200,200)
+            self.hist_array15[i] = ROOT.TH1F(self.name_h15[i],self.name_h15[i],80,-200,200)
+            '''
 
             self.hist_array0[i] = ROOT.TH1F(self.name_h0[i],self.name_h0[i],70,-TMath.Pi(),TMath.Pi())
             self.hist_array1[i] = ROOT.TH1F(self.name_h1[i],self.name_h1[i],70,-TMath.Pi(),TMath.Pi())
@@ -165,43 +183,72 @@ class thresholdScan:
         self.hist_matrix.append(self.hist_array14)
         self.hist_matrix.append(self.hist_array15)
     
+    def getNameMatrix(self):
+        return self.name_matrix
 
-    #def getLenThresholds2(self):
-    #    return self.lenThresholds2
+    def getHistMatrix(self):
+        return self.hist_matrix
+
+    def getThresholds1(self):
+        return self.thresholds1
+
+    def getThresholds2(self):
+        return self.thresholds2
+
+    def getLenThresholds1(self):
+        return self.lenThresholds1
+
+    def getLenThresholds2(self):
+        return self.lenThresholds2
 
 
     #def threshold_scan(self, zeroSupThreshold=5, num_events=7000):
     def threshold_scan(self, num_events=7000):
         binary_file = ixpeInputBinaryFile(FILE_PATH)
-
+        binary_file.buildEventTable()
+        numEventsInFile =  binary_file.numEvents()
+        print numEventsInFile
+    
         clustering = ixpeClustering(self.zeroSupThreshold)
-
+        #clustering = ixpeClustering(5)
+        #thresholds1 = range(5, 21, 1)                       # array of first pass thresholds (si ferma a 20!!!)
+        #thresholds2 = range(5, 21, 1)                       # array of second pass thresholds
+    
+        #thresholds1 = array.array('i',(i for i in range(5,21)))
+        #thresholds2 = array.array('i',(i for i in range(5,21)))
         thresholds1 = self.thresholds1
         thresholds2 = self.thresholds2
+        print thresholds1[15]
 
 
 
-        #for k in range (0, num_events):
-        for k in range (0, 10000000):
+
+        #valore = raw_input('continue?')  
+    
+        '''
+        for i in range(0, len(thresholds1)):
+            #hist_matrix.append([])
+            hist_matrix[i].append(hist_array)
+            #for j in range(0, 1): #len(thresholds2))
+                #hist_matrix[i].append(h11)
+        #valore = raw_input('continue?') 
+        '''
+    
+
+        for k in range (1, numEventsInFile+1):                     # loop over all the events GIUSTO!!!!!
+        #for i in range (1, num_events+1):                     # loop over all the events
             if k%1000 == 0:
                 print k     
-            #if (k > numEventsInFile):
-                #break
-
-            try:
-                evt = binary_file.next()
-            except RuntimeError  as  e:
-                #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
-                if str(e)=='Header mismatch':
-                        continue
-                else:
-                    break
-
+            if (k > numEventsInFile):
+                break       
+            evt = binary_file.readEvent(k)
+            #evt = binary_file.next()
             tracks = clustering.dbScan(evt)             # ??? prende solo il cluster piu' grande? NO    # applies dbScan
-            if len(tracks) != 0:            #needed! there are events with no cluster (no pixel over zero suppression threshold)
+            if len(tracks) != 0:            #needed! thera are events with no cluster. Is this possible? What about the trigger to have a detector event????
                 track = tracks[0]                           # tracks[0] e' il cluster principale dell' i-esimo evento
                                                             # list of all pixels in the custer       # pi = pulse invariant, pha = ???
-                         
+
+                                                  
                 for i in range(0, len(thresholds1)):
                     for j in range(0,len(thresholds2)):
                         track.reconstruct(thresholds1[i], thresholds2[j], False)      # la soglia deve essere un intero (ADC)
@@ -223,7 +270,7 @@ def test():
     
 if __name__ == "__main__":
 
-    #f = TFile("threshold_scan.root", "recreate") OLD
+    f = TFile("threshold_scan.root", "recreate")
 
     #c = TCanvas("c","c",0)
     #c.cd()
@@ -244,9 +291,7 @@ if __name__ == "__main__":
 
     #self.threshold_scan()
 
-    f = TFile("thr_scan_%s_rad.root" %os.path.basename(FILE_PATH).replace('.mdat',''), "recreate") #NEW
-
-    test()
+    test()    
 
     f.Close()
 
