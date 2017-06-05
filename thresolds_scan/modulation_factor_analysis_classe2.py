@@ -102,7 +102,7 @@ class modulationFactor:
                 gStyle.SetStatW(0.1)
                 gStyle.SetStatH(0.09)
                 h.Draw("E1") #"E1" to show error bars
-                c.Write()
+                h.Write() #c.Write()
                 c.Update()
 
                 reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF() #getProb
@@ -118,7 +118,7 @@ class modulationFactor:
                     yMaxModulationFactor = thresholds2[j]
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
                 self.h_reduced_chi_square.Fill(reducedChiSquare)
-
+        
         self.markerMaxModulationFactor = TMarker(xMaxModulationFactor, yMaxModulationFactor, 34)
         self.markerMaxModulationFactor.SetMarkerColor(2)
         self.markerMaxModulationFactor.SetMarkerSize(1.5)
@@ -163,7 +163,7 @@ class modulationFactor:
         self.h_reduced_chi_square.UseCurrentStyle()
         self.h_reduced_chi_square.Draw()
         self.h_reduced_chi_square.Write()
-    
+        
         valore = raw_input('continue?')
     
         out_file.Close()

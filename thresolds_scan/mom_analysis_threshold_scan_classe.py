@@ -28,8 +28,9 @@
 #BUONO
 
 import os
-import numpy
+import numpy as np
 import array
+from itertools import product
 
 import matplotlib.pyplot as plt
 
@@ -57,55 +58,17 @@ class thresholdScan:
         self.thresholds2 = array.array('i',(i for i in range(5,21)))
         self.lenThresholds2 = len(self.thresholds2)        
 
-        '''
-        import numpy as np
-        from itertools import product
-        a = np.arange(5, 21)    ---> per thresholds1
-        >>> #a = np.array([1,2,3])
-        >>> b = np.array([1,2,3])
-        >>> c = np.array(['%i,%i'%(i,j) for i,j in list(product(a,b))])
-        >>> cc = np.reshape(c, (3,3)) ---> la mia name_matrix
-        cc[1][1]
-        '''
 
-        self.name_h0 = ["1,1","1,2","1,3","1,4","1,5","1,6","1,7","1,8","1,9","1,10","1,11","1,12","1,13","1,14","1,15","1,16"]
-        self.name_h1 = ["2,1","2,2","2,3","2,4","2,5","2,6","2,7","2,8","2,9","2,10","2,11","2,12","2,13","2,14","2,15","2,16"]
-        self.name_h2 = ["3,1","3,2","3,3","3,4","3,5","3,6","3,7","3,8","3,9","3,10","3,11","3,12","3,13","3,14","3,15","3,16"]
-        self.name_h3 = ["4,1","4,2","4,3","4,4","4,5","4,6","4,7","4,8","4,9","4,10","4,11","4,12","4,13","4,14","4,15","4,16"]
-        self.name_h4 = ["5,1","5,2","5,3","5,4","5,5","5,6","5,7","5,8","5,9","5,10","5,11","5,12","5,13","5,14","5,15","5,16"]
-        self.name_h5 = ["6,1","6,2","6,3","6,4","6,5","6,6","6,7","6,8","6,9","6,10","6,11","6,12","6,13","6,14","6,15","6,16"]
-        self.name_h6 = ["7,1","7,2","7,3","7,4","7,5","7,6","7,7","7,8","7,9","7,10","7,11","7,12","7,13","7,14","7,15","7,16"]
-        self.name_h7 = ["8,1","8,2","8,3","8,4","8,5","8,6","8,7","8,8","8,9","8,10","8,11","8,12","8,13","8,14","8,15","8,16"]
-        self.name_h8 = ["9,1","9,2","9,3","9,4","9,5","9,6","9,7","9,8","9,9","9,10","9,11","9,12","9,13","9,14","9,15","9,16"]
-        self.name_h9 = ["10,1","10,2","10,3","10,4","10,5","10,6","10,7","10,8","10,9","10,10","10,11","10,12","10,13","10,14","10,15","10,16"]
-        self.name_h10= ["11,1","11,2","11,3","11,4","11,5","11,6","11,7","11,8","11,9","11,10","11,11","11,12","11,13","11,14","11,15","11,16"]
-        self.name_h11= ["12,1","12,2","12,3","12,4","12,5","12,6","12,7","12,8","12,9","12,10","12,11","12,12","12,13","12,14","12,15","12,16"]
-        self.name_h12= ["13,1","13,2","13,3","13,4","13,5","13,6","13,7","13,8","13,9","13,10","13,11","13,12","13,13","13,14","13,15","13,16"]
-        self.name_h13= ["14,1","14,2","14,3","14,4","14,5","14,6","14,7","14,8","14,9","14,10","14,11","14,12","14,13","14,14","14,15","14,16"]
-        self.name_h14= ["15,1","15,2","15,3","15,4","15,5","15,6","15,7","15,8","15,9","15,10","15,11","15,12","15,13","15,14","15,15","15,16"]
-        self.name_h15= ["16,1","16,2","16,3","16,4","16,5","16,6","16,7","16,8","16,9","16,10","16,11","16,12","16,13","16,14","16,15","16,16"]
-    
-        self.name_matrix = []
-        self.name_matrix.append(self.name_h0)
-        self.name_matrix.append(self.name_h1)
-        self.name_matrix.append(self.name_h2)
-        self.name_matrix.append(self.name_h3)
-        self.name_matrix.append(self.name_h4)
-        self.name_matrix.append(self.name_h5)
-        self.name_matrix.append(self.name_h6)
-        self.name_matrix.append(self.name_h7)
-        self.name_matrix.append(self.name_h8)
-        self.name_matrix.append(self.name_h9)
-        self.name_matrix.append(self.name_h10)
-        self.name_matrix.append(self.name_h11)
-        self.name_matrix.append(self.name_h12)
-        self.name_matrix.append(self.name_h13)
-        self.name_matrix.append(self.name_h14)
-        self.name_matrix.append(self.name_h15)
-    
-    
-    
-    
+        #Initialize name matrix
+        a = np.arange(5, 21)    #---> per thresholds1
+        b = np.arange(5, 21)
+        c = np.array(['%i,%i'%(i,j) for i,j in list(product(self.thresholds1,self.thresholds2))])
+        self.name_matrix = np.reshape(c, (16,16)) #---> la mia name_matrix
+        print self.name_matrix[0][0]
+        print self.name_matrix[0][1]
+
+        
+        #Initialize histogram matrix
         self.hist_array0=16*[ROOT.TH1F]
         self.hist_array1=16*[ROOT.TH1F]
         self.hist_array2=16*[ROOT.TH1F]
@@ -126,22 +89,24 @@ class thresholdScan:
     
         for i in range(0,16):
 
-            self.hist_array0[i] = ROOT.TH1F(self.name_h0[i],self.name_h0[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array1[i] = ROOT.TH1F(self.name_h1[i],self.name_h1[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array2[i] = ROOT.TH1F(self.name_h2[i],self.name_h2[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array3[i] = ROOT.TH1F(self.name_h3[i],self.name_h3[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array4[i] = ROOT.TH1F(self.name_h4[i],self.name_h4[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array5[i] = ROOT.TH1F(self.name_h5[i],self.name_h5[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array6[i] = ROOT.TH1F(self.name_h6[i],self.name_h6[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array7[i] = ROOT.TH1F(self.name_h7[i],self.name_h7[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array8[i] = ROOT.TH1F(self.name_h8[i],self.name_h8[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array9[i] = ROOT.TH1F(self.name_h9[i],self.name_h9[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array10[i] = ROOT.TH1F(self.name_h10[i],self.name_h10[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array11[i] = ROOT.TH1F(self.name_h11[i],self.name_h11[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array12[i] = ROOT.TH1F(self.name_h12[i],self.name_h12[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array13[i] = ROOT.TH1F(self.name_h13[i],self.name_h13[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array14[i] = ROOT.TH1F(self.name_h14[i],self.name_h14[i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array15[i] = ROOT.TH1F(self.name_h15[i],self.name_h15[i],70,-TMath.Pi(),TMath.Pi()) #80,-4,4
+
+            self.hist_array0[i] = ROOT.TH1F(self.name_matrix[0][i],self.name_matrix[0][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array1[i] = ROOT.TH1F(self.name_matrix[1][i],self.name_matrix[1][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array2[i] = ROOT.TH1F(self.name_matrix[2][i],self.name_matrix[2][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array3[i] = ROOT.TH1F(self.name_matrix[3][i],self.name_matrix[3][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array4[i] = ROOT.TH1F(self.name_matrix[4][i],self.name_matrix[4][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array5[i] = ROOT.TH1F(self.name_matrix[5][i],self.name_matrix[5][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array6[i] = ROOT.TH1F(self.name_matrix[6][i],self.name_matrix[6][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array7[i] = ROOT.TH1F(self.name_matrix[7][i],self.name_matrix[7][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array8[i] = ROOT.TH1F(self.name_matrix[8][i],self.name_matrix[8][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array9[i] = ROOT.TH1F(self.name_matrix[9][i],self.name_matrix[9][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array10[i] = ROOT.TH1F(self.name_matrix[10][i],self.name_matrix[10][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array11[i] = ROOT.TH1F(self.name_matrix[11][i],self.name_matrix[11][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array12[i] = ROOT.TH1F(self.name_matrix[12][i],self.name_matrix[12][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array13[i] = ROOT.TH1F(self.name_matrix[13][i],self.name_matrix[13][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array14[i] = ROOT.TH1F(self.name_matrix[14][i],self.name_matrix[14][i],70,-TMath.Pi(),TMath.Pi())
+            self.hist_array15[i] = ROOT.TH1F(self.name_matrix[15][i],self.name_matrix[15][i],70,-TMath.Pi(),TMath.Pi()) #80,-4,4
+
 
 
 
