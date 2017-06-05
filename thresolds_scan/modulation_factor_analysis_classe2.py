@@ -93,7 +93,7 @@ class modulationFactor:
             for j in range (0,len_thresholds2):
 
                 h = inFile.Get(name_matrix[i][j])
-                fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi())
+                fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi()) #LEGGE di MALUS
                 fitFunc.SetParLimits(0,0,100000000)     # offset >0
                 fitFunc.SetParLimits(1,0,100000000)     # se c'e' bisogno di un'inversione, che la becchi con la fase [2]!!! 
                 h.Fit("fitFunc","MR")
@@ -102,14 +102,15 @@ class modulationFactor:
                 gStyle.SetStatW(0.1)
                 gStyle.SetStatH(0.09)
                 h.Draw("E1") #"E1" to show error bars
+                c.Write()
                 c.Update()
-                h.Write()
-                reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF()
+
+                reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF() #getProb
                 if reducedChiSquare>maxReducedChiSquare:
                     maxReducedChiSquare = reducedChiSquare
 
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
-                modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) #NO!!! Da cambiare!!!!
+                modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) 
                 print modulationFactor
                 if modulationFactor>maxModulationFactor:
                     maxModulationFactor  = modulationFactor
@@ -182,6 +183,17 @@ class modulationFactor:
         #per vedere la dipendenza dalle due soglie (quanto dipende dalla variazione della prima? quanto della seconda?)
         #       --> possiamo sommare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2
         #sistemare nomi file output (DONE) e i titoli dei grafici
+
+        #ERRORE dul fattore di modulazione?
+        #e se il massimo assoluto segnato con il TMarker fosse una fluttuazione? Lontano dalla zona di crescita del mu?
+        #andamento del chi quadro in funzione delle soglie
+        #il massimo del fattore di modulazione e' nella zona dove il chi quadro ridotto e' buono?
+        # vediamo...
+
+        #potrei vedere anche come varia il punto di conversione. rimane stabile li' vicino o si sposta???
+        #queste due soglie cosa fanno effettivamente nell'algoritmo?
+
+        #cambiare i nomi degli istogrammi (name_matrix) --> non soglia numero 1,1  , bensi' 5,5 (valore in ADC delle soglie!)
 
 
 

@@ -173,6 +173,8 @@ class thresholdScan:
     #def threshold_scan(self, zeroSupThreshold=5, num_events=7000):
     def threshold_scan(self, num_events=7000):
         binary_file = ixpeInputBinaryFile(FILE_PATH)
+        numEventsInFile =  binary_file.numEvents()
+        print numEventsInFile
 
         clustering = ixpeClustering(self.zeroSupThreshold)
 
@@ -181,17 +183,21 @@ class thresholdScan:
 
 
 
+
+
         #for k in range (0, num_events):
-        for k in range (0, 10000000):
+        #for k in range (0, 10000000):       #while il file non e' finito
+
+        for k in range (1, numEventsInFile+1):       #while il file non e' finito
             if k%1000 == 0:
                 print k     
-            #if (k > numEventsInFile):
-                #break
+            if (k > numEventsInFile):
+                break
 
             try:
-                evt = binary_file.next()
+                #evt = binary_file.next()
+                evt = binary_file.readEvent(k)
             except RuntimeError  as  e:
-                #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
                 if str(e)=='Header mismatch':
                         continue
                 else:
