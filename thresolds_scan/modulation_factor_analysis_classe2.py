@@ -57,6 +57,7 @@ class modulationFactor:
         #self.c_init=0
         self.h_modulation_factors = TH2F()
         self.h_reduced_chi_square = TH1F()
+        self.h_probability = TH1F()
         self.markerMaxModulationFactor = TMarker()
 
     def histogram_fitter(self):
@@ -76,6 +77,7 @@ class modulationFactor:
 
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
         self.h_reduced_chi_square = TH1F("h_reduced_chi_square", "h_reduced_chi_square", 50, 0, 5)
+        self.h_probability = TH1F("h_probability", "h_probability", 100, 0, 1)
 
         out_file = TFile('mod_fact_%s' %os.path.basename(FILE_PATH).replace('thr_scan_',''), "recreate") #NEW # %.3f = float con 3 cifre dopo la virgola
         #out_file = TFile("out_file.root", "recreate") #OLD
@@ -109,6 +111,8 @@ class modulationFactor:
                 if reducedChiSquare>maxReducedChiSquare:
                     maxReducedChiSquare = reducedChiSquare
 
+                probability = fitFunc.GetProb()
+
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) 
                 print modulationFactor
@@ -118,10 +122,12 @@ class modulationFactor:
                     yMaxModulationFactor = thresholds2[j]
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
                 self.h_reduced_chi_square.Fill(reducedChiSquare)
+                self.h_probability.Fill(probability)
         
         self.markerMaxModulationFactor = TMarker(xMaxModulationFactor, yMaxModulationFactor, 34)
         self.markerMaxModulationFactor.SetMarkerColor(2)
         self.markerMaxModulationFactor.SetMarkerSize(1.5)
+
 
         cc = TCanvas("cc", "cc", 0)
         cc.cd()
@@ -139,6 +145,7 @@ class modulationFactor:
         self.markerMaxModulationFactor.Draw("same")
         cc.Write()
 
+
         ccc = TCanvas("ccc", "ccc", 0) #NEW
         ccc.cd() #NEW
         self.h_modulation_factors.SetTitle("Modulation Factor - threshold scan")
@@ -147,6 +154,7 @@ class modulationFactor:
         self.h_modulation_factors.Draw("surf1Z") #NEW
         self.markerMaxModulationFactor.Draw("same")
         self.h_modulation_factors.Write()
+
 
         cccc = TCanvas("cccc", "cccc", 0)
         cccc.cd()
@@ -163,6 +171,21 @@ class modulationFactor:
         self.h_reduced_chi_square.UseCurrentStyle()
         self.h_reduced_chi_square.Draw()
         self.h_reduced_chi_square.Write()
+
+
+        ccccc = TCanvas("ccccc", "ccccc", 0)
+        ccccc.cd()
+        self.h_probability.SetTitle("Probability")  
+        gStyle.SetStatW(0.15)
+        gStyle.SetStatH(0.13)
+        gStyle.SetHistFillColor(kOrange-3)
+        gStyle.SetHistLineColor(kOrange+7)
+        gStyle.SetHistLineStyle(3)
+        gStyle.SetHistLineWidth(2)
+        gStyle.SetOptStat("emr")
+        self.h_probability.UseCurrentStyle()
+        self.h_probability.Draw()
+        self.h_probability.Write()
         
         valore = raw_input('continue?')
     
@@ -184,6 +207,7 @@ class modulationFactor:
         #       --> possiamo sommare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2
         #sistemare nomi file output (DONE) e i titoli dei grafici
 
+
         #ERRORE dul fattore di modulazione?
         #e se il massimo assoluto segnato con il TMarker fosse una fluttuazione? Lontano dalla zona di crescita del mu?
         #andamento del chi quadro in funzione delle soglie
@@ -193,7 +217,9 @@ class modulationFactor:
         #potrei vedere anche come varia il punto di conversione. rimane stabile li' vicino o si sposta???
         #queste due soglie cosa fanno effettivamente nell'algoritmo?
 
-        #cambiare i nomi degli istogrammi (name_matrix) --> non soglia numero 1,1  , bensi' 5,5 (valore in ADC delle soglie!)
+        #cambiare i nomi degli istogrammi (name_matrix) --> non soglia numero 1,1  , bensi' 5,5 (valore in ADC delle soglie!) DONE
+
+        #METTERE DEI TAGLI SUL CHI QUADRO O SULLA PROBABILITA'???
 
 
 
