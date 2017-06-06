@@ -19,16 +19,16 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #***********************************************************************
 
-#usage: python -i mom_analysis_threshold_scan.py infile_path [zero-suppression_threshold, default = 5]
+#usage: python -i mom_analysis_threshold_scan_conversion.py in_file.MDAT
 
-#python -i mom_analysis_threshold_scan_classe.py /home/lorenzo/Tesi/data/MDAT_files/001_0001318_data.mdat
-
+#python -i mom_analysis_threshold_scan_conversion.py in_file.MDAT
 
 
 import os
 import numpy as np
 import array
 from itertools import product
+#from Color import *
 
 import matplotlib.pyplot as plt
 
@@ -46,20 +46,22 @@ class thresholdScan:
 
         self.zeroSupThreshold = 5
 
-        self.thresholds1 = array.array('i',(i for i in range(5,21)))    # thresholds are integers (ADC)
-        self.thresholds2 = array.array('i',(i for i in range(5,21)))
+        self.thresholds1 = array.array('i',(i for i in range(5,21)))
         self.lenThresholds1 = len(self.thresholds1)
+        self.thresholds2 = array.array('i',(i for i in range(5,21)))
         self.lenThresholds2 = len(self.thresholds2)        
 
 
         #Initialize name matrix
-        a = np.arange(5, 21)                        # ---> per thresholds1
-        b = np.arange(5, 21)                        # ---> per thresholds2
+        a = np.arange(5, 21)    #---> per thresholds1
+        b = np.arange(5, 21)    #---> per thresholds2
         c = np.array(['%i,%i'%(i,j) for i,j in list(product(self.thresholds1,self.thresholds2))])
-        self.name_matrix = np.reshape(c, (16,16))
+        self.name_matrix = np.reshape(c, (16,16)) #---> la mia name_matrix
+        print self.name_matrix[0][0]
+        print self.name_matrix[0][1]
 
-
-        #Initialize histograms matrix
+        
+        #Initialize histogram matrix
         self.hist_array0=16*[ROOT.TH1F]
         self.hist_array1=16*[ROOT.TH1F]
         self.hist_array2=16*[ROOT.TH1F]
@@ -77,7 +79,10 @@ class thresholdScan:
         self.hist_array14=16*[ROOT.TH1F]
         self.hist_array15=16*[ROOT.TH1F]
     
+    
         for i in range(0,16):
+
+
             self.hist_array0[i] = ROOT.TH1F(self.name_matrix[0][i],self.name_matrix[0][i],70,-TMath.Pi(),TMath.Pi())
             self.hist_array1[i] = ROOT.TH1F(self.name_matrix[1][i],self.name_matrix[1][i],70,-TMath.Pi(),TMath.Pi())
             self.hist_array2[i] = ROOT.TH1F(self.name_matrix[2][i],self.name_matrix[2][i],70,-TMath.Pi(),TMath.Pi())
@@ -93,7 +98,11 @@ class thresholdScan:
             self.hist_array12[i] = ROOT.TH1F(self.name_matrix[12][i],self.name_matrix[12][i],70,-TMath.Pi(),TMath.Pi())
             self.hist_array13[i] = ROOT.TH1F(self.name_matrix[13][i],self.name_matrix[13][i],70,-TMath.Pi(),TMath.Pi())
             self.hist_array14[i] = ROOT.TH1F(self.name_matrix[14][i],self.name_matrix[14][i],70,-TMath.Pi(),TMath.Pi())
-            self.hist_array15[i] = ROOT.TH1F(self.name_matrix[15][i],self.name_matrix[15][i],70,-TMath.Pi(),TMath.Pi()) #80,-4,4
+            self.hist_array15[i] = ROOT.TH1F(self.name_matrix[15][i],self.name_matrix[15][i],70,-TMath.Pi(),TMath.Pi())
+
+
+
+
 
         self.hist_matrix = []
 
@@ -119,10 +128,8 @@ class thresholdScan:
     #    return self.lenThresholds2
 
 
-    #Threshold scan method
     #def threshold_scan(self, zeroSupThreshold=5, num_events=7000):
     def threshold_scan(self, num_events=7000):
-
         binary_file = ixpeInputBinaryFile(FILE_PATH)
         numEventsInFile =  binary_file.numEvents()
         print numEventsInFile
@@ -132,36 +139,44 @@ class thresholdScan:
         thresholds1 = self.thresholds1
         thresholds2 = self.thresholds2
 
-                                                    # for k in range (0, num_events):
-        for k in range (1, numEventsInFile+1):      # TRY: while il file non e' finito
+
+
+
+
+        #for k in range (0, num_events):
+        #for k in range (0, 10000000):       #while il file non e' finito
+
+        for k in range (1, numEventsInFile+1):       #while il file non e' finito
             if k%1000 == 0:
                 print k     
             if (k > numEventsInFile):
                 break
 
             try:
-                evt = binary_file.readEvent(k)      # evt = binary_file.next()
+                #evt = binary_file.next()
+                evt = binary_file.readEvent(k)
             except RuntimeError  as  e:
                 if str(e)=='Header mismatch':
                         continue
                 else:
                     break
 
-            tracks = clustering.dbScan(evt)         # applies dbScan ---> tracks is array of clusters
-            if len(tracks) != 0:                    # throws cluster with no pixel above 5 ADC
-                track = tracks[0]                   # tracks[0] is the principal cluster of the i-th event
-                                                    # pi = pulse invariant, pha = ???
-
+            tracks = clustering.dbScan(evt)             # ??? prende solo il cluster piu' grande? NO    # applies dbScan
+            if len(tracks) != 0:            #needed! there are events with no cluster (no pixel over zero suppression threshold)
+                track = tracks[0]                           # tracks[0] e' il cluster principale dell' i-esimo evento
+                                                            # list of all pixels in the custer       # pi = pulse invariant, pha = ???
+                         
                 for i in range(0, len(thresholds1)):
                     for j in range(0,len(thresholds2)):
-                        track.reconstruct(thresholds1[i], thresholds2[j], False)
-                        phi = track.secondPassMomentsAnalysis().phi()
-                        # phiDeg = ixpeMath.radToDeg(phi)
-                        # self.hist_matrix[i][j].Fill(phiDeg)
-                        self.hist_matrix[i][j].Fill(phi)
+                        track.reconstruct(thresholds1[i], thresholds2[j], False)      # la soglia deve essere un intero (ADC)
+                        xAbsPoint = track.absorptionPoint().x()
+                        yAbsPoint = track.absorptionPoint().y()
+                        #print 'Absorption point: x = ', xAbsPoint , ' y = ', yAbsPoint
+                        self.hist_matrix[i][j].Fill(xAbsPoint)
                         self.hist_matrix[i][j].SetTitle(self.name_matrix[i][j])
-        #print self.hist_matrix[15][15].GetMean()
         print 'END'
+        #print 'Mean', self.hist_matrix[15][15].GetMean()
+        #print 'Prob', self.hist_matrix[15][15].GetProbability()
     
         f.Write()
     
@@ -174,6 +189,10 @@ def test():
     
 if __name__ == "__main__":
 
+    #f = TFile("threshold_scan.root", "recreate") OLD
+
+    #c = TCanvas("c","c",0)
+    #c.cd()
 
     import argparse
     formatter = argparse.ArgumentDefaultsHelpFormatter
@@ -187,8 +206,11 @@ if __name__ == "__main__":
 
     #FILE_PATH = os.path.join(os.environ['GPDSWROOT'], 'Recon', 'data', 'test_fe_500evts.mdat')
     FILE_PATH = args.infile    
+    #print FILE_PATH
 
-    f = TFile("thr_scan_%s_phi.root" %os.path.basename(FILE_PATH).replace('.mdat',''), "recreate") #NEW
+    #self.threshold_scan()
+
+    f = TFile("thr_scan_%s_abs_point.root" %os.path.basename(FILE_PATH).replace('.mdat',''), "recreate") #NEW
 
     test()
 
