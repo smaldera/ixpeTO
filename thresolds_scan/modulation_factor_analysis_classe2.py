@@ -32,6 +32,8 @@ import matplotlib.pyplot as plt
 import ROOT
 from ROOT import *
 
+import math
+
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeInputBinaryFile
@@ -88,6 +90,7 @@ class modulationFactor:
 
         maxReducedChiSquare  = 0
         maxModulationFactor  = 0
+        sMaxModulationFactor = 0
         xMaxModulationFactor = 0
         yMaxModulationFactor = 0
 
@@ -114,16 +117,30 @@ class modulationFactor:
                 probability = fitFunc.GetProb()
 
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
-                modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0)) 
+                A = fitFunc.GetParameter(0)
+                B = fitFunc.GetParameter(1)
+                sA = fitFunc.GetParError(0)
+                sB = fitFunc.GetParError(1)
+                modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0))
+                sModulationFactor = math.sqrt( ((4*B*B*sA*sA) + (4*A*A*sB*sB)) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) )
                 print modulationFactor
                 if modulationFactor>maxModulationFactor:
                     maxModulationFactor  = modulationFactor
+                    sMaxModulationFactor = sModulationFactor
                     xMaxModulationFactor = thresholds1[i]
                     yMaxModulationFactor = thresholds2[j]
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
                 self.h_reduced_chi_square.Fill(reducedChiSquare)
                 self.h_probability.Fill(probability)
         
+        print '============================================='
+        print 'Max Modulation Factor:'
+        print ' 1st pass mom analysis threshold: ', xMaxModulationFactor
+        print ' 2nd pass mom analysis threshold: ', yMaxModulationFactor
+        print ' Max modulation factor: ', maxModulationFactor , '+-', sMaxModulationFactor
+        print '============================================='
+
+
         self.markerMaxModulationFactor = TMarker(xMaxModulationFactor, yMaxModulationFactor, 34)
         self.markerMaxModulationFactor.SetMarkerColor(2)
         self.markerMaxModulationFactor.SetMarkerSize(1.5)
