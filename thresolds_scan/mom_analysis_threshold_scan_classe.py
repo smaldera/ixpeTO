@@ -121,13 +121,15 @@ class thresholdScan:
 
     #Threshold scan method
     #def threshold_scan(self, zeroSupThreshold=5, num_events=7000):
-    def threshold_scan(self, num_events=7000):
+    #def threshold_scan(self, num_events=7000):
+    def threshold_scan(self, zeroSupThreshold = 5, num_events = 7000):
 
         binary_file = ixpeInputBinaryFile(FILE_PATH)
         numEventsInFile =  binary_file.numEvents()
         print numEventsInFile
 
-        clustering = ixpeClustering(self.zeroSupThreshold)
+        print zeroSupThreshold
+        clustering = ixpeClustering(zeroSupThreshold)
 
         thresholds1 = self.thresholds1
         thresholds2 = self.thresholds2
@@ -167,9 +169,10 @@ class thresholdScan:
     
     
     
-def test():
+def test(zeroSupThreshold):
+    print zeroSupThreshold
     thrScan = thresholdScan()
-    thrScan.threshold_scan()
+    thrScan.threshold_scan(zeroSupThreshold)
     
     
 if __name__ == "__main__":
@@ -190,7 +193,7 @@ if __name__ == "__main__":
 
     f = TFile("thr_scan_%s_phi.root" %os.path.basename(FILE_PATH).replace('.mdat',''), "recreate") #NEW
 
-    test()
+    test(args.zero_suppression)
 
     f.Close()
 
