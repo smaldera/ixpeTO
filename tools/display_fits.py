@@ -1,11 +1,15 @@
 #!/bin/sh
+
 import os
-import argparse
-from astropy.table import Table
-import numpy as np
+import ast
 import pandas
-import matplotlib.pyplot as plt
 import logging
+import argparse
+import numpy as np
+from astropy.io import fits
+from astropy.table import Table
+import matplotlib.pyplot as plt
+
 
 """ Configure the main terminal logger.
     [To be moved to another config file to import...]
@@ -19,7 +23,6 @@ consoleHandler.setFormatter(consoleFormatter)
 logger.addHandler(consoleHandler)
 
 
-
 __description__ = 'Producing some useful plots from a fits file'
 
 formatter = argparse.ArgumentDefaultsHelpFormatter
@@ -27,6 +30,9 @@ PARSER = argparse.ArgumentParser(description=__description__,
                                  formatter_class=formatter)
 PARSER.add_argument('-in', '--infile', type=str, required=True,
                     help='the input .fits file')
+PARSER.add_argument('-varlist','--listvariables', type=ast.literal_eval, choices=[True, False],
+                    default=True,
+                    help='if True the list of variables in fits file are listed.')
 PARSER.add_argument('-v', '--vars', type=str, nargs='+', required=False,
                     default=None,
                     help='names of variables of which you want to display the histogram'+\
@@ -69,7 +75,8 @@ def main(**kwargs):
     data_fits = Table.read(kwargs['infile'], format='fits')
     df = data_fits.to_pandas()
     logger.info('Now file %s is a pandas DataFrame!' %os.path.basename(kwargs['infile']))
-    logger.info('List of Columns:\n %s\n'%str(np.array(list(df.columns))))
+    if kwargs['listvariables']:
+        logger.info('List of Columns:\n %s\n'%str(np.array(list(df.columns))))
     if kwargs['vars'] is not None:
         for col in kwargs['vars']:
             logger.info('Display variable %s'%col)
