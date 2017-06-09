@@ -20,7 +20,7 @@
 
 
 import ROOT
-import numpy
+import numpy 
 from array import array
 import math
 
@@ -36,16 +36,21 @@ class xpeSimo:
 
     def __init__(self, track,   raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
 
+        
         self.event_id=-1
-        self.baricenter_X=0
-        self.baricenter_Y=0
-        self.conversion_point_X=0
-        self.conversion_point_Y=0
+        self.baricenter_X=track.barycenter().x()
+        self.baricenter_Y=track.barycenter().y()
+        self.conversion_point_X=track.absorptionPoint().x()
+        self.conversion_point_Y=track.absorptionPoint().y()
        
-        self.phi0=0
-        self.phi1=0
+        self.phi0=track.firstPassMomentsAnalysis().phi()
+        self.phi1=track.secondPassMomentsAnalysis().phi()
         self.phiTang=0
+        self.track=track #!!!!!!!!!!!
+        
+        
 
+        
         self.xnew=0
         self.ynew=0 #  nuovo punto di conversione!!
                
@@ -81,11 +86,7 @@ class xpeSimo:
         self.h1L= ROOT.TH1F("h1L","",int (self.nbinsX/self.dividi_bins),self.x1,self.x2)
         self.h1L_smoothSimo= ROOT.TH1F("h1L_smoothSimo","",int (self.nbinsX/self.dividi_bins),self.x1,self.x2)
         self.h1L_ave= ROOT.TH1F("h1L_ave","",int (self.nbinsX/self.dividi_bins),self.x1,self.x2)
-
-        
-      
-
-        
+             
 
         # funzione fit istogramma long. cariche
         self.fFit_histo=0
@@ -106,20 +107,25 @@ class xpeSimo:
         self.h2 = ROOT.TH2F()
         self.profx=ROOT.TProfile()
         self.newPoint=[0,0]
+
+        # parametri per rototraslazione!!!
         
-       
- """
+        self.phi=self.phi0
+        self.x0=self.conversion_point_X
+        self.y0=self.conversion_point_Y
+        
+    """
     def fit_spline(self, zero_suppression=12):
-        """To be moved into recon.
-        """
+        #To be moved into recon.
+        
         from scipy.interpolate import UnivariateSpline
         _mask = self.cluster.adc_values >= zero_suppression
         x = self.cluster.x[_mask]
         y = self.cluster.y[_mask]
         adc_values = self.cluster.adc_values[_mask]
         weights = (adc_values/float(adc_values.max()))**0.5
-        dx = (x - self.baricenter.x())
-        dy = (y - self.baricenter.y())
+        dx = (x - self.baricenter_X)
+        dy = (y - self.baricenter_Y)
         xp = numpy.cos(self.phi0)*dx + numpy.sin(self.phi0)*dy
         yp = -numpy.sin(self.phi0)*dx + numpy.cos(self.phi0)*dy
         #s = UnivariateSpline(xp, yp, w=weights, s=0.5)
@@ -129,10 +135,10 @@ class xpeSimo:
         _yp = s(_xp)
         dx = numpy.cos(-self.phi0)*_xp + numpy.sin(-self.phi0)*_yp
         dy = -numpy.sin(-self.phi0)*_xp + numpy.cos(-self.phi0)*_yp
-        x = dx + self.baricenter.x()
-        y = dy + self.baricenter.y()
+        x = dx + self.baricenter_X
+        y = dy + self.baricenter_Y 
         plt.plot(x, y, '-', lw=2, color='black')
-"""
+    """
         
        
     def rec_simo(self):
@@ -147,10 +153,11 @@ class xpeSimo:
 
         #creo liste con x,y,z di ogni pixel!!! forse meglio spostarlo fuori da questa classe e passare le liste!
         n_hits=self.track.numHits()
-        hit=track.hits()
-        x=[0].*n_hits
-        y=[0].*n_hits
-        adc=[0].*n_hits
+        hit=self.track.hits()
+        
+        x=numpy.array([0.]*n_hits)
+        y=numpy.array([0.]*n_hits)
+        adc=numpy.array([0.]*n_hits)
         
         for i in range (0,n_hits):
             x[i]=hit[i].x
@@ -158,11 +165,10 @@ class xpeSimo:
             adc[i]=hit[i].pulseHeight
             
         
-        # old: self.baricenter, phi0
         
-        x0=self.conversion_point_X
-        y0=self.conversion_point_Y
-        phi=self.phi0
+        x0=self.x0
+        y0=self.y0
+        phi=self.phi
         
         dx = (x - x0)
         dy = (y - y0)
@@ -177,9 +183,7 @@ class xpeSimo:
         minX=min(xp)
         maxY= max(yp)
         minY=min(yp)
-        
-        #print "DRAW SIMO: minX= ",minX, "maxX = ",maxX
-        
+                
         self.h2 = ROOT.TH2F("h2","",self.nbinsX,self.x1,self.x2,self.nbinsY,self.y1,self.y2)
         self.profx=ROOT.TProfile("profx","profile",100,-2,2,"")
 
@@ -195,16 +199,12 @@ class xpeSimo:
         
         for i in range (0,len(x)):
              self.h2.Fill(xp[i], yp[i],adc[i])
-             self.profx.Fill(xp[i], yp[i],  numpy.sqrt(adc[i])) # peso con la radice dei conteggi... assumo che siano sempre >0!!!
-             #h1.Fill(xp[i]-minX,self.cluster.adc_values[i])
+             self.profx.Fill(xp[i], yp[i],  numpy.sqrt(adc[i])) # peso con la radice dei conteggi... assumo che siano sempre >0!!! 
              self.h1.Fill(xp[i]-minX,adc[i])
         
         self.h2.GetXaxis().SetRangeUser(-0.8,1)
         self.h2.GetYaxis().SetRangeUser(-0.6, 0.6)
-
-               
-        #gr1 = ROOT.TGraph (len(xp),xp,yp )
-
+        
         #calcolo coodrdinate bary1 e 2 nel sistema roto traslato:
 
         dx_bary1=(self.baricenter_X-x0)
@@ -254,9 +254,6 @@ class xpeSimo:
             #self.f_p3.FixParameter(1,0) # il cubo diventa una retta!!!!!
         print "fit con  cubo... "
 
-        
-        
-        #gr1.Fit("f_p3","MER")
         self.profx.Fit("f_p3","MERw")
 
         par3=self.f_p3.GetParameter(3)
@@ -293,8 +290,6 @@ class xpeSimo:
             
                  
         self.distConv=fLin.Integral(minX,0.) # in questo sitema di rif. il punto di conv e' in (0,0)         
-        print "DIST conv = ",  self.distConv
-                
         self.h1L_smoothSimo=self.smooth_simo(self.h1L)
         self.h1L_ave=self.media_mobile(self.h1L)
         
@@ -312,19 +307,18 @@ class xpeSimo:
                         
 
 
-        # DRAW !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
     def draw_simo(self):
-        #if self.draw==True:
-
-          
+        #============================================
+        #    Draw!!!!!!!!!!
+        #===========================================
         self.c_init.Clear()
         self.c_init.Divide(2,1)
         self.c_init.cd(1)
         
         self.h2.Draw("colZ")
-        #gr1.Draw("p")
         self.profx.Draw("samep")
-        #ellips=ROOT.TEllipse(self.baricenter.x(),self.baricenter.y(), math.sqrt(self.mom2_long), math.sqrt(self.mom2_trans), 0,360, self.phi0*ROOT.TMath.RadToDeg())
+        #ellips=ROOT.TEllipse(self.baricenter_X,self.baricenter_Y, math.sqrt(self.mom2_long), math.sqrt(self.mom2_trans), 0,360, self.phi0*ROOT.TMath.RadToDeg())
         #ellips.SetFillStyle(0)
         #ellips.Draw()
         
@@ -378,7 +372,7 @@ class xpeSimo:
         self.outRootFile.cd()
         self.c_init.Write()
             
-        valore = raw_input('continue?')
+        #valore = raw_input('continue?')
                 
         
         return 1
@@ -493,16 +487,10 @@ class xpeSimo:
 
     def undo_rotoTraslation (self,xp,yp):
 
-       phi=self.phi0
-       #x0=self.baricenter.x()
-       #y0=self.baricenter.y()
-       phi=self.phi1
+       phi=self.phi
+       x0=self.x0
+       y0=self.y0
        
-       x0=self.conversion_point.x()
-       y0=self.conversion_point.y()
-
-       
-
        dx=xp*numpy.sin(phi)+yp*numpy.cos(phi)
        dy=xp*numpy.cos(phi)-yp*numpy.sin(phi)
 
