@@ -9,18 +9,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table
 import matplotlib.pyplot as plt
-
-
-""" Configure the main terminal logger.
-    [To be moved to another config file to import...]
-"""
-logger = logging.getLogger('ixpetool')
-logger.setLevel(logging.DEBUG)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setLevel(logging.DEBUG)
-consoleFormatter = logging.Formatter(">>> %(message)s")
-consoleHandler.setFormatter(consoleFormatter)
-logger.addHandler(consoleHandler)
+from logging_ import logger
 
 
 __description__ = 'Producing some useful plots from a fits file'
