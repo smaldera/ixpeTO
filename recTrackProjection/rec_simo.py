@@ -34,10 +34,10 @@ from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeInputBinaryFile
 
   
-def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=False):
+def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=0):
        """
        """
-
+       print "file = ",filePath
        print "raggioCut = ",raggioCut
        print "dividiBins= ",dividiBins
        print "baryPadding = ",baryPadding 
@@ -46,6 +46,9 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        print "maxnP = ", maxnP
        print "Psigma ",Psigma
        print "Pthr = ",Pthr
+       print "draw = ",draw
+       print "zeroSupThresold = ",zeroSupThreshold
+      
 
        
        h_phi1=ROOT.TH1F("h_phi1","",360,0,360)
@@ -70,13 +73,13 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
             
    
              
-       binary_file = ixpeInputBinaryFile(file_path)
+       binary_file = ixpeInputBinaryFile(filePath)
        clustering = ixpeClustering(zeroSupThreshold)
       
        for i in xrange(num_events):
            try:    
                 evt = binary_file.next()
-            except RuntimeError  as  e:
+           except RuntimeError  as  e:
                 #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
                 if str(e)=='Header mismatch':
                         continue
@@ -89,27 +92,16 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
               continue
 
            track = tracks[0]
-          
-           recon = xpePixyRecon(cluster)
-           threshold=5
+           threshold=zeroSupThreshold
            track.reconstruct(threshold, threshold, False)      # la soglia deve essere un intero (ADC)
 
-           #if not recon.error_summary:
+       
                
            xpeSimoAA=xpeSimo(track,raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
            xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
            xpeSimoAA.event_id=event_id
            xpeSimoAA.outRootFile= outRootFile
-           #riempio tutte le varie variabili di xpeSimo...
-
-           xpeSimoAAA.baricenter_X=0
-           xpeSimoAAAself.baricenter_Y=0
-           xpeSimoAAAself.conversion_point_X=0
-           xpeSimoAAA.conversion_point_Y=0
-       
-           xpeSimoAAA.phi0=0
-           xpeSimoAAA.phi1=0
-           
+                     
            
            recSimo=xpeSimoAA.rec_simo()
            if draw:
@@ -122,9 +114,9 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            h_phi1.Fill(xpeSimoAA.phi1*ROOT.TMath.RadToDeg() )
            h_phi_tang.Fill(xpeSimoAA.phiTang*ROOT.TMath.RadToDeg() )
            if (xpeSimoAA.xnew!=-100):
-                   h_x.Fill(xpeSimoAA.conversion_point.x())
+                   h_x.Fill(xpeSimoAA.conversion_point_X)
                    h_x1.Fill(xpeSimoAA.xnew)
-                   h_y.Fill(xpeSimoAA.conversion_point.y())
+                   h_y.Fill(xpeSimoAA.conversion_point_Y)
                    h_y1.Fill(xpeSimoAA.ynew)
 
            xpeSimoAA.deleteHistos()
@@ -132,11 +124,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
                    
        c3=ROOT.TCanvas("c3","",2000,1000)
        c3.Divide(1,2)
-       
-
-       #h_phi1.Draw()
-       #h_phi_tang.SetLineColor(2)
-       #h_phi_tang.Draw("sames")
+              
        h_x1.SetLineColor(2)
        h_y1.SetLineColor(2) 
        c3.cd(1)
@@ -152,7 +140,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        miofile = open('miofile.txt','w')   
        miofile.write(str(raggioCut)+ " "+str(dividiBins)+ "  "+str(baryPadding)+"  "+str(findMaxAlg)+" "+str(pcubo)+ "  "+str(maxnP)+"  "+str(Psigma)+" "+str(Pthr)+"  " +str( h_x1.GetRMS() )+" \n")
 
-       #outRootFile=ROOT.TFile("out.root","recreate")
+
        outRootFile.cd()
        h_phi1.Write()
        h_phi_tang.Write()
@@ -180,9 +168,7 @@ if __name__ == '__main__':
                         help = 'number of events to be processed')
     parser.add_argument('-z', '--zero-suppression', type=int, default=9,
                         help = 'zero-suppression threshold')
-    parser.add_argument('-c', '--coordinate-system', type=str, default='pixy',
-                        help = 'coordinate system for the clustering')
-
+    
 
     parser.add_argument('-r', '--raggioCut', type=float, default=0.07,
                         help = 'raggio intorno al fit per accetare i pixel da proiettare')
@@ -204,7 +190,7 @@ if __name__ == '__main__':
                         help = 'se 0 fissa il parametro di 3 grado a zero -> parabola!  ')
     
 
-    parser.add_argument('-d', '--draw', type=bool, default=False,
+    parser.add_argument('-d', '--draw', type=int, default=False,
                         help = 'draw (da aggiungere storage  su file)  (True/ False)  ')
     
     parser.add_argument('-maxnP', '--maxnP', type=int, default=4,
@@ -217,5 +203,4 @@ if __name__ == '__main__':
                         help = 'threshold in TSectrum search peak   ')
     
     args = parser.parse_args()
-    test(args.infile, args.num_events, args.raggioCut,  args.dividiBins, args.baryPadding, args.findMaxAlg, args.zero_suppression,
-         args.coordinate_system, args.pcubo, args.maxnP, args.Psigma, args.Pthr,  args.draw )
+    test(args.infile, args.num_events, args.raggioCut,  args.dividiBins, args.baryPadding, args.findMaxAlg, args.zero_suppression, args.pcubo, args.maxnP, args.Psigma, args.Pthr,  args.draw )
