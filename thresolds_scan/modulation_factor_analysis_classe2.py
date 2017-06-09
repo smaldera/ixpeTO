@@ -41,7 +41,7 @@ from gpdswswig.Io import ixpeInputBinaryFile
 import mom_analysis_threshold_scan_classe as mom
 from mom_analysis_threshold_scan_classe import *
 
-
+#CIAO
 
 class modulationFactor:
 
@@ -94,7 +94,10 @@ class modulationFactor:
         xMaxModulationFactor = 0
         yMaxModulationFactor = 0
 
+        modulationFactors_matrix = [] #new
+
         for i in range (0,len_thresholds1):
+            row = [] #new
             for j in range (0,len_thresholds2):
 
                 h = inFile.Get(name_matrix[i][j])
@@ -116,13 +119,32 @@ class modulationFactor:
 
                 probability = fitFunc.GetProb()
 
+                #get covariance matrix
+                fitter = TVirtualFitter.GetFitter()
+                covMatrix = fitter.GetCovarianceMatrix()
+                print 'cov(A,B) = cov(0,1) = ', fitter.GetCovarianceMatrixElement(0,1)
+                covAB = fitter.GetCovarianceMatrixElement(0,1)
+                #TMatrixD matrix(npar,npar,fitter->GetCovarianceMatrix());
+                #Double_t errorFirstPar = fitter->GetCovarianceMatrixElement(0,0);
+
+
+                #r = TFitResultPtr(h.Fit("fitFunc","MR"));
+                #r.GetCorrelationMatrix()
+                #cov = TMatrixD(r.GetCorrelationMatrix());
+                #TMatrixD cor = r->GetCovarianceMatrix();
+                #cov.Print();
+                #cor.Print();
+
+
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
                 A = fitFunc.GetParameter(0)
                 B = fitFunc.GetParameter(1)
                 sA = fitFunc.GetParError(0)
                 sB = fitFunc.GetParError(1)
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0))
-                sModulationFactor = math.sqrt( ((4*B*B*sA*sA) + (4*A*A*sB*sB)) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) )
+                row.append(modulationFactor) #new
+                #sModulationFactor = math.sqrt( ((4*B*B*sA*sA)+(4*A*A*sB*sB)) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) )
+                sModulationFactor = math.sqrt( ((4*B*B*sA*sA)+(4*A*A*sB*sB)-(8*A*B*covAB) ) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) )
                 print modulationFactor
                 if modulationFactor>maxModulationFactor:
                     maxModulationFactor  = modulationFactor
@@ -132,13 +154,32 @@ class modulationFactor:
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
                 self.h_reduced_chi_square.Fill(reducedChiSquare)
                 self.h_probability.Fill(probability)
-        
+            
+            modulationFactors_matrix.append(row) #new
+
+        print modulationFactors_matrix[0][0] #new
+        print modulationFactors_matrix[15][15] #new
+
         print '============================================='
         print 'Max Modulation Factor:'
         print ' 1st pass mom analysis threshold: ', xMaxModulationFactor
         print ' 2nd pass mom analysis threshold: ', yMaxModulationFactor
         print ' Max modulation factor: ', maxModulationFactor , '+-', sMaxModulationFactor
         print '============================================='
+
+        '''
+        for i in range (0,len_thresholds1):
+            for j in range (0,len_thresholds2):
+                if modulationFactors_matrix[i][j] > maxModulationFactor - sMaxModulationFactor:
+                    print '============================================='
+                    print 'Modulation Factors between max and max-s_max:'
+                    print ' 1st pass mom analysis threshold: ', thresholds1[i]
+                    print ' 2nd pass mom analysis threshold: ', thresholds2[j]
+                    print ' Modulation factor: ', modulationFactors_matrix[i][j]
+                    print '============================================='
+
+                    #forse devo tenere conto anche degli errori su questi???
+        '''
 
 
         self.markerMaxModulationFactor = TMarker(xMaxModulationFactor, yMaxModulationFactor, 34)

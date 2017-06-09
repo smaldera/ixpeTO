@@ -128,7 +128,7 @@ class thresholdScan:
         numEventsInFile =  binary_file.numEvents()
         print numEventsInFile
 
-        print zeroSupThreshold
+        print 'zero suppression threshold = ', zeroSupThreshold
         clustering = ixpeClustering(zeroSupThreshold)
 
         thresholds1 = self.thresholds1
