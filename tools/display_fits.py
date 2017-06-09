@@ -29,10 +29,12 @@ PARSER.add_argument('-in', '--infile', type=str, required=True,
                     help='the input .fits file')
 PARSER.add_argument('-v', '--vars', type=str, nargs='+', required=False,
                     default=None,
-                    help='names of variables of which you want to display the histogram')
+                    help='names of variables of which you want to display the histogram'+\
+                        'example: python display_fits.py -v "TRK_SKEW" "TRK_PHI2" "TIME"')
 PARSER.add_argument('-s', '--scatter', type=str, nargs='+', required=False,
                     default=None,
-                    help='names of the 2 variables of which you want to display the scatter plot')
+                    help='names of the 2 variables of which you want to display the scatter plot'+\
+                        'example: python display_fits.py -s "TRK_SKEW" "TRK_PHI2"')
 
 
 def display_variable_histo(pandas_dataframe, variable_name):
