@@ -162,6 +162,8 @@ class thresholdScan:
                         # self.hist_matrix[i][j].Fill(phiDeg)
                         self.hist_matrix[i][j].Fill(phi)
                         self.hist_matrix[i][j].SetTitle(self.name_matrix[i][j])
+                        self.hist_matrix[i][j].GetXaxis().SetTitle("phi (rad)")
+                        self.hist_matrix[i][j].GetYaxis().SetTitle("counts")
         #print self.hist_matrix[15][15].GetMean()
         print 'END'
     

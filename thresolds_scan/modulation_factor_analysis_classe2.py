@@ -79,7 +79,7 @@ class modulationFactor:
 
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
         self.h_reduced_chi_square = TH1F("h_reduced_chi_square", "h_reduced_chi_square", 50, 0, 5)
-        self.h_probability = TH1F("h_probability", "h_probability", 100, 0, 1)
+        self.h_probability = TH1F("h_probability", "h_probability", 40, 0, 1) #100 bins
 
         out_file = TFile('mod_fact_%s' %os.path.basename(FILE_PATH).replace('thr_scan_',''), "recreate") #NEW # %.3f = float con 3 cifre dopo la virgola
         #out_file = TFile("out_file.root", "recreate") #OLD
@@ -101,6 +101,8 @@ class modulationFactor:
             for j in range (0,len_thresholds2):
 
                 h = inFile.Get(name_matrix[i][j])
+                h.GetXaxis().SetTitle("phi (rad)")
+                h.GetYaxis().SetTitle("counts")
                 fitFunc = TF1("fitFunc", "[0]+[1]*cos(x-[2])*cos(x-[2])", -TMath.Pi(), TMath.Pi()) #LEGGE di MALUS
                 fitFunc.SetParLimits(0,0,100000000)     # offset >0
                 fitFunc.SetParLimits(1,0,100000000)     # se c'e' bisogno di un'inversione, che la becchi con la fase [2]!!! 
@@ -111,7 +113,7 @@ class modulationFactor:
                 gStyle.SetStatH(0.09)
                 h.Draw("E1") #"E1" to show error bars
                 h.Write() #c.Write()
-                c.Update()
+                #c.Update()
 
                 reducedChiSquare = fitFunc.GetChisquare()/fitFunc.GetNDF() #getProb
                 if reducedChiSquare>maxReducedChiSquare:
@@ -124,16 +126,6 @@ class modulationFactor:
                 covMatrix = fitter.GetCovarianceMatrix()
                 print 'cov(A,B) = cov(0,1) = ', fitter.GetCovarianceMatrixElement(0,1)
                 covAB = fitter.GetCovarianceMatrixElement(0,1)
-                #TMatrixD matrix(npar,npar,fitter->GetCovarianceMatrix());
-                #Double_t errorFirstPar = fitter->GetCovarianceMatrixElement(0,0);
-
-
-                #r = TFitResultPtr(h.Fit("fitFunc","MR"));
-                #r.GetCorrelationMatrix()
-                #cov = TMatrixD(r.GetCorrelationMatrix());
-                #TMatrixD cor = r->GetCovarianceMatrix();
-                #cov.Print();
-                #cor.Print();
 
 
                 #c.Close() #da togliere          #salvare gli istogrammi con fit su file root #quando fitto, bloccare per vedere un fit alla volta!!!
@@ -144,7 +136,7 @@ class modulationFactor:
                 modulationFactor = fitFunc.GetParameter(1)/(fitFunc.GetParameter(1)+2*fitFunc.GetParameter(0))
                 row.append(modulationFactor) #new
                 #sModulationFactor = math.sqrt( ((4*B*B*sA*sA)+(4*A*A*sB*sB)) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) )
-                sModulationFactor = math.sqrt( ((4*B*B*sA*sA)+(4*A*A*sB*sB)-(8*A*B*covAB) ) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) )
+                sModulationFactor = math.sqrt( ((4*B*B*sA*sA)+(4*A*A*sB*sB)-(8*A*B*covAB) ) / ((2*A+B)*(2*A+B)*(2*A+B)*(2*A+B)) ) #error with covariance
                 print modulationFactor
                 if modulationFactor>maxModulationFactor:
                     maxModulationFactor  = modulationFactor
@@ -217,6 +209,8 @@ class modulationFactor:
         cccc = TCanvas("cccc", "cccc", 0)
         cccc.cd()
         self.h_reduced_chi_square.SetAxisRange(0, maxReducedChiSquare, "X")
+        self.h_reduced_chi_square.GetXaxis().SetTitle("reduced chi square")
+        self.h_reduced_chi_square.GetYaxis().SetTitle("counts")
         self.h_reduced_chi_square.SetTitle("Reduced Chi Square")
         #self.h_reduced_chi_square.SetBins()
         gStyle.SetStatW(0.15)
@@ -233,6 +227,8 @@ class modulationFactor:
 
         ccccc = TCanvas("ccccc", "ccccc", 0)
         ccccc.cd()
+        self.h_probability.GetXaxis().SetTitle("probability")
+        self.h_probability.GetYaxis().SetTitle("counts")
         self.h_probability.SetTitle("Probability")  
         gStyle.SetStatW(0.15)
         gStyle.SetStatH(0.13)
@@ -254,16 +250,16 @@ class modulationFactor:
 
         #draw TH2 in 3-d??? (surf2) DONE
         #set Stat per chi quadro (opzione di TH1/2 o canvas?? altrimenti da TBrowser View-->Editor-->Chi!! DONE
-        #istogramma del chi quadro ridotto!! 
+        #istogramma del chi quadro ridotto!! DONE
         #che errore da' di default sull'altezza delle barre dell'istogramma (sembra sqrt(N_in_bin))
         #soglie t.c. mod_factor == max ---> draw on the TH2 --> write canvas con h_modulation_factors + TMarker DONE
-        #angolo fisso, diverse energie
+        #angolo fisso, diverse energie DONE
         #energia fissa, diversi angoli
         #con diverso asse di polarizzazione non dovrebbe cambiare
-        #fissa range di variazione colore sul TH2
-        #per vedere la dipendenza dalle due soglie (quanto dipende dalla variazione della prima? quanto della seconda?)
-        #       --> possiamo sommare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2
-        #sistemare nomi file output (DONE) e i titoli dei grafici
+        #fissa range di variazione colore sul TH2 NO!
+        #per vedere la dipendenza dalle due soglie (quanto dipende dalla variazione della prima? quanto della seconda?) DONE
+        #       --> possiamo sommare tutti i valori del modulation_factor corrismondenti alla stessa thr1 e per le diverse thr2 DONE
+        #sistemare nomi file output (DONE) e i titoli dei grafici 
 
 
         #ERRORE dul fattore di modulazione?
