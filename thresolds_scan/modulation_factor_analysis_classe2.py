@@ -61,6 +61,7 @@ class modulationFactor:
         self.h_reduced_chi_square = TH1F()
         self.h_probability = TH1F()
         self.markerMaxModulationFactor = TMarker()
+        self.h_dist_mu = TH1F()
 
     def histogram_fitter(self):
         
@@ -80,6 +81,7 @@ class modulationFactor:
         self.h_modulation_factors = TH2F("h_modulation_factors", "h_modulation_factors", len_thresholds1, thresholds1[0]-0.5, thresholds1[len_thresholds1-1]+0.5, len_thresholds2, thresholds2[0]-0.5, thresholds2[len_thresholds2-1]+0.5)
         self.h_reduced_chi_square = TH1F("h_reduced_chi_square", "h_reduced_chi_square", 50, 0, 5)
         self.h_probability = TH1F("h_probability", "h_probability", 40, 0, 1) #100 bins
+        self.h_dist_mu = TH1F("h_dist_mu", "h_dist_mu", 600, 0, 1)
 
         out_file = TFile('mod_fact_%s' %os.path.basename(FILE_PATH).replace('thr_scan_',''), "recreate") #NEW # %.3f = float con 3 cifre dopo la virgola
         #out_file = TFile("out_file.root", "recreate") #OLD
@@ -146,7 +148,11 @@ class modulationFactor:
                 self.h_modulation_factors.Fill(thresholds1[i],thresholds2[j],modulationFactor)
                 self.h_reduced_chi_square.Fill(reducedChiSquare)
                 self.h_probability.Fill(probability)
-            
+
+                diffMu = 1. - modulationFactor      #Vale solo per polarizzati al 100%
+                                                    #Per non polarizzati, sostituire 1 con 0
+                self.h_dist_mu.Fill(diffMu)
+
             modulationFactors_matrix.append(row) #new
 
         print modulationFactors_matrix[0][0] #new
@@ -205,7 +211,7 @@ class modulationFactor:
         self.markerMaxModulationFactor.Draw("same")
         self.h_modulation_factors.Write()
 
-
+        '''
         cccc = TCanvas("cccc", "cccc", 0)
         cccc.cd()
         self.h_reduced_chi_square.SetAxisRange(0, maxReducedChiSquare, "X")
@@ -223,8 +229,9 @@ class modulationFactor:
         self.h_reduced_chi_square.UseCurrentStyle()
         self.h_reduced_chi_square.Draw()
         self.h_reduced_chi_square.Write()
+        '''
 
-
+        '''
         ccccc = TCanvas("ccccc", "ccccc", 0)
         ccccc.cd()
         self.h_probability.GetXaxis().SetTitle("probability")
@@ -240,7 +247,27 @@ class modulationFactor:
         self.h_probability.UseCurrentStyle()
         self.h_probability.Draw()
         self.h_probability.Write()
-        
+        '''
+
+        c_dist_mu = TCanvas("cDistMu", "cDistMu", 0)
+        c_dist_mu.cd()
+        self.h_dist_mu.GetXaxis().SetTitle("$1 - \mu$")
+        self.h_dist_mu.GetYaxis().SetTitle("counts")
+        self.h_dist_mu.SetTitle("$\mu_{real} - \mu$")  
+        gStyle.SetStatW(0.15)
+        gStyle.SetStatH(0.13)
+        gStyle.SetHistFillColor(kBlue-4)
+        gStyle.SetHistLineColor(kBlue+3)
+        gStyle.SetHistLineStyle(3)
+        gStyle.SetHistLineWidth(2)
+        gStyle.SetOptStat("emr")
+        gStyle.SetStatW(0.16)
+        gStyle.SetStatH(0.12)
+        self.h_dist_mu.UseCurrentStyle()
+        self.h_dist_mu.Draw()
+        self.h_dist_mu.Write()
+
+
         valore = raw_input('continue?')
     
         out_file.Close()
