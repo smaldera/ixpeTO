@@ -4,6 +4,20 @@ FOLDER: tools
 PROGRAMS DESCRIPTION:
 
 ===========================================================
+NAME: display_fits.py
+
+--> script per leggere i file .fits (ixperecon output files)
+e disegnare (con matplotlib) gli istogrammi delle variabili 
+e scatter plot tra due variabili
+
+USAGE: $python progName.py -in fileName.fits -v 'var1' 'var2'
+        -s 'var1' 'var2'
+
+EXAMPLE: 
+    python tools/display_fits.py -in tools/data/xpol_2735_recon.fits -s 'TRK_SKEW' 'TRK_PHI2' -v 'TRK_SKEW' 'TRK_PHI2' 'TIME'
+
+
+===========================================================
 NAME: read_fits_hist.py
 
 --> script per leggere i file .fits (ixperecon output files)
