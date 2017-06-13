@@ -25,11 +25,11 @@ PARSER.add_argument('-varlist','--listvariables', type=ast.literal_eval, choices
 PARSER.add_argument('-v', '--vars', type=str, nargs='+', required=False,
                     default=None,
                     help='names of variables of which you want to display the histogram'+\
-                        'example: python display_fits.py -v "TRK_SKEW" "TRK_PHI2" "TIME"')
+                        'example: python display_fits.py -v "TRK_SKEW" "TRK_PHI2" "TIME"')
 PARSER.add_argument('-s', '--scatter', type=str, nargs='+', required=False,
                     default=None,
                     help='names of the 2 variables of which you want to display the scatter plot'+\
-                        'example: python display_fits.py -s "TRK_SKEW" "TRK_PHI2"')
+                        'example: python display_fits.py -s "TRK_SKEW" "TRK_PHI2"')
 
 
 def display_variable_histo(pandas_dataframe, variable_name):
@@ -44,8 +44,9 @@ def display_scatter_plot(pandas_dataframe, variable_name1, variable_name2):
     """Simple function to display the scatter plot of 2 variables
     """
     plt.figure(facecolor='white')
-    plt.hist2d(pandas_dataframe[variable_name1], pandas_dataframe[variable_name2],
-                bins=50)
+    plt.hist2d(pandas_dataframe[variable_name1],
+               pandas_dataframe[variable_name2],
+               bins=50)
     plt.xlabel(variable_name1)
     plt.ylabel(variable_name2)
     cb = plt.colorbar()
@@ -67,7 +68,7 @@ def main(**kwargs):
     if kwargs['listvariables']:
         logger.info('List of Columns:\n %s\n'%str(np.array(list(df.columns))))
     if kwargs['vars'] is not None:
-        for col in kwargs['vars']:
+        for col in kwargs['vars':]
             logger.info('Display variable %s'%col)
             display_variable_histo(df, col)
     if kwargs['scatter'] is not None:
