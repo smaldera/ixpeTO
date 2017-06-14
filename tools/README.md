@@ -63,3 +63,24 @@ USAGE: $python read_TTree_hist.py file_name.root
 
 
 
+===========================================================
+NAME: ixpeRecon_fits2rootSimo2.py
+
+--> traduce un file fits creato da ixpeRecon in un TTree di root.
+   
+USAGE: $python   ixpeRecon_fits2rootSimo2.py  file_recon.fits
+
+
+===========================================================
+NAME: readSimTree_Simo.cc
+
+--> reads the root ttree resulting from the ixpe simulation.
+    For each events draws 3 views of the energy deposit and a xy
+    view of the different tracks. A canvas is saved for each event
+    and it is saved in the out root file.
+    
+--> compile with:
+    c++ -Wl,--no-as-needed   readSimTree_Simo.cc -o readSimTree_Simo.exe `root-config --libs --cflags`
+   
+USAGE:  ./readSimTree_Simo.exe inputfile.root  outfile.root  n_max_events (optional, default=100, <0 all events )
+
