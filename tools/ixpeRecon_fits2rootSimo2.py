@@ -1,5 +1,5 @@
 # script convertire i .fits in un tree di root (lo so che e' brutto e lento....)
-# ---> python  read_fits_hist_root.py  test_fe_500evts_recon.fits 
+# ---> python  read_fits_hist_root.py  nomefile_recon.fits nomeOutFile.root
 
 import astropy.io.fits as pyfits
 import numpy as np
@@ -16,17 +16,17 @@ if __name__ == '__main__':
 
   
 #if number of args not correct
-  if (len(sys.argv) != 2):
-    print "    usage: python -i progName.py fileName.fits "
+  if (len(sys.argv) != 3):
+    print "    usage: python read_fits_hist_root.p  fileName.fits  OutfileName.root"
     sys.exit()
 
   print "processing file ",sys.argv[1]
-
+  print "out root file ",sys.argv[2]
 
 #get FITS file name
   dataFile = open(sys.argv[1],'r')
-  fileName = dataFile.name    #????????????????????
-
+  fileName = dataFile.name    
+  outFileName=sys.argv[2]
 
 #open FITS file (memmap = True to prevent RAM storage issues)
   pha_list = fits.open(fileName, memmap=True)
@@ -40,6 +40,7 @@ if __name__ == '__main__':
 #load data into a separate variable
   pha_data = pha_list[1].data
 
+  
 #TABLE READING TOOLS
 #  print pha_data[0]		   # row 0
 #  print pha_data[0][2]		   # row 0, element 2
@@ -48,19 +49,17 @@ if __name__ == '__main__':
 #  print pha_data['track0_phi'][0]  # column 'track0_phi', element 0 --> FASTER PERFORMANCE
 
 
+
   print "len pha = ",len(pha_data)		   # number of events
   print "len pha[tke_phi]= ",len( pha_data['TRK_PHI2'])
 
-  f = ROOT.TFile('outSimo2new.root', 'recreate')
+
+  f = ROOT.TFile(outFileName, 'recreate')
+  
   reconT = ROOT.TTree("reconT", "reconT")
- 
-
   bufferID = array('i', [0])
- 
-   #array(typecode,[initializer])	#--> N.B.: python: i = unsigned integer, d = double
-  					# 	       ROOT:   I = unsigned integer, D = double
 
-  eventID = array('i', [0])  	    # maxn* e' da mettere?
+  eventID = array('i', [0])  
   timestamp = array('d', [0.])
   roi_size = array('i', [0])
   roi_min_column = array('i', [0])
@@ -81,9 +80,6 @@ if __name__ == '__main__':
 
  
 
-
-  
-
   reconT.Branch('bufferID', bufferID, 'bufferID/I')
   reconT.Branch('eventID', eventID, 'eventID/I')
   reconT.Branch('roi_size', roi_size, 'roi_size/D')
@@ -102,9 +98,6 @@ if __name__ == '__main__':
   reconT.Branch('trk_mom2trans', trk_mom2trans, 'trk_mom2trans/D')
   reconT.Branch('trk_mom2long', trk_mom2long, 'trk_mom2long/D')
   reconT.Branch('trk_skweness', trk_skweness, 'trk_skweness/D')
-
-
-
 
 
   
