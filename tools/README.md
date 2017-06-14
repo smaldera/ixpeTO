@@ -67,8 +67,23 @@ USAGE: $python read_TTree_hist.py file_name.root
 NAME: ixpeRecon_fits2rootSimo2.py
 
 --> traduce un file fits creato da ixpeRecon in un TTree di root.
+    il tree vine sui chiama "reconT" e viene salvato nel file di output specificato
    
-USAGE: $python   ixpeRecon_fits2rootSimo2.py  file_recon.fits
+USAGE: $python   ixpeRecon_fits2rootSimo2.py  file_recon.fits  outRootFile.root
+
+
+
+===========================================================
+NAME :mod_factors_fromRootSimo.py
+
+--> small script to plot the modulation factor vs energy.
+   imput files, energies and name of output files are hardcoded!!!  
+
+
+USAGE: $python  mod_factors_fromRootSimo.py
+
+
+
 
 
 ===========================================================
