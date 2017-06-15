@@ -14,7 +14,8 @@
 using namespace std;
 
 int mod_factor_vs_energy(){
-  
+
+ 
   //Set di dati SIM
   const int ndata = 15;
   double energy[ndata]    = {2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0}; //[keV]
@@ -64,7 +65,7 @@ int mod_factor_vs_energy(){
   graphV -> SetMarkerStyle(22);
   graphV -> SetMarkerColor(kCyan+1);//(kOrange+1);
   graphV -> SetMarkerSize(1.3);  
-
+  
   //-----------------------------------------------------------------------//  
 
   
@@ -117,9 +118,31 @@ int mod_factor_vs_energy(){
   mg -> GetXaxis() -> SetTitle("Energy [keV]");
   mg -> GetYaxis() -> SetTitle("Modulation factor");
   gPad -> Modified();
+
+  //----------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------
+  
+  // aggiungo qua il grafico per soglie standard (5,5) creato con xxx e salvato in yyyy
+  TFile *f_gSTD=new TFile("histograms/mod_fact_root_files_SIM/plot_mu_stdTh_SIM.root");
+  g_std=f_gSTD->Get("mu_std_sim");
+
+  
+  TFile *f_gSTDdata=new TFile("histograms/mod_fact_root_files/plot_mu_stdTh.root");
+  g_stdData=f_gSTDdata->Get("mu_std_sim");
+  
+  g_std->Draw("samep");
+  g_stdData->Draw("samep");
+  
+  legend->AddEntry(g_std,"sim data - thr (5,5) ","p");
+  legend->AddEntry(g_stdData,"real data - thr (5,5) ","p");
+  
   
   legend -> Draw("same");
+  f_gSTD->Close();
+  f_gSTDdata->Close(); 
 
+  //----------------------------------------------------------------------------------
+ 
 
   //1st threshold vs energy
   TCanvas *c1 = new TCanvas("c1","First threshold vs Energy", 200, 10, 600, 400);
