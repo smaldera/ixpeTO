@@ -123,13 +123,13 @@ int mod_factor_vs_energy(){
   //----------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------
   
-  // aggiungo qua il grafico per soglie standard (5,5) creato con xxx e salvato in yyyy
+  // aggiungo qua il grafico per soglie standard (5,5) creato con  plot_modFactor.py  (per simulazioni e dati veri) 
   TFile *f_gSTD=new TFile("histograms/mod_fact_root_files_SIM/plot_mu_stdTh_SIM.root");
-  g_std=f_gSTD->Get("mu_std_sim");
-
+  TGraphErrors *g_std=f_gSTD->Get("mu_std");
   
   TFile *f_gSTDdata=new TFile("histograms/mod_fact_root_files/plot_mu_stdTh.root");
-  g_stdData=f_gSTDdata->Get("mu_std_sim");
+  TGraphErrors *g_stdData= f_gSTDdata->Get("mu_std");
+  g_stdData->SetMarkerStyle(26);
   
   g_std->Draw("samep");
   g_stdData->Draw("samep");
@@ -139,9 +139,11 @@ int mod_factor_vs_energy(){
   
   
   legend -> Draw("same");
-  f_gSTD->Close();
-  f_gSTDdata->Close(); 
+  //f_gSTD->Close();
+  // f_gSTDdata->Close(); 
+ 
 
+  
   //----------------------------------------------------------------------------------
  
 
@@ -210,6 +212,37 @@ int mod_factor_vs_energy(){
   legend2 -> Draw("same");
 
 
+
+  //------------------------------------------
+  // plot differenze max-std
+  TGraphErrors *g_diffSim=f_gSTD->Get("mu_diff");
+  g_diffSim->SetMarkerStyle(20);
+  g_diffSim->SetMarkerColor(2);
+  g_diffSim->SetLineColor(2);
+  g_diffSim->GetYaxis()->SetRangeUser(-2,5);
+  
+
+  
+  TGraphErrors *g_diffData= f_gSTDdata->Get("mu_diff");
+  g_diffData->SetMarkerStyle(22);
+  g_diffData->SetMarkerColor(4);
+  g_diffData->SetLineColor(4);
+  
+  
+  TCanvas *c3=new TCanvas ("c3","",0);
+  
+  g_diffSim->Draw("ap");
+  g_diffData->Draw("samep");
+  
+  TLegend *legend3 = new TLegend(.1,.75,.25,.9,"Legend");
+  legend3->AddEntry(g_diffSim,"sim data","p");
+  legend3->AddEntry(g_diffData,"real data","p");
+  legend3 -> Draw("same");
+
+  f_gSTD->Close();
+  f_gSTDdata->Close(); 
+ 
+  
   
   /*
   if(fit->GetChisquare() < chiquadro95[fit->GetNDF()])
