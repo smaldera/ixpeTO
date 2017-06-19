@@ -1,0 +1,4 @@
+histograms/mod_fact_root_files/mod_fact_xpol_2735_phi.root  4.5
+histograms/mod_fact_root_files/mod_fact_xpol_2744_phi.root  2.6
+histograms/mod_fact_root_files/mod_fact_xpol_2747_phi.root  6.4
+histograms/mod_fact_root_files/mod_fact_xpol_2769_phi.root  3.7
