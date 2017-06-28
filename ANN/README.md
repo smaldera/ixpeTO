@@ -16,4 +16,10 @@ stuff related to Convoluted Neural Network reconstruction
   usage:
   source gpdsw/setup.sh  (you need to compile swig)
   python   sim2ascii.py  (input and output filenames are hardcoded)
-  
+
+
+  2 examples ascii files can be found here:
+  https://pandora.infn.it/public/7399aa
+
+
+
