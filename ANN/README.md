@@ -18,7 +18,7 @@ stuff related to Convoluted Neural Network reconstruction
   python   sim2ascii.py  (input and output filenames are hardcoded)
 
 
-  2 examples ascii files can be found here:
+  2 example ascii files can be found here:
   https://pandora.infn.it/public/7399aa
 
 
