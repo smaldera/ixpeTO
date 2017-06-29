@@ -22,10 +22,12 @@
 
 import os
 import numpy
+from array import array
+
 
 import matplotlib.pyplot as plt
 import ROOT
-
+import math
 
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
@@ -44,34 +46,46 @@ def rec_and_draw(track):
    #track.reconstruct(threshold, threshold, False) 
    
    hit=track.hits()
-   print hit
- 
    n_hits=track.numHits()
    print "n_hits  = ",n_hits
 
-   x1=-1
-   x2=1
-   y1=-1
-   y2=1
+   x1=-0.99
+   x2=1.01
+   y1=-1.01
+   y2=1.01
    
    nbinsX=int( (x2-x1)/0.01);
    nbinsY=int((y2-y1)/0.01)
- 
+   c=ROOT.TCanvas("c","",0)
+   c.Divide(2,2)
+   c.GetPad(1).SetLogz()
+   c.GetPad(2).SetLogz()
+   c.GetPad(3).SetLogz()
+    
+   
    h2 = ROOT.TH2F("h2","",nbinsX,x1,x2,nbinsY,y1,y2)
    h2.GetXaxis().SetRangeUser(-0.8,1)
    h2.GetYaxis().SetRangeUser(-0.6, 0.6)
 
-   nbinsXhex=int( (x2-x1)/0.05);
-   nbinsYhex=int((y2-y1)/0.05)
+   nbinsXhex=int( (x2-x1)/0.029);
+   nbinsYhex=int((y2-y1)/0.029)
    
    h2hex=ROOT.TH2Poly("h2poly","",nbinsXhex,x1,x2,nbinsYhex,y1,y2)
-   h2hex.Honeycomb(-1,-1,0.05,nbinsXhex ,nbinsYhex);                    
+   h2hex.Honeycomb(-0.99,-1.01,0.029,nbinsXhex ,nbinsYhex);                    
+   h2Off=ROOT.TH2F("h2Off","",40,-20,20,40,-20,20)
+   
+   
+   
+   x1=-0.99
+   x2=1.01
+   
+   h2prof=ROOT.TProfile2D("h2prof","",int((x2-x1)/0.052),x1,x2, int((y2-y1)/0.052),y1,y2)
+   c.cd(1)
+   h2hex.Draw("colz")
+   c.cd(2)
+   h2prof.Draw("colz")
 
    
-   h2prof=ROOT.TProfile2D("h2prof","",nbinsXhex,x1,x2,nbinsYhex,y1,y2)
-   
-
-
    
    x=numpy.array([0.]*n_hits)
    y=numpy.array([0.]*n_hits)
@@ -79,11 +93,16 @@ def rec_and_draw(track):
  
    
    hit=track.hits()
-        
+
+   L=0.029
+   k=math.sqrt(3.)/2.
+   
+      
    for i in range (0,n_hits):
       x[i]=hit[i].x
       y[i]=hit[i].y
       adc[i]=hit[i].pulseHeight
+         
 
    x0=0
    y0=0
@@ -94,23 +113,45 @@ def rec_and_draw(track):
    xp = numpy.cos(phi)*dx + numpy.sin(phi)*dy
    yp = -numpy.sin(phi)*dx + numpy.cos(phi)*dy    
   
-       
+   esa=[ROOT.TPolyLine]*n_hits  
 
    
    for i in range (0,n_hits):
-           #print "x = ",hit[i].x, "y= ",hit[i].y," adc = ",hit[i].pulseHeight
-         
+          print "x = ",(hit[i].x-0.0125)/0.05,"  x int = ", int(round( (hit[i].x-0.0125)/0.05 +0.1,0 ))   , "y= ",(hit[i].y-0.043/2.)/0.043, " y int =",int(round((hit[i].y-0.043/2.)/0.043,0  ) ) ," adc = ",hit[i].pulseHeight
           h2.Fill(xp[i],yp[i], adc[i])
-          #h2hex.Fill(xp[i],yp[i], adc[i])
-          #h2prof.Fill(xp[i],yp[i], adc[i])
-         
+          h2hex.Fill(xp[i],yp[i], adc[i])
+          h2prof.Fill(xp[i],yp[i], adc[i])
+
+          x_int= int(round( (hit[i].x-0.0125)/0.05 +0.1,0 ))
+          y_int=int(round((hit[i].y-0.043/2.)/0.043,0  ) )
+          h2Off.Fill(x_int,y_int,adc[i])
           
-   c=ROOT.TCanvas("c","",0)        
-   h2.Draw("colZ")
+          
+          b=array('f',[L+y[i],L/2.+y[i],-L/2.+y[i],-L+y[i],-L/2+y[i], L/2+y[i],L+y[i] ])
+          a=array('f',[0+x[i],k*L+x[i],k*L+x[i],0+x[i],-k*L+x[i],-k*L+x[i],0+x[i]]   )
+          esa[i]=ROOT.TPolyLine(7,a,b)
+          c.cd(1)
+          esa[i].Draw("samel")   
+          c.cd(2)
+          esa[i].Draw("samel")   
+          
+          
+   #c=ROOT.TCanvas("c","",0)
+   c.cd(1)      
+   #h2.Draw("colZsame")
+   #h2prof.Draw("AXIG,same")
+   c.cd(2)      
+   #h2prof.Draw("colZsame")
+  # h2prof.Draw("AXIG,same")
+   c.cd(3)
+   h2Off.Draw("colZ")
+  
    c.Update()
    valore = raw_input('continue?')
    h2.Reset()
- 
+   h2prof.Reset()
+   #h2hex.Reset()
+   
 
    
             
