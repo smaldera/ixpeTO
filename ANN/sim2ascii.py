@@ -38,8 +38,8 @@ from gpdswswig.Io import ixpeInputBinaryFile
 #                         'test_fe_500evts.mdat')
 
 #FILE_PATH = '/home/maldera/FERMI/Xipe/rec/data/mdat/xpol_2081.mdat'
-FILE_PATH =      '/home/maldera/FERMI/Xipe/rec/ixpeSw/gpdsw/bin/sim.mdat'
-ROOT_FILE_PATH = '/home/maldera/FERMI/Xipe/rec/ixpeSw/gpdsw/bin/sim.root'
+FILE_PATH =      '/home/maldera/FERMI/Xipe/rec/ixpeSw/gpdsw/bin/sim_5Kev/sim.mdat'
+ROOT_FILE_PATH = '/home/maldera/FERMI/Xipe/rec/ixpeSw/gpdsw/bin/sim_5Kev/sim.root'
 
 
             
@@ -54,11 +54,14 @@ if __name__ == "__main__":
      zeroSupThreshold=5
      binary_file = ixpeInputBinaryFile(FILE_PATH)
      clustering = ixpeClustering(zeroSupThreshold)
-     #binary_file.buildEventTable()
+     
      num_events=binary_file.numEvents()
      #num_events=100000;
      print " n event  = ",num_events
 
+     hPhi= ROOT.TH1F("hPhi","",80,-4,4) 
+
+     
      miofile = open('test.txt','w')    
      i=0
      #for i in range (0, num_events):
@@ -72,7 +75,7 @@ if __name__ == "__main__":
             absY=entry.AbsPosY 
             phi=entry.PePhi
             theta=entry.PeTheta
-            
+            hPhi.Fill(phi)
             
             try:    
                 evt = binary_file.next()
@@ -89,12 +92,23 @@ if __name__ == "__main__":
 
             track = tracks[0]
             hit=track.hits()
-           
+
+            #track recon:
+            threshold= zeroSupThreshold
+            track.reconstruct(threshold, threshold, False)
+            baricenter_X=track.barycenter().x()
+            baricenter_Y=track.barycenter().y()
+            conversion_point_X=track.absorptionPoint().x()
+            conversion_point_Y=track.absorptionPoint().y()
+       
+            phi0=track.firstPassMomentsAnalysis().phi()
+            phi1=track.secondPassMomentsAnalysis().phi()
+            pulseH=track.pulseHeight()
  
             n_hits=track.numHits()
             # print "n_hits  = ",n_hits
 
-            header='event_id= '+str(i)+' nPixels= '+str(n_hits)+' E= '+str(photonE)+' x= '+str(absX)+' y= '+str(absY)+' phi= '+str(phi)+ ' theta= '+str(theta)+'\n'
+            header='event_id= '+str(i)+' nPixels= '+str(n_hits)+' E= '+str(photonE)+' x= '+str(absX)+' y= '+str(absY)+' phi= '+str(phi)+ ' theta= '+str(theta)+' x_recStd= '+str(conversion_point_X)+' y_recStd= '+str(conversion_point_Y)+' phi_recStd= '+str(phi1)+' trackPH= '+str(pulseH)+'\n'
          
                        
             #print header
@@ -116,6 +130,8 @@ if __name__ == "__main__":
             y=numpy.array([0.]*n_hits)
             adc=numpy.array([0.]*n_hits)
             i=i+1
-            
+
+     hPhi.Draw()       
      miofile.close()
      rootFile.Close()
+     
