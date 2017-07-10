@@ -68,7 +68,7 @@ def main(**kwargs):
     if kwargs['listvariables']:
         logger.info('List of Columns:\n %s\n'%str(np.array(list(df.columns))))
     if kwargs['vars'] is not None:
-        for col in kwargs['vars':]
+        for col in kwargs['vars']:
             logger.info('Display variable %s'%col)
             display_variable_histo(df, col)
     if kwargs['scatter'] is not None:
