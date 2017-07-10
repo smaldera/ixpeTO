@@ -23,6 +23,7 @@
 
 
 import os
+import sys
 import numpy
 
 #import matplotlib.pyplot as plt
@@ -46,8 +47,18 @@ ROOT_FILE_PATH = '/home/maldera/FERMI/Xipe/rec/ixpeSw/gpdsw/bin/sim_5Kev/sim.roo
 
 if __name__ == "__main__":
 
+     if (len(sys.argv) != 4):
+          print "    usage: python sim2ascii.py  fileName.mdat filename.root  OutfileName.txt"
+          sys.exit()
 
+     print "mdat file= ",sys.argv[1]
+     print "root file= ",sys.argv[2]
+     print "out file= ",sys.argv[3]
 
+     FILE_PATH=sys.argv[1]
+     ROOT_FILE_PATH=sys.argv[2]
+     OUT_FILE=sys.argv[3]
+     
      rootFile = ROOT.TFile(ROOT_FILE_PATH,"open")
      simTree2 = rootFile.Get("ixpe2")
      
@@ -62,7 +73,7 @@ if __name__ == "__main__":
      hPhi= ROOT.TH1F("hPhi","",80,-4,4) 
 
      
-     miofile = open('test.txt','w')    
+     miofile = open(OUT_FILE,'w')    
      i=0
      #for i in range (0, num_events):
      for entry in simTree2:  
