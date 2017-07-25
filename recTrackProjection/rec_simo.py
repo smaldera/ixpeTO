@@ -23,11 +23,12 @@ import ROOT
 import numpy
 from array import array
 import math
-
+import time
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
-from xpeSimo import *
+from xpeSimo_new import *
+#from xpeSimo import *
 
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
@@ -156,7 +157,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        
 
        
-       valore = raw_input('continue?')    
+       #valore = raw_input('continue?')    
         
 if __name__ == '__main__':
     import argparse
@@ -203,4 +204,9 @@ if __name__ == '__main__':
                         help = 'threshold in TSectrum search peak   ')
     
     args = parser.parse_args()
+
+
+    
+    start_time = time.time()
     test(args.infile, args.num_events, args.raggioCut,  args.dividiBins, args.baryPadding, args.findMaxAlg, args.zero_suppression, args.pcubo, args.maxnP, args.Psigma, args.Pthr,  args.draw )
+    print("--- %s seconds ---" % (time.time() - start_time))
