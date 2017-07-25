@@ -117,7 +117,11 @@ def rec_and_draw(track):
 
    
    for i in range (0,n_hits):
-          print "x = ",(hit[i].x-0.0125)/0.05,"  x int = ", int(round( (hit[i].x-0.0125)/0.05 +0.1,0 ))   , "y= ",(hit[i].y-0.043/2.)/0.043, " y int =",int(round((hit[i].y-0.043/2.)/0.043,0  ) ) ," adc = ",hit[i].pulseHeight
+          print "x= ",(hit[i].x), "  x/0.05= ",(hit[i].x)/0.05  ,"x = ",(hit[i].x-0.0125)/0.05,"  x int = ", int(round( (hit[i].x-0.0125)/0.05 +0.1,0 )) ," y = ",hit[i].y,"y/0.043= ", hit[i].y/0.043, "y= ",(hit[i].y-0.043/2.)/0.043, " y int =",int(round((hit[i].y-0.043/2.)/0.043,0  ) ) ," adc = ",hit[i].pulseHeight
+
+
+          
+          
           h2.Fill(xp[i],yp[i], adc[i])
           h2hex.Fill(xp[i],yp[i], adc[i])
           h2prof.Fill(xp[i],yp[i], adc[i])

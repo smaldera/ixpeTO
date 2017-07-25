@@ -30,7 +30,7 @@
 #include <TLegend.h>
 #include <TH2F.h>
 #include <TMarker.h>
-
+#include <TF1.h>
 
 using namespace std;
 
@@ -64,10 +64,11 @@ int main(int argc, char **argv){
       return 0;
   }
 
-
+   cout<<"max (2,4)="<<max (2,4)<<endl;
+   cout<<"min (2,4)="<<min(2,4)<<endl;
 
    TFile *fout = new  TFile(argv[2],"recreate");
-   TFile *f = new TFile(argv[1]);
+   TFile *f = new TFile(argv[1],"open");
 
    int maxEvents=100;
    if (argc==4 )   maxEvents=atoi(argv[3]);
@@ -79,14 +80,20 @@ int main(int argc, char **argv){
   
   
   TTree *tree= (TTree *)f->Get("ixpe");
+  cout<<" bbb"<<endl;
   TTree *tree2=(TTree *)f->Get("ixpe2");
-
+  
+  
   Int_t    NumEvents, TrackID;
-  Double_t PosX, PosY, PosZ,EDep ;  
+  Double_t PosX, PosY, PosZ,EDep; 
   //Char_t StepProcName[100];
   Char_t TrackProcName[100];
-  
-  
+  int nEntries=tree->GetEntries();
+  int nEntries2=tree2->GetEntries();
+  int n_Evts=0;
+  cout<<nEntries2<<" events found in TTree ixpe2"<<endl;
+  cout<<nEntries<<" entries in TTree ixpe (gas cell hits)"<<endl; 
+
   
   tree->SetBranchAddress("NumEvents",       &NumEvents     );     
   tree->SetBranchAddress("PosX",       &PosX     );     
@@ -97,31 +104,29 @@ int main(int argc, char **argv){
   //tree->SetBranchAddress("StepProcName", &StepProcName);     
   tree->SetBranchAddress("TrackProcName", &TrackProcName);     
   
+
   
   
-  Double_t x_conv, y_conv, z_conv; 
+  Double_t x_conv, y_conv, z_conv, PePhi; 
   tree2->SetBranchAddress("AbsPosX",       &x_conv    );     
   tree2->SetBranchAddress("AbsPosY",       &y_conv    );     
   tree2->SetBranchAddress("AbsPosZ",       &z_conv    );     
+  tree2->SetBranchAddress("PePhi",        &PePhi    );     
+
+  
   
 
     
-  TH2F *h_xy=new TH2F("h_xy","x-y",300,-0.3,0.3,300,-0.3,0.3);
-  TH2F *h_xz=new TH2F("h_xz","x-z",300,-0.3,0.3,300,-0.3,0.3 );
-  TH2F *h_yz=new TH2F("h_yz","y-z",300,-0.3,0.3,300,-0.3,0.3 );
+  TH2F *h_xy=new TH2F("h_xy","x-y",1000,-1,1.5,1000,-1,1);
+  TH2F *h_xz=new TH2F("h_xz","x-z",1000,-1,1,1000,-1,1 );
+  TH2F *h_yz=new TH2F("h_yz","y-z",1000,-1,1,1000,-1,1 );
   
   h_xy->GetXaxis()->SetTitle("X-x_{conv}"); h_xy->GetYaxis()->SetTitle("Y-y_{conv}");
   h_xz->GetXaxis()->SetTitle("X-x_{conv}"); h_xz->GetYaxis()->SetTitle("Z-z_{conv}");
   h_yz->GetXaxis()->SetTitle("Y-y_{conv}"); h_yz->GetYaxis()->SetTitle("Z-z_{conv}");
+ 
 
-  
-  int nEntries=tree->GetEntries();
-  int nEntries2=tree2->GetEntries();
-  int n_Evts=0;
 
-  cout<<nEntries2<<" events found in TTree ixpe2"<<endl;
-  cout<<nEntries<<" entries in TTree ixpe (gas cell hits)"<<endl; 
-  
   TCanvas *c0=new TCanvas("c0","",0);
   c0->Divide(2,2);
     
@@ -183,30 +188,37 @@ int main(int argc, char **argv){
 	//TCanvas *c0=new TCanvas("c0","",0);
 	if (n_Evts>maxEvents  && maxEvents>0 ) break;
 	if (n_Evts %1000==0) cout<<"read "<<n_Evts<<" events... "<<endl;
-	
-	tree2->GetEntry(n_Evts);
+	cout<<"i = "<<i<<" NumEvents = "<<NumEvents<<" prevEvent = "<<prevEventId<<" n_Evts= "<<n_Evts<<endl;
+	//	tree2->GetEntry(n_Evts);
 
 	//TMarker *conv_p=new TMarker(x_conv,y_conv,20);
 	TMarker *conv_p=new TMarker(0.,0.,20);
 	
 	//conv_p->SetMarkerSyle(20);
+	double  m=(tan(PePhi));
+	TF1 *fdir=new TF1("fdir","[0]*x",-0.2,0.2);
+	fdir->SetParameter(0,m);
+	fdir->SetLineColor(1);
+	fdir->SetLineWidth(1);
+	fdir->SetLineStyle(2);
 
 	c0->cd(1);
 	
 	
-	h_xy->GetXaxis()->SetRangeUser(minX-0.02,maxX+0.02);
-	h_xy->GetYaxis()->SetRangeUser(minY-0.02,maxY+0.02);
+	h_xy->GetXaxis()->SetRangeUser(min(minX,minY)-0.02, max(maxX,maxY)+0.02);
+	h_xy->GetYaxis()->SetRangeUser(min(minX,minY)-0.02, max(maxX,maxY)+0.02 );
 	h_xy->Draw("box");
 	conv_p->Draw("samep");
-
-	h_xz->GetXaxis()->SetRangeUser(minX-0.02,maxX+0.02);
-	h_xz->GetYaxis()->SetRangeUser(minZ-0.02,maxZ+0.02);
+	fdir->Draw("samel");
+	
+	h_xz->GetXaxis()->SetRangeUser(min(minX,minZ)-0.02, max(maxX,maxZ)+0.02);
+	h_xz->GetYaxis()->SetRangeUser(min(minX,minZ)-0.02, max(maxX,maxZ)+0.02);
 	
 	c0->cd(3);
 	h_xz->Draw("box");
 	conv_p->Draw("samep");
-	h_yz->GetXaxis()->SetRangeUser(minY-0.02,maxY+0.02);
-	h_yz->GetYaxis()->SetRangeUser(minZ-0.02,maxZ+0.02);
+	h_yz->GetXaxis()->SetRangeUser(min(minY,minZ)-0.02, max(maxY,maxZ)+0.02);
+	h_yz->GetYaxis()->SetRangeUser(min(minY,minZ)-0.02, max(maxY,maxZ)+0.02);
 	
 	c0->cd(2);
 	h_yz->Draw("box");
@@ -256,9 +268,9 @@ int main(int argc, char **argv){
 	} //end for trackid 
 	leg->Draw();
 	conv_p->Draw();
-
-	
-	sprintf(nome,"ev_%d",prevEventId);
+	fdir->Draw("samel");
+		
+	sprintf(nome,"ev_%d",	n_Evts+1);
 	//	cout<<"nome=  "<<nome<<endl;
 	c0->SetName(nome);
 	c0->Update();
@@ -302,7 +314,10 @@ int main(int argc, char **argv){
 	minY=1000;
 	maxZ=-1000;
 	minZ=1000;
-	 
+        cout<<" xconv === "<<x_conv<<endl;
+	PosX=PosX-x_conv;
+	PosY=PosY-y_conv;
+	PosZ=PosZ-z_conv;
 	//delete c0;
 	h_xy->Fill(PosX,PosY,EDep);
 	h_xz->Fill(PosX,PosZ,EDep);
