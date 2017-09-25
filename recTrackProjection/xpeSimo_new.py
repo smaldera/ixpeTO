@@ -31,6 +31,9 @@ from xpeSimo_ttree import *
 
 import matplotlib.pyplot as plt
 from gpdswswig.Recon import *
+from gpdswswig.Geometry import *
+
+
 
 from numba import jit
 
@@ -42,6 +45,7 @@ class xpeSimo(object):
         
         self.event_id=-1
         self.baricenter_X=track.barycenter().x()
+        print ("bary X = ",self.baricenter_X)
         self.baricenter_Y=track.barycenter().y()
         self.conversion_point_X=track.absorptionPoint().x()
         self.conversion_point_Y=track.absorptionPoint().y()
@@ -50,9 +54,7 @@ class xpeSimo(object):
         self.phi1=track.secondPassMomentsAnalysis().phi()
         self.phiTang=0
         self.track=track #!!!!!!!!!!!
-        
-        
-
+  
         
         self.xnew=0
         self.ynew=0 #  nuovo punto di conversione!!
@@ -822,6 +824,9 @@ class xpeSimo(object):
             self.redChi2=1000 
 
 
+
+        print " sigma G1 = ",fsum.GetParameter(2)     
+            
         return fsum
 
 

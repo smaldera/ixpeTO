@@ -27,14 +27,17 @@ import time
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
-from xpeSimo_new import *
-#from xpeSimo import *
+#from xpeSimo_new import *
+from xpeSimo import *
 
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeInputBinaryFile
+from gpdswswig.Event import ixpeEvent
+from gpdswswig.Geometry import *
 
-  
+
+
 def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=0):
        """
        """
@@ -71,15 +74,25 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        event_id=0
        outRootFile=ROOT.TFile("out.root","recreate")
        myTree=myTTree()  # from xpeSimo_ttree.py
-            
-   
-             
+     ########       
+     #clustering = ixpeClustering(threshold, min_hits)
+     #   for i in range (0, num_events):
+     #       digiEvt = binary_file.next()
+     #       print(digiEvt)
+     #       evt = ixpeEvent(digiEvt)
+     #       tracks = clustering.dbScan(evt)
+     #       print('%d track(s) found!' % (tracks.size()))
+     #for i, track in enumerate(tracks):
+
+                   
        binary_file = ixpeInputBinaryFile(filePath)
-       clustering = ixpeClustering(zeroSupThreshold)
+       clustering = ixpeClustering(zeroSupThreshold,5)
       
        for i in xrange(num_events):
            try:    
-                evt = binary_file.next()
+
+                  digiEvt = binary_file.next()
+                  evt = ixpeEvent(digiEvt)
            except RuntimeError  as  e:
                 #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
                 if str(e)=='Header mismatch':

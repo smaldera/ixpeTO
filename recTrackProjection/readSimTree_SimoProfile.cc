@@ -31,6 +31,8 @@
 #include <TH2F.h>
 #include <TMarker.h>
 #include <TF1.h>
+#include <TRandom2.h>
+
 
 using namespace std;
 
@@ -67,6 +69,9 @@ int main(int argc, char **argv){
    cout<<"max (2,4)="<<max (2,4)<<endl;
    cout<<"min (2,4)="<<min(2,4)<<endl;
 
+   TRandom2 *RndGaussiana = new TRandom2;
+   RndGaussiana->SetSeed( int (time (NULL)*4)  );
+ //gauss= RndGaussiana->Gaus(s,sigma);
    TFile *fout = new  TFile(argv[2],"recreate");
    TFile *f = new TFile(argv[1],"open");
 
@@ -80,12 +85,13 @@ int main(int argc, char **argv){
   
   
   TTree *tree= (TTree *)f->Get("ixpe");
-  cout<<" bbb"<<endl;
-  TTree *tree2=(TTree *)f->Get("ixpe2");
   
+  TTree *tree2=(TTree *)f->Get("ixpe2");
+
+  double sigmaBlur=0.04;
   
   Int_t    NumEvents, TrackID,StepNum,FirstStep,LastStep;
-  Double_t PosX, PosY, PosZ,EDep; 
+  Double_t PosX, PosY, PosZ,EDep, PosXnorm, PosYnorm, PosZnorm ; 
   //Char_t StepProcName[100];
   Char_t TrackProcName[100];
   int nEntries=tree->GetEntries();
@@ -116,9 +122,6 @@ int main(int argc, char **argv){
   tree2->SetBranchAddress("AbsPosZ",       &z_conv    );     
   tree2->SetBranchAddress("PePhi",        &PePhi    );     
 
-  
-  
-
     
   TH2F *h_xy=new TH2F("h_xy","x-y",1000,-1,1.5,1000,-1,1);
   TH2F *h_xz=new TH2F("h_xz","x-z",1000,-1,1,1000,-1,1 );
@@ -126,7 +129,15 @@ int main(int argc, char **argv){
 
   TH1F *h_long=new TH1F("h_long","long",1000,-1,1);
   TH1F *h_longAuger=new TH1F("h_longAuger","longAuger",1000,-1,1);
+  TH1F *h_longAll=new TH1F("h_longAll","long",1000,-1,1);
 
+  TH1F *h_long_blur=new TH1F("h_long_blur","long",1000,-1,1);
+  TH1F *h_longAuger_blur=new TH1F("h_longAuger_blur","longAuger",1000,-1,1);
+  TH1F *h_longAll_blur=new TH1F("h_longAll_blur","long",1000,-1,1);
+
+ 
+
+  
   TH1F *h_longLin=new TH1F("h_longLin","longLin",1000,-1,1);
  
   h_xy->GetXaxis()->SetTitle("X-x_{conv}"); h_xy->GetYaxis()->SetTitle("Y-y_{conv}");
@@ -168,28 +179,42 @@ int main(int argc, char **argv){
   for (int i=0; i< nEntries; i++){
       tree->GetEntry(i);
       
-      cout<<"i = "<<i<<" NumEvents = "<<NumEvents<<" x = "<<PosX<<" stepProcName = "<<TrackProcName<<endl;
+      //cout<<"i = "<<i<<" NumEvents = "<<NumEvents<<" x = "<<PosX<<" stepProcName = "<<TrackProcName<<endl;
       if (prevEventId==NumEvents || prevEventId==-10 ||  n_pheDep==0 ){ // non cabiare evento!!! 
 
-	PosX=PosX-x_conv;
-	PosY=PosY-y_conv;
-	PosZ=PosZ-z_conv;
+	PosXnorm=PosX-x_conv;
+	PosYnorm=PosY-y_conv;
+	PosZnorm=PosZ-z_conv;
 
 	if (prev_x!=0){
  	     if  ( processName[TrackID]=="phot_auger"){
 	          distAuger= distAuger -  pow(   (pow( (PosX-prev_x),2)+ pow( (PosY-prev_y),2) ),0.5);
 		  h_longAuger->Fill(distAuger,EDep);
-		  h_long->Fill(distAuger,EDep);
+		  h_longAll->Fill(distAuger,EDep);
+
+		  double distAugerBlur=RndGaussiana->Gaus(distAuger,sigmaBlur);
+		  h_longAuger_blur->Fill(distAugerBlur,EDep);
+		  h_longAll_blur->Fill(distAugerBlur,EDep);
+
+
+		  
 	     }
 	     if ( processName[TrackID]=="phot"){
 	          dist= dist+  pow(   (pow( (PosX-prev_x),2)+ pow( (PosY-prev_y),2) ),0.5);
 		  h_long->Fill(dist,EDep);
+		  h_longAll->Fill(dist,EDep);
+		  //cout<<" dist= "<<dist<<" Edep = "<<EDep<<endl;
+		  
+		  double distBlur=RndGaussiana->Gaus(dist,sigmaBlur);
+		  h_long_blur->Fill(distBlur,EDep);
+		  h_longAll_blur->Fill(distBlur,EDep);
 		  n_pheDep++;
 	     }
 
 	} else{
 	  dist=0;
 	  distAuger=0;
+	  
 	}
 	
 	
@@ -202,26 +227,26 @@ int main(int argc, char **argv){
 
 
 	
-	h_xy->Fill((PosX),(PosY),EDep);
-	h_xz->Fill(PosX,PosZ,EDep);
-	h_yz->Fill(PosY,PosZ,EDep);
+	h_xy->Fill((PosXnorm),(PosYnorm),EDep);
+	h_xz->Fill(PosXnorm,PosZnorm,EDep);
+	h_yz->Fill(PosYnorm,PosZnorm,EDep);
 
 	if (TrackID>maxTrackID) maxTrackID=TrackID;
 	
 	if (TrackID<15){
-	  x[TrackID].push_back(PosX);
-	  y[TrackID].push_back(PosY);
-	  z[TrackID].push_back(PosZ); 
+	  x[TrackID].push_back(PosXnorm);
+	  y[TrackID].push_back(PosYnorm);
+	  z[TrackID].push_back(PosZnorm); 
 	  processName[TrackID]=TrackProcName;
 
 	}
 	
-	if (PosX>maxX) {maxX=PosX;}
-	if (PosX<minX) {minX=PosX;}
-	if (PosY>maxY) {maxY=PosY;}
-	if (PosY<minY) {minY=PosY;}
-	if (PosZ>maxZ) {maxZ=PosZ;}
-	if (PosZ<minZ) {minZ=PosZ;}
+	if (PosXnorm>maxX) {maxX=PosXnorm;}
+	if (PosXnorm<minX) {minX=PosXnorm;}
+	if (PosYnorm>maxY) {maxY=PosYnorm;}
+	if (PosYnorm<minY) {minY=PosYnorm;}
+	if (PosZnorm>maxZ) {maxZ=PosZnorm;}
+	if (PosZnorm<minZ) {minZ=PosZnorm;}
 
 	prev_x=PosX;
 	prev_y=PosY;
@@ -232,8 +257,8 @@ int main(int argc, char **argv){
 	//TCanvas *c0=new TCanvas("c0","",0);
 	if (n_Evts>maxEvents  && maxEvents>0 ) break;
 	if (n_Evts %1000==0) cout<<"read "<<n_Evts<<" events... "<<endl;
-	cout<<"i = "<<i<<" NumEvents = "<<NumEvents<<" prevEvent = "<<prevEventId<<" n_Evts= "<<n_Evts<<endl;
-	//	tree2->GetEntry(n_Evts);
+	//cout<<" ===> trovato nuovo evento! salvo... precedente   i = "<<i<<" NumEvents = "<<NumEvents<<" prevEvent = "<<prevEventId<<" n_Evts= "<<n_Evts<<endl;
+	
 
 	//TMarker *conv_p=new TMarker(x_conv,y_conv,20);
 	TMarker *conv_p=new TMarker(0.,0.,20);
@@ -321,10 +346,10 @@ int main(int argc, char **argv){
 	c0->Draw();
 
 	fout->cd();
-	c0->Write();
-	//h_long->Write();  
+	//c0->Write(); // non salvo il canvas!!!!
+	
 	n_Evts++;
-
+	//cout<<"       xconv old === "<<x_conv<<endl;
 	if (n_Evts>nEntries2) break;
 	tree2->GetEntry(n_Evts); // prende le grandezze dell'evento successivo!!!!!! brutto!!!!
 	
@@ -363,14 +388,22 @@ int main(int argc, char **argv){
 	minY=1000;
 	maxZ=-1000;
 	minZ=1000;
-        cout<<" xconv === "<<x_conv<<endl;
-	PosX=PosX-x_conv;
-	PosY=PosY-y_conv;
-	PosZ=PosZ-z_conv;
+        //cout<<"       xconv new === "<<x_conv<<endl;
+	//cout<<"       xconv new ttree1 === "<<PosX<<endl;
+
+	//x_conv=PosX;
+	//y_conv=PosY;
+	//z_conv=PosZ;
+	
+	
+	
+	PosXnorm=PosX-x_conv;
+	PosYnorm=PosY-y_conv;
+	PosZnorm=PosZ-z_conv;
 	//delete c0;
-	h_xy->Fill(PosX,PosY,EDep);
-	h_xz->Fill(PosX,PosZ,EDep);
-	h_yz->Fill(PosY,PosZ,EDep);
+	h_xy->Fill(PosXnorm,PosYnorm,EDep);
+	h_xz->Fill(PosXnorm,PosZnorm,EDep);
+	h_yz->Fill(PosYnorm,PosZnorm,EDep);
 	maxTrackID=0;
 
 
@@ -382,8 +415,8 @@ int main(int argc, char **argv){
 	  y[TrackID].push_back(PosY);
 	  processName[TrackID]=TrackProcName;
 	}
-	cout<<" -------------- "<<endl<<endl;
-      }	//end eels
+	//cout<<" -------------- "<<endl<<endl;
+      }	//end else
       
       
       prevEventId=NumEvents;
@@ -393,6 +426,11 @@ int main(int argc, char **argv){
   fout->cd();
   h_long->Write();
   h_longAuger->Write();
+  h_longAll->Write();
+
+  h_long_blur->Write();
+  h_longAuger_blur->Write();
+  h_longAll_blur->Write();
  
   h_longLin->Write();
   cout<<endl<<"closing input root file... ";
@@ -400,8 +438,7 @@ int main(int argc, char **argv){
   cout<<"  done!"<<endl;
 
   cout<<"closing out root file... ";
-  fout->cd();
-  h_long->Write();
+  
   
   fout->Close();
   cout<<"  done!"<<endl;
