@@ -1,0 +1,10 @@
+Universe   = vanilla
+getenv     =True
+#Executable =provaWroot
+#Executable =provaPy.py
+Executable =job_script.sh
+Arguments  = 
+Log        = provaW.log
+Output     = provaW.out
+Error      = provaW.error
+Queue
