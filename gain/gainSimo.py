@@ -59,6 +59,9 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
                 print "event = ",i
             evt= ixpeEvent(digiEvt)
             tracks = clustering.dbScan(evt)    
+            if len(tracks)==0:
+                print "skipping event n. ",i,
+                continue       #skip events whit no trace!!!!
             track = tracks[0]
 
             # lancio rec...
@@ -66,6 +69,11 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
 
             absX=track.absorptionPoint().x()
             absY=track.absorptionPoint().y()
+            pulseHeight=track.pulseHeight()
+            
+            #print "pulseHeight=",pulseHeight
+            if pulseHeight<4000 and  pulseHeight>5000:
+                continue
 
 
             hit=track.hits()
@@ -81,7 +89,7 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
                 y[i]=hit[i].y
                 adc[i]=hit[i].pulseHeight
                 dist=sqrt(((x[i]-absX)**2)+((y[i]-absY)**2))
-                if  dist<0.05:
+                if  dist<0.08:
 
                     pixel=ixpeGrid.worldToPixel(x[i],y[i])
                     
