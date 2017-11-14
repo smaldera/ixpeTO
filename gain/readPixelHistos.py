@@ -19,7 +19,26 @@ def createHistogramsMatrix(nCol,nRows):
     return pixHist
 
 
+
+def fit2Gaussians(h1):
     
+    gauss=ROOT.TF1("gaus","gaus",0,1000)
+    
+    gauss.SetParameter(1,h1.GetMean())
+    gauss.SetParameter(2,h1.GetRMS())
+
+    h1.Fit('gaus',"ME","",0,150)
+    
+    meanG=gauss.GetParameter(1)
+    #RMSG=gauss.GetParameter(2)
+    RMSG=20
+   
+    #h1.Fit('gaus',"ME","",meanG-RMSG,meanG+RMSG)
+    
+
+
+    return meanG
+
 
 
 
@@ -31,6 +50,10 @@ def doAll(infile,outFile):
        
     nCol=300
     nRows=352    
+
+    #nCol=10
+    #nRows=10    
+
 
     inRootFile=ROOT.TFile(infile,"open")
     
@@ -54,6 +77,9 @@ def doAll(infile,outFile):
     hz=ROOT.TH1F("hz","hz",500,0,500)
     hzRMS=ROOT.TH1F("hzRMS","hzRMS",500,0,500)
 
+    hzGauss=ROOT.TH1F("hzGauss","hzGauss",500,0,500)
+  
+
     print ("creating out root file: ",outFile)
     outRootFile=ROOT.TFile(outFile,"recreate")
      
@@ -70,28 +96,35 @@ def doAll(infile,outFile):
             #print "hname = ",hName
             hist=inRootFile.Get(hName)
             hist.Rebin(5)
-
-            hist.Write()
-            
+                        
             
             mean=  hist.GetMean()
             entries= hist.GetEntries()
+
+            meanG= fit2Gaussians(hist)
+            hist.Write()
+            
             #wordlPix=ixpeGrid.pixelToWorld(row,col)
             #h2hex.Fill(wordlPix.x(),wordlPix.y(),mean)
             #h2.Fill(wordlPix.x(),wordlPix.y(),mean)
             h2pixel.Fill(col,row,mean)
-        
+            
             if entries>0 and col>5 and col<nCol-5 and row>5 and row<nRows-5 :
+            
                 hz.Fill(mean)
                 hzRMS.Fill( hist.GetRMS())
+                hzGauss.Fill(meanG)
+
+                
 
             del hist
             
-    print ("wring histos... ")
+    print ("writing histos... ")
     
     hz.Write()
     hzRMS.Write()
     h2pixel.Write()
+    hzGauss.Write()
     print ("closing root file...")
     outRootFile.Close()
   
