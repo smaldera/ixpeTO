@@ -2,7 +2,7 @@
 import ROOT
 import numpy
 from math import *
-
+from array import array
 
 
 
@@ -40,6 +40,11 @@ def fit2Gaussians(h1):
     return meanG
 
 
+#def doCIC(h1):
+#    
+#    h=h1.Scale(h1.)
+
+
 
 
 def doAll(infile,outFile):
@@ -54,10 +59,8 @@ def doAll(infile,outFile):
     #nCol=10
     #nRows=10    
 
-
     inRootFile=ROOT.TFile(infile,"open")
-    
-       
+
     x1=-8.99
     x2=8.01
     y1=-8.01
@@ -77,44 +80,82 @@ def doAll(infile,outFile):
     hz=ROOT.TH1F("hz","hz",500,0,500)
     hzRMS=ROOT.TH1F("hzRMS","hzRMS",500,0,500)
 
+    hz=ROOT.TH1F("hz","hz",500,0,500)
     hzGauss=ROOT.TH1F("hzGauss","hzGauss",500,0,500)
+    hzCic=ROOT.TH1F("hzCic","hzCic",500,0,500)
+    hzCic3=ROOT.TH1F("hzCic3","hzCic3",500,0,500)
   
-
     print ("creating out root file: ",outFile)
     outRootFile=ROOT.TFile(outFile,"recreate")
+   
+    treeSimo=ROOT.TTree("tree","tree")
+    mean= array('d', [0.])
+    RMS= array('d', [0.])
+    meanG=array('d', [0.])
+    meanCic=array('d', [0.])
+    meanCic3=array('d', [0.])
+    entries=array('d', [0.])
+    pix_x=array('i', [0])
+    pix_y=array('i', [0])
+   
+
+    treeSimo.Branch('mean', mean, 'mean/D') 
+    treeSimo.Branch('RMS', RMS, 'RMS/D') 
+    treeSimo.Branch('meanG', meanG, 'meanG/D') 
+    treeSimo.Branch('meanCic', meanCic, 'meanCic/D') 
+    treeSimo.Branch('meanCic3', meanCic3, 'meanCic3/D') 
+    treeSimo.Branch('entries', entries, 'entries/D') 
+    treeSimo.Branch('pix_x', pix_x, 'pix_x/I')
+    treeSimo.Branch('pix_y', pix_y, 'pix_y/I')
+ 
      
-  
-    
+    #for col in range (95,105):
     for col in range (0,nCol):
         print "col=", col
+
         for row in range (0,nRows):
+        #for row in range (95,105):
 
             #print "col=", col," row= ",row
-
-            #hName=hist_299_342
+            pix_x[0]=col
+            pix_y[0]=row
+            
             hName='hist_'+str(col)+'_'+str(row)
-            #print "hname = ",hName
             hist=inRootFile.Get(hName)
             hist.Rebin(5)
-                        
-            
-            mean=  hist.GetMean()
-            entries= hist.GetEntries()
+            meanG[0]= fit2Gaussians(hist)            
+            hist.Scale(1./float(hist.GetEntries()) )
 
-            meanG= fit2Gaussians(hist)
+            exp=ROOT.TF1("exp","expo",50,200)
+            hist.Fit("exp","MER")
+            meanCic3[0]=(exp.GetX(0.03)+exp.GetX(0.025))/2.
+            meanCic[0]=exp.GetX(0.03)
+            
+            print "cic = ",meanCic[0], "cic3= ",meanCic3[0]
+
+            mean[0]=  hist.GetMean()
+            RMS[0]= hist.GetRMS()
+            entries[0]= hist.GetEntries()
+
+            
             hist.Write()
             
             #wordlPix=ixpeGrid.pixelToWorld(row,col)
             #h2hex.Fill(wordlPix.x(),wordlPix.y(),mean)
             #h2.Fill(wordlPix.x(),wordlPix.y(),mean)
-            h2pixel.Fill(col,row,mean)
+            h2pixel.Fill(col,row,mean[0])
             
-            if entries>0 and col>5 and col<nCol-5 and row>5 and row<nRows-5 :
-            
-                hz.Fill(mean)
-                hzRMS.Fill( hist.GetRMS())
-                hzGauss.Fill(meanG)
+            treeSimo.Fill()
 
+            if entries[0]>0 and col>5 and col<nCol-5 and row>5 and row<nRows-5 :
+            
+                hz.Fill(mean[0])
+                hzRMS.Fill( hist.GetRMS())
+                hzGauss.Fill(meanG[0])
+                hzCic.Fill(meanCic[0])
+                hzCic3.Fill(meanCic3[0])
+               
+                
                 
 
             del hist
@@ -125,6 +166,10 @@ def doAll(infile,outFile):
     hzRMS.Write()
     h2pixel.Write()
     hzGauss.Write()
+    hzCic.Write()
+    hzCic3.Write()
+
+    treeSimo.Write()
     print ("closing root file...")
     outRootFile.Close()
   
