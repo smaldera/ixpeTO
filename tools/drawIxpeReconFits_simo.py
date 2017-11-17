@@ -98,8 +98,8 @@ if __name__ == '__main__':
     ############## CUT #######################3
     
     print   "trk_sizeNP", trk_sizeNP
-    trk_sizeNP_masked=ma.MaskedArray(trk_sizeNP, ~(trk_pulse_heightNP<1000 )   )  # la maskera chiede cosa voglio tagliare!!!! per questo la nego!! 
-    trk_sizeNP_masked2=ma.MaskedArray(trk_sizeNP, ~(trk_pulse_heightNP>700  )   )  # la maskera chiede cosa voglio tagliare!!!! per questo la nego!! 
+    trk_sizeNP_masked=ma.MaskedArray(trk_sizeNP, ~(trk_pulse_heightNP<100000 )   )  # la maskera chiede cosa voglio tagliare!!!! per questo la nego!! 
+    trk_sizeNP_masked2=ma.MaskedArray(trk_sizeNP, ~(trk_pulse_heightNP>0  )   )  # la maskera chiede cosa voglio tagliare!!!! per questo la nego!! 
 
     
     
