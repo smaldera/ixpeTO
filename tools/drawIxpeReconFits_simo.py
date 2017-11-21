@@ -26,6 +26,8 @@ if __name__ == '__main__':
   hSize=ROOT.TH1F("h_size","tkr_size",1000,0,1000)
   h_numTraks=ROOT.TH1F("h_numTracks","numTracks",100,0,100)
   h_pulseHeight=ROOT.TH1F("h_pulseHeight","pulseHeight ",1000,0,10000)
+  h_pulseInvariant=ROOT.TH1F("h_pulseInvariant","pulseInvariant ",1000,0,10000)
+ 
   h_phi1=ROOT.TH1F("h_phi1","phi1 ",360,-3.1415,3.1415)  
   h_phi2=ROOT.TH1F("h_phi2","phi2 ",360,-3.1415,3.1415)
   h_absX=ROOT.TH1F("h_absX","absX ",200, -10,10)
@@ -34,6 +36,8 @@ if __name__ == '__main__':
   h_baryY=ROOT.TH1F("h_baryY","baryY ",200, -10,10)
   h_absXY=ROOT.TH2F("h_absXY","absX absY ",200, -10,10,200,-10,10)
   h_pulse_size=ROOT.TH2F("h_pulse-size","pulse height vs size ",1000,0,10000,100,0,1000)
+ 
+
     
   print "filelist ",sys.argv[1]
   print "out root file ",sys.argv[2]
@@ -85,8 +89,9 @@ if __name__ == '__main__':
     trk_sizeNP=np.array(pha_data['TRK_SIZE'])
     num_tracksNP=np.array( pha_data['NUM_CLU'])
     trk_pulse_heightNP =np.array( pha_data['TRK_PHA'])
+    trk_pulse_invNP =np.array( pha_data['TRK_PI'])
     trk_phi2NP =np.array( pha_data['TRK_PHI2'])
-    trk_phi1NP =np.array( pha_data['TRK_PHI'])
+    trk_phi1NP =np.array( pha_data['TRK_PHI1'])
     trk_absorptionXNP =np.array(  pha_data['TRK_ABSX'])
     trk_absorptionYNP =np.array( pha_data['TRK_ABSY'])
     trk_barycenterXNP =np.array( pha_data['TRK_BARX'])
@@ -107,11 +112,22 @@ if __name__ == '__main__':
     mask1=trk_sizeNP_masked.mask
     mask2=trk_sizeNP_masked2.mask
 
+    #devo fare l'or bit a bit di tutte le maschere!!!!
     mask=mask1 | mask2
     
     print "mask = ",mask
-    
+    num_tracksNP_masked=ma.masked_array( num_tracksNP ,mask)
     trk_pulse_heightNP_masked =ma.masked_array( trk_pulse_heightNP,mask)
+    trk_pulse_invNP_masked =ma.masked_array(  trk_pulse_invNP,mask)
+    trk_phi2NP_masked =ma.masked_array( trk_phi2NP,mask)
+    trk_phi1NP_masked=ma.masked_array(  trk_phi1NP,mask)
+    trk_absorptionXNP_masked =ma.masked_array( trk_absorptionXNP,mask)
+    trk_absorptionYNP_masked =ma.masked_array(  trk_absorptionYNP,mask)
+    trk_barycenterXNP_masked=ma.masked_array(   trk_barycenterXNP,mask)
+    trk_barycenterYNP_masked=ma.masked_array(  trk_barycenterYNP,mask)
+    trk_mom2transNP_masked=ma.masked_array( trk_mom2transNP,mask)
+    trk_mom2longNP_masked=ma.masked_array(  trk_mom2longNP,mask)
+    trk_skwenessNP_masked =ma.masked_array(  trk_skwenessNP,mask)
     
     print trk_sizeNP_masked[~mask].data
 
@@ -119,17 +135,19 @@ if __name__ == '__main__':
     
     
     trk_size=array('d', trk_sizeNP_masked[~mask].data)
-    num_tracks=array('d', num_tracksNP         )
+    num_tracks=array('d', num_tracksNP_masked[~mask].data         )
     trk_pulse_height =array('d',  trk_pulse_heightNP_masked[~mask].data )
-    trk_phi2 =array('d',   trk_phi2NP         )
-    trk_phi1 =array('d',    trk_phi1NP      )
-    trk_absorptionX =array('d',trk_absorptionXNP  )
-    trk_absorptionY =array('d', trk_absorptionYNP )
-    trk_barycenterX =array('d',   trk_barycenterXNP )
-    trk_barycenterY =array('d',   trk_barycenterYNP )
-    trk_mom2trans =array('d',    trk_mom2transNP )
-    trk_mom2long =array('d',    trk_mom2longNP  )
-    trk_skweness =array('d',   trk_skwenessNP    )
+    trk_pulse_inv =array('d',  trk_pulse_invNP_masked[~mask].data )
+
+    trk_phi2 =array('d',   trk_phi2NP_masked[~mask].data          )
+    trk_phi1 =array('d',    trk_phi1NP_masked[~mask].data       )
+    trk_absorptionX =array('d',trk_absorptionXNP_masked[~mask].data  )
+    trk_absorptionY =array('d', trk_absorptionYNP_masked[~mask].data )
+    trk_barycenterX =array('d',   trk_barycenterXNP_masked[~mask].data )
+    trk_barycenterY =array('d',   trk_barycenterYNP_masked[~mask].data )
+    trk_mom2trans =array('d',    trk_mom2transNP_masked[~mask].data )
+    trk_mom2long =array('d',    trk_mom2longNP_masked[~mask].data  )
+    trk_skweness =array('d',   trk_skwenessNP_masked[~mask].data    )
     
 
     w= array('d', [1.]*len(trk_size))
@@ -143,6 +161,9 @@ if __name__ == '__main__':
 
     #histogram of pulse_Height:
     h_pulseHeight.FillN(n,trk_pulse_height,w)
+    
+    #histogram of pulse_inv:
+    h_pulseInvariant.FillN(n,trk_pulse_inv,w)
 
     #histogram of phi1:
     h_phi1.FillN(n,trk_phi1,w)
@@ -175,10 +196,12 @@ if __name__ == '__main__':
   hSize.Write()
   h_numTraks.Write()
   h_pulseHeight.Write()
+  h_pulseInvariant.Write()
+
   h_phi1.Write()
   h_phi2.Write()
   h_absX.Write()
-  h_absX.Write()
+  h_absY.Write()
   h_baryX.Write()
   h_baryY.Write()
   h_absXY.Write()
