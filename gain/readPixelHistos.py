@@ -28,7 +28,7 @@ def fit2Gaussians(h1):
     gauss.SetParameter(1,moda)
     gauss.SetParameter(2,h1.GetRMS())
 
-    gauss.SetParLimits(1,moda-20,moda+20)
+    gauss.SetParLimits(1,moda-50,moda+50)
     
     h1.Fit('gaus',"M","",0,150)
     
