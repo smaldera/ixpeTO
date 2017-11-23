@@ -23,18 +23,21 @@ def createHistogramsMatrix(nCol,nRows):
 def fit2Gaussians(h1):
     
     gauss=ROOT.TF1("gaus","gaus",0,1000)
-    
-    gauss.SetParameter(1,h1.GetMean())
+
+    moda=h1.GetBinCenter(h1.GetMaximumBin())
+    gauss.SetParameter(1,moda)
     gauss.SetParameter(2,h1.GetRMS())
 
-    h1.Fit('gaus',"ME","",0,150)
+    gauss.SetParLimits(1,moda-20,moda+20)
+    
+    h1.Fit('gaus',"M","",0,150)
     
     meanG=gauss.GetParameter(1)
-    #RMSG=gauss.GetParameter(2)
-    RMSG=20
+    RMSG=gauss.GetParameter(2)
+    #RMSG=20
    
-    #h1.Fit('gaus',"ME","",meanG-RMSG,meanG+RMSG)
-    
+    h1.Fit('gaus',"M","",meanG-2.*RMSG,meanG+1.*RMSG)
+    meanG=gauss.GetParameter(1)
 
 
     return meanG
@@ -75,8 +78,12 @@ def doAll(infile,outFile):
     h2hex.Honeycomb(-8.99,-8.01,0.028,nbinsXhex ,nbinsYhex);
 
     h2=ROOT.TH2F("h2","",nbinsX,x1,x2,nbinsY,y1,y2)
+    #h2pixel=ROOT.TH2F("h2pixel","",352,0,352,300,0,300)
+    #h2pixelN=ROOT.TH2F("h2pixelN","",352,0,352,300,0,300)
+  
     h2pixel=ROOT.TH2F("h2pixel","",300,0,300,352,0,352)
-
+    h2pixelN=ROOT.TH2F("h2pixelN","",300,0,300,352,0,352)
+  
     hz=ROOT.TH1F("hz","hz",500,0,500)
     hzRMS=ROOT.TH1F("hzRMS","hzRMS",500,0,500)
 
@@ -109,21 +116,22 @@ def doAll(infile,outFile):
     treeSimo.Branch('pix_y', pix_y, 'pix_y/I')
  
      
-    #for col in range (95,105):
-    for col in range (0,nCol):
+    #for col in range (10,15):
+    for col in range (1,nCol):
         print "col=", col
 
-        for row in range (0,nRows):
-        #for row in range (95,105):
+        for row in range (1,nRows):
+        #for row in range (10,15):
 
             #print "col=", col," row= ",row
             pix_x[0]=col
             pix_y[0]=row
             
             hName='hist_'+str(col)+'_'+str(row)
+            print "nome = ",hName
             hist=inRootFile.Get(hName)
-            hist.Rebin(5)
-            meanG[0]= fit2Gaussians(hist)            
+            hist.Rebin(10)
+                    
             hist.Scale(1./float(hist.GetEntries()) )
 
             exp=ROOT.TF1("exp","expo",50,200)
@@ -137,13 +145,15 @@ def doAll(infile,outFile):
             RMS[0]= hist.GetRMS()
             entries[0]= hist.GetEntries()
 
-            
+            meanG[0]= fit2Gaussians(hist)     
             hist.Write()
             
             #wordlPix=ixpeGrid.pixelToWorld(row,col)
             #h2hex.Fill(wordlPix.x(),wordlPix.y(),mean)
             #h2.Fill(wordlPix.x(),wordlPix.y(),mean)
             h2pixel.Fill(col,row,mean[0])
+            #h2pixel.Fill(row,col,mean[0])
+            h2pixelN.Fill(col,row, entries[0])
             
             treeSimo.Fill()
 
@@ -165,6 +175,7 @@ def doAll(infile,outFile):
     hz.Write()
     hzRMS.Write()
     h2pixel.Write()
+    h2pixelN.Write()
     hzGauss.Write()
     hzCic.Write()
     hzCic3.Write()
