@@ -5,18 +5,54 @@ from math import *
 from array import array
 
 
-
-
-def createHistogramsMatrix(nCol,nRows):
-    pixHist= [[ROOT.TH1F]*nRows for i in range(nCol)]
+def media_mobile (h1):        
+    #nbins=h1.GetNbinsX()
+    hF=h1.Clone()
+    h2=h1.Clone()
+    #h2.Rebin(2)
     
-    for col in range (0,nCol):
-        for row in range (0,nRows):
-            name='hist_'+str(col)+'_'+str(row)
-            #print name
-            pixHist[col][row]=ROOT.TH1F(name,name,500,0.,500.)
-            ROOT.SetOwnership(pixHist[col][row], False) # importantissimo!!! se no il grabage collector python ci mette una vita!!!
-    return pixHist
+    hF.Reset()
+    
+    nbins=h2.GetNbinsX()
+    
+    for i in range (2,nbins-2):
+         #ave=  (h1.GetBinContent(i)+ h1.GetBinContent(i-1)+h1.GetBinContent(i+1))/3.
+         # ave=  (h1.GetBinContent(i)+  h1.GetBinContent(i-2)+  h1.GetBinContent(i-1)+h1.GetBinContent(i+1)+h1.GetBinContent(i+2)    )/5.
+
+          ave=0
+          for jj  in range (-1,1):
+              ave=ave+h2.GetBinContent(i+jj)
+
+          ave=ave/3.    
+              
+          hF.SetBinContent(i,ave)
+
+    moda=hF.GetBinCenter(hF.GetMaximumBin())     
+    gauss2=ROOT.TF1("gaus2","gaus",0,1000)
+    gauss2.SetParameter(1,moda)
+    gauss2.SetParameter(2,25)
+
+    gauss2.SetParLimits(1,moda-25,moda+25)
+
+    hF.Fit('gaus2',"M","",moda-25,moda+35)
+
+
+    gaussAve=gauss2.GetParameter(1)
+
+    landau=ROOT.TF1("landau","landau",0,150)
+    landau.SetParameter(1, moda)
+    hF.Fit('landau',"MER")
+
+    landauAve=landau.GetParameter(1)
+    print "gaussAve =",gaussAve," landauAve= ",landauAve
+    
+    valuesAve=[gaussAve,landauAve]
+
+    #hF.Draw()
+    #valore = raw_input('continue?')
+    return valuesAve      
+
+
 
 
 
@@ -39,13 +75,8 @@ def fit2Gaussians(h1):
     h1.Fit('gaus',"M","",meanG-2.*RMSG,meanG+1.*RMSG)
     meanG=gauss.GetParameter(1)
 
-
+   
     return meanG
-
-
-#def doCIC(h1):
-#    
-#    h=h1.Scale(h1.)
 
 
 
@@ -101,6 +132,10 @@ def doAll(infile,outFile):
     meanG=array('d', [0.])
     meanCic=array('d', [0.])
     meanCic3=array('d', [0.])
+    gaussAve=array('d', [0.])
+    landauAve=array('d', [0.])
+    
+    
     entries=array('d', [0.])
     pix_x=array('i', [0])
     pix_y=array('i', [0])
@@ -111,17 +146,20 @@ def doAll(infile,outFile):
     treeSimo.Branch('meanG', meanG, 'meanG/D') 
     treeSimo.Branch('meanCic', meanCic, 'meanCic/D') 
     treeSimo.Branch('meanCic3', meanCic3, 'meanCic3/D') 
-    treeSimo.Branch('entries', entries, 'entries/D') 
+    treeSimo.Branch('gaussAve', gaussAve, 'gaussAve/D') 
+    treeSimo.Branch('landauAve', landauAve, 'landauAve/D') 
+   
+    treeSimo.Branch('entries', entries, 'entries/D')
     treeSimo.Branch('pix_x', pix_x, 'pix_x/I')
     treeSimo.Branch('pix_y', pix_y, 'pix_y/I')
  
      
-    #for col in range (10,15):
+    #for col in range (10,60):
     for col in range (1,nCol):
         print "col=", col
 
         for row in range (1,nRows):
-        #for row in range (10,15):
+        #for row in range (10,60):
 
             #print "col=", col," row= ",row
             pix_x[0]=col
@@ -131,9 +169,15 @@ def doAll(infile,outFile):
             print "nome = ",hName
             hist=inRootFile.Get(hName)
             hist.Rebin(10)
-                    
             hist.Scale(1./float(hist.GetEntries()) )
 
+
+            valuesAve=media_mobile (hist)
+            gaussAve[0]=valuesAve[0]
+            landauAve[0]=valuesAve[1]
+            
+
+            
             exp=ROOT.TF1("exp","expo",50,200)
             hist.Fit("exp","MER")
             meanCic3[0]=(exp.GetX(0.03)+exp.GetX(0.025))/2.
@@ -146,7 +190,7 @@ def doAll(infile,outFile):
             entries[0]= hist.GetEntries()
 
             meanG[0]= fit2Gaussians(hist)     
-            hist.Write()
+            #hist.Write() !!!!!!!!!!!!!!!!!!!!!!!!!!!
             
             #wordlPix=ixpeGrid.pixelToWorld(row,col)
             #h2hex.Fill(wordlPix.x(),wordlPix.y(),mean)
