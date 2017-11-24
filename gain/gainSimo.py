@@ -4,7 +4,9 @@ import numpy
 from math import *
 
 
-from gpdswswig.Io import ixpeLvl0bFitsFile
+
+##from gpdswswig.Io import ixpeLvl0bFitsFile## OBSOLETE???
+from gpdswswig.Io import ixpeInputBinaryFile
 from gpdswswig.MonteCarlo import *
 from gpdswswig.Recon import *
 from gpdswswig.Event import ixpeEvent
@@ -25,13 +27,21 @@ def createHistogramsMatrix(nCol,nRows):
 
 
     
+ 
 
+#def doAll(infileList,outFile,nEvent,zeroSupThreshold):
+def doAll(args):
 
+    infileList=args.inputFile
+    outFile=args.outFile
+    nEvents=args.num_events
+    zeroSupThreshold=args.zero_suppression
+    radius=args.radius
+    minPHA=args.minPHA
+    maxPHA=args.maxPHA
 
-def doAll(infileList,outFile,nEvent,zeroSupThreshold):
-
-
-    print ("infileList  =",infileList)
+    
+    print "infileFist  =",infileList," outFile= ",outFile," nEv=",nEvents," zero supp =",zeroSupThreshold," radius =",radius," minPHA=",minPHA,"maxPHA=",maxPHA 
 
     ixpeGrid= ixpeGeometrySvc.xpolAsicGrid()
 
@@ -47,9 +57,10 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
     for filename in infileList:
            
         print ("processing ",filename)
-        binary_file=ixpeLvl0bFitsFile(filename)  
+       #binary_file=ixpeLvl0bFitsFile(filename)  
+        binary_file=ixpeInputBinaryFile(filename)  
        
-        for i in range (0, nEvent):
+        for i in range (0, nEvents):
             try:
                 digiEvt = binary_file.next() 
             except:
@@ -72,7 +83,7 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
             pulseHeight=track.pulseHeight()
             
             #print "pulseHeight=",pulseHeight
-            if pulseHeight<4000 and  pulseHeight>5000:
+            if pulseHeight<minPHA and  pulseHeight>maxPHA:
                 continue
 
 
@@ -89,7 +100,7 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
                 y[i]=hit[i].y
                 adc[i]=hit[i].pulseHeight
                 dist=sqrt(((x[i]-absX)**2)+((y[i]-absY)**2))
-                if  dist<0.08:
+                if  dist<radius:
 
                     pixel=ixpeGrid.worldToPixel(x[i],y[i])
                     
@@ -100,7 +111,7 @@ def doAll(infileList,outFile,nEvent,zeroSupThreshold):
         # end for events
        
        
-        binary_file.close()
+        #binary_file.close()
        
         
     #end loop files   
@@ -168,15 +179,21 @@ if __name__ == '__main__':
     import argparse
     formatter = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=formatter)
-    parser.add_argument('inputFile', type=str, nargs='+',   help='the input fits file')
+    parser.add_argument('inputFile', type=str, nargs='+',   help='list of input fits files')
     parser.add_argument('outFile', type=str,  help='the output root file')
     parser.add_argument('-n', '--num_events', type=int, default=10000000, help = 'number of events to be processed')
     parser.add_argument('-z', '--zero_suppression', type=int, default=5,help = 'zero-suppression threshold')
+    parser.add_argument('-r', '--radius', type=int, default=0.08,help = 'radius around conv. point')
+    parser.add_argument('-pMin', '--minPHA', type=int, default=3500,help = 'min value for PHA')
+    parser.add_argument('-pMax', '--maxPHA', type=int, default=6000,help = 'max value for PHA')
+    
+    
     
     args = parser.parse_args()
 
      
-    doAll(args.inputFile,args.outFile,args.num_events,args.zero_suppression)
+    #doAll(args.inputFile,args.outFile,args.num_events,args.zero_suppression)
+    doAll(args)
 
     print ("ora ho veramente finito...")
 
