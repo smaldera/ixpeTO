@@ -99,3 +99,14 @@ NAME: readSimTree_Simo.cc
    
 USAGE:  ./readSimTree_Simo.exe inputfile.root  outfile.root  n_max_events (optional, default=100, <0 all events )
 
+
+===========================================================
+NAME: drawIxpeReconFits_simo.py
+
+--> reads and plots recon fits file.
+    Si possono aggiungere dei tagli (vedi sezione CUTS nel codice)
+
+
+USAGE:  python drawIxpeReconFits_simo.py  recinFits_filesList.txt  outRootFile.root
+
+

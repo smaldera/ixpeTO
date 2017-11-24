@@ -28,6 +28,8 @@ if __name__ == '__main__':
   fileName = dataFile.name    
   outFileName=sys.argv[2]
 
+
+
 #open FITS file (memmap = True to prevent RAM storage issues)
   pha_list = fits.open(fileName, memmap=True)
 
@@ -53,77 +55,125 @@ if __name__ == '__main__':
   print "len pha = ",len(pha_data)		   # number of events
   print "len pha[tke_phi]= ",len( pha_data['TRK_PHI2'])
 
-
+  
   f = ROOT.TFile(outFileName, 'recreate')
   
   reconT = ROOT.TTree("reconT", "reconT")
-  bufferID = array('i', [0])
+  #bufferID = array('i', [0])
+  n = array('i',[0])
 
-  eventID = array('i', [0])  
-  timestamp = array('d', [0.])
-  roi_size = array('i', [0])
-  roi_min_column = array('i', [0])
-  roi_max_column = array('i', [0])
-  roi_min_row = array('i', [0])
-  roi_max_row = array('i', [0])
-  num_tracks = array('i', [0])
-  trk_size = array('i', [0])
-  trk_pulse_height = array('i', [0])
-  trk_phi = array('d', [0.])
-  trk_absorptionX = array('d', [0.])
-  trk_absorptionY = array('d', [0.])
-  trk_barycenterX = array('d', [0.])
-  trk_barycenterY = array('d', [0.])
-  trk_mom2trans = array('d', [0.])
-  trk_mom2long = array('d', [0.])
-  trk_skweness = array('d', [0.])
-
- 
-
-  reconT.Branch('bufferID', bufferID, 'bufferID/I')
-  reconT.Branch('eventID', eventID, 'eventID/I')
-  reconT.Branch('roi_size', roi_size, 'roi_size/D')
-  reconT.Branch('roi_min_column', roi_min_column, 'roi_min_column/I')
-  reconT.Branch('roi_max_column', roi_max_column, 'roi_max_column/I')
-  reconT.Branch('roi_min_row', roi_min_row, 'roi_min_row/I')
-  reconT.Branch('roi_max_row', roi_max_row, 'roi_max_row/I')
-  reconT.Branch('num_tracks', num_tracks, 'num_tracks/I')
-  reconT.Branch('trk_size', trk_size, 'trk_size/I')
-  reconT.Branch('trk_pulse_height', trk_pulse_height, 'trk_pulse_height/I')
-  reconT.Branch('trk_phi', trk_phi, 'trk_phi/D')
-  reconT.Branch('trk_absorptionX', trk_absorptionX, 'trk_absorptionX/D')
-  reconT.Branch('trk_absorptionY', trk_absorptionY, 'trk_absorptionY/D')
-  reconT.Branch('trk_barycenterX', trk_barycenterX, 'trk_barycenterX/D')
-  reconT.Branch('trk_barycenterY', trk_barycenterY, 'trk_barycenterY/D')
-  reconT.Branch('trk_mom2trans', trk_mom2trans, 'trk_mom2trans/D')
-  reconT.Branch('trk_mom2long', trk_mom2long, 'trk_mom2long/D')
-  reconT.Branch('trk_skweness', trk_skweness, 'trk_skweness/D')
-
-
+  n[0]= len(pha_data['TRK_PHA'])
+  #n[0]= 2400
+  nEv=n[0] 
   
-#FILL the TREE
-  treeFill=reconT.Fill
-  for i in range(0, len(pha_data)):
 
-    eventID[0] = pha_data['eventID'][i]
-    num_tracks[0]= pha_data['NUM_CLU'][i]
-    trk_size[0]= pha_data['TRK_SIZE'][i]
-    trk_pulse_height[0] = pha_data['TRK_PHA'][i]
-    trk_phi[0] = pha_data['TRK_PHI2'][i]
-    trk_absorptionX[0] =  pha_data['TRK_ABSX'][i]
-    trk_absorptionY[0] = pha_data['TRK_ABSY'][i]
 
-    trk_barycenterX[0] = pha_data['TRK_BARX'][i]
-    trk_barycenterY[0] = pha_data['TRK_BARY'][i]
-    trk_mom2trans[0] = pha_data['TRK_M2T'][i]
-    trk_mom2long[0] = pha_data['TRK_M2L'][i]
-    trk_skweness[0] = pha_data['TRK_SKEW'][i]
 
-    if i%1000 ==0:
-      print "fill event ",i
-    #reconT.Fill()
-    treeFill()
+  """
+  TRG_ID= array('i', [0]*n[0])
+  TIME = array('d', [0.]*n[0])
+  ROI_SIZE = array('i', [0]*n[0])
+  MIN_COL = array('i', [0]*n[0])
+  MAX_COL = array('i', [0]*n[0])
+  MIN_ROW = array('i', [0*n[0]])
+  MAX_ROW = array('i', [0]*n[0])
+  PAKTNUMB = array('i', [0]*n[0])
+  ERR_SUM = array('i', [0]*n[0])
+  #PIX_PHAS=?????????????????????????????????
+  NUM_PIX = array('i', [0]*n[0])
+  TRK_PIX = array('i', [0]*n[0])
+  TRK_EFRA = array('d', [0.]*n[0])
+  TRK_SN = array('d', [0.]*n[0])
+  TRK_BORD =array('i', [0]*n[0])
+  
+  NUM_CLU = array('i', [0]*n[0])
+  TRK_SIZE = array('i', [0]*n[0])
+   
+  pippoTRK_PHA = array('d', [0.]*nEv)
+  
+  TRK_PI = array('d', [0.]*n[0])
+ 
+  TRK_PHI1 = array('d', [0.]*n[0])
+  TRK_PHI2 = array('d', [0.]*n[0])
+ 
+  TRK_ABSX = array('d', [0.*n[0]])
+  TRK_ABSY = array('d', [0.]*n[0])
+  TRK_BARX = array('d', [0.]*n[0])
+  TRK_BARY = array('d', [0.]*n[0])
+  TRK_M2T = array('d', [0.]*n[0])
+  TRK_M2L = array('d', [0.]*n[0])
+  TRK_M3L = array('d', [0.]*n[0])
+  TRK_SKEW = array('d', [0.]*n[0])
+  """
+  
+  TRG_ID= array('i',pha_data['TRG_ID'])
+  TIME = array('d',pha_data['TIME'])
+  ROI_SIZE = array('i',pha_data['ROI_SIZE'])
+  MIN_COL =array( 'i',pha_data['MIN_COL'])
+  MAX_COL =array( 'i',pha_data['MAX_COL'])
+  MIN_ROW =array('i',pha_data['MIN_ROW'])
+  MAX_ROW =array('i', pha_data['MAX_ROW'])
+  PAKTNUMB = array('i',pha_data['PAKTNUMB'])
+  ERR_SUM = array('i',pha_data['ERR_SUM'])
+  #PIX_PHAS=pha_data['PIX_PHAS']?????????????????????????????????
+  NUM_PIX =array('i', pha_data['NUM_PIX'])
+  #TRK_PIX =array('i', pha_data['TRK_PIX'])
+  TRK_EFRA=array('d',pha_data['TRK_EFRA'])
+  TRK_SN =array( 'd',pha_data['TRK_SN'])
+  TRK_BORD =array('i',pha_data['TRK_BORD'])
+  TRK_SIZE =array('i',pha_data['TRK_SIZE'])
+  NUM_CLU =array('i',pha_data['NUM_CLU'])
+  TRK_PHA =array('d', pha_data['TRK_PHA'])
+  TRK_PI = array('d',pha_data['TRK_PI'])
+  TRK_PHI2 =array('d',pha_data['TRK_PHI2'])
+  TRK_PHI1 =array('d',pha_data['TRK_PHI1'])
+  TRK_ABSX =array('d',pha_data['TRK_ABSX'])
+  TRK_ABSY =array('d',pha_data['TRK_ABSY'])
+  TRK_BARX =array('d',pha_data['TRK_BARX'])
+  TRK_BARY =array('d',pha_data['TRK_BARY'])
+  TRK_M2T =array('d',pha_data['TRK_M2T'])
+  TRK_M2L =array('d',pha_data['TRK_M2L'])
+  TRK_M3L =array('d',pha_data['TRK_M2L'])
+  TRK_SKEW =array('d',pha_data['TRK_SKEW'])
+
+
+  reconT.Branch('mynum',n,'mynum/I')
+  reconT.Branch('TRG_ID', TRG_ID, 'TRG_ID[mynum]/I')
+  reconT.Branch('TIME', TIME, 'TIME[mynum]/D')
+  reconT.Branch('ROI_SIZE', ROI_SIZE, 'ROI_SIZE[mynum]/I')
+  reconT.Branch('MIN_COL', MIN_COL, 'MIN_COL[mynum]/I')
+  reconT.Branch('MAX_COL', MAX_COL, 'MAX_COL[mynum]/I')
+  reconT.Branch('MIN_ROW', MIN_ROW, 'MIN_ROW[mynum]/I')
+  reconT.Branch('MAX_ROW', MAX_ROW, 'MAX_ROW[mynum]/I')
+  reconT.Branch('PAKTNUMB', PAKTNUMB, 'PAKTNUMB[mynum]/I') # che e'?
+  reconT.Branch('ERR_SUM',ERR_SUM , 'ERR_SUM[mynum]/I') # che e'? 
+  reconT.Branch('NUM_PIX', NUM_PIX , 'NUM_PIX[mynum]/I') # che e'?
+  #reconT.Branch('TRK_PIX', TRK_PIX , 'TRK_PIX[mynum]/I') # che e'?
+  reconT.Branch('TRK_EFRA', TRK_EFRA , 'TRK_EFRA[mynum]/I') # che e'?
+  reconT.Branch('TRK_SN', TRK_SN , 'TRK_SN[mynum]/I') # che e'?
+  reconT.Branch('TRK_BORD', TRK_BORD , 'TRK_BORD[mynum]/I') # che e'?
+  reconT.Branch('NUM_CLU',NUM_CLU, 'NUM_CLU[mynum]/I')
+  reconT.Branch('TRK_SIZE',TRK_SIZE , 'TRK_SIZE[mynum]/I')
+  reconT.Branch('TRK_PHA',TRK_PHA, 'TRK_PHA[mynum]/D')
+  reconT.Branch('TRK_PI', TRK_PI , 'TRK_PI[mynum]/D')
+  reconT.Branch('TRK_PHI1',TRK_PHI1,  'TRK_PHI1[mynum]/D')
+  reconT.Branch('TRK_PHI2',TRK_PHI2, 'TRK_PHI2[mynum]/D') 
+  reconT.Branch('TRK_ABSX',TRK_ABSX , 'TRK_ABSX[mynum]/D')
+  reconT.Branch('TRK_ABSY',TRK_ABSY , 'TRK_ABSY[mynum]/D')
+  reconT.Branch('TRK_BARX',TRK_BARX , 'TRK_BARX[mynum]/D')
+  reconT.Branch('TRK_BARY',TRK_BARY , 'TRK_BARY[mynum]/D')
+  reconT.Branch('TRK_M2T',TRK_M2T  , 'TRK_M2T[mynum]/D')
+  reconT.Branch('TRK_M2L',TRK_M2L  , 'TRK_M2L[mynum]/D')
+  reconT.Branch('TRK_M3L',TRK_M3L  , 'TRK_M3L[mynum]/D')
+  reconT.Branch('TRK_SKEW',TRK_SKEW ,'TRK_SKEW[mynum]/D')
+  
+  
+  reconT.Fill()
+  print "TRK_PHA=",TRK_PHA
+ 
+  print "n=",n
     
   reconT.Write()
   f.Close()
 
+  

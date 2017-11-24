@@ -48,10 +48,7 @@ def dist90 (hist):
                  d90=hist.GetBinCenter(i)
                  #print " d90 = ",d90
                  break
-
-
-    dists=[d90, d68]         
-             
+    dists=[d90, d68]                      
     return dists
 
 
@@ -67,6 +64,7 @@ def readScan(inputFile, outFile):
     h2d68=ROOT.TH2F("h2","d68",16, 0,8,16,0,8)
     
 
+    
 
     h2d.GetXaxis().SetTitle("Rmin")
     h2d.GetYaxis().SetTitle("Rmax")
@@ -198,7 +196,10 @@ def readScan(inputFile, outFile):
     hDist68=ROOT.TH1F("hDist68","MC - rec conversion point dist.",1000,0,1)
     hDistOffset=ROOT.TH1F("hDistOffset","MC - rec conversion point dist.",1000,0,1)
    
-    
+    hDiffXrt_std=ROOT.TH1F("hDiffXrt_std","",2000,-1,1)
+    hDiffXrt_max=ROOT.TH1F("hDiffXrt_max","",2000,-1,1)
+    hDiffXrt_maxDist=ROOT.TH1F("hDiffXrt_maxDist","",2000,-1,1)
+   
 
     hPhi=ROOT.TH1F("hPhi","", 90, -3.14, 3.14)
     hPhi_std=ROOT.TH1F("hPhi_std","", 90, -3.14, 3.14)
@@ -221,12 +222,13 @@ def readScan(inputFile, outFile):
     hDist_max.SetLineColor(2)
       
 
-
+    # raggi standard
     cut='raggioMin=='+str(minR_std)+'&& raggioMax=='+str(maxR_std)
     tree.Draw("dist2D>>hDist_std",cut)
     tree.Draw("phiRec>>hPhi_std",cut)
     tree.Draw("phiRec-phiMC>>hPhiDiff_std",cut)
-
+    tree.Draw("xRec_rt>>hDiffXrt_std",cut)
+    
 
     
     # massimo valore medio
@@ -234,7 +236,9 @@ def readScan(inputFile, outFile):
     tree.Draw("dist2D>>hDist_max",cut)
     tree.Draw("phiRec-phiMC>>hPhiDiff",cut)
     tree.Draw("phiRec>>hPhi",cut)
-
+    tree.Draw("xRec_rt>>hDiffXrt_maxDist",cut)
+   
+    
     #massimo d90:
     cut='raggioMin=='+str(minr_d90)+'&& raggioMax=='+str(maxr_d90)
     tree.Draw("dist2D>>hDist90",cut)
@@ -247,7 +251,8 @@ def readScan(inputFile, outFile):
     cut='raggioMin=='+str(minr_off)+'&& raggioMax=='+str(maxr_off)
     tree.Draw("dist2D>>hDistOffset",cut)
     tree.Draw("phiRec>>hPhi_offset",cut)
-    
+    tree.Draw("xRec_rt>>hDiffXrt_max",cut)
+   
 
     
     
@@ -327,9 +332,28 @@ def readScan(inputFile, outFile):
     leg3.AddEntry(hPhiDiff_std,"#phi diff std ","l")
     leg3.Draw()
     
-      
 
+    
+    c4_rt=ROOT.TCanvas("c4_rt","rt",0)
+    hDiffXrt_max.SetLineColor(2)
+    hDiffXrt_maxDist.SetLineColor(4)
+    hDiffXrt_std.SetLineColor(6)
+    
+    
+    hDiffXrt_max.Draw()
+    hDiffXrt_maxDist.Draw("sames")
+    hDiffXrt_std.Draw("sames")
+    leg4=ROOT.TLegend(0.15,0.7,0.4,0.85)
+   
+    leg4.AddEntry(hDiffXrt_max,"hDiffrt min","l")
+    leg4.AddEntry(hDiffXrt_maxDist,"hDiffrt minDist","l")
+    leg4.AddEntry(hDiffXrt_std,"hDiffrt std","l")
+    leg4.Draw()
+   
+   
 
+    
+    
     outRootFile=ROOT.TFile(outFile,"recreate")
 
     hDist_max.Write()
@@ -343,6 +367,11 @@ def readScan(inputFile, outFile):
     hDist68.Write()
     hDistOffset.Write()
 
+    hDiffXrt_max.Write()
+    hDiffXrt_maxDist.Write()
+    hDiffXrt_std.Write()
+
+    
     h2d.Write()
     h2d90.Write()
     h2d68.Write()
@@ -351,7 +380,7 @@ def readScan(inputFile, outFile):
     c1.Write()
     c2.Write()
     c3.Write()
-
+    c4_rt.Write()
     outRootFile.Close()
 
     print "min = ",minr_final, " max = ",maxr_final," minD= ",minD,' ( std = ',stdD,')'

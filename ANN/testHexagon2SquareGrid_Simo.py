@@ -32,6 +32,7 @@ import math
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeInputBinaryFile
+from gpdswswig.Event import ixpeEvent
 
 
 #FILE_PATH = os.path.join(os.environ['GPDSWROOT'], 'Recon', 'data',
@@ -164,7 +165,7 @@ if __name__ == "__main__":
 
      zeroSupThreshold=5
      binary_file = ixpeInputBinaryFile(FILE_PATH)
-     clustering = ixpeClustering(zeroSupThreshold)
+     clustering = ixpeClustering(zeroSupThreshold,5)
      #binary_file.buildEventTable()
      #num_events=binary_file.numEvents()
      num_events=1000;
@@ -173,14 +174,19 @@ if __name__ == "__main__":
         
      for i in range (0, num_events):
             try:    
-                evt = binary_file.next()
+                #evt = binary_file.next()
+                 digiEvt = binary_file.next()
+                 evt = ixpeEvent(digiEvt)
+
+                
             except RuntimeError  as  e:
                 #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
                 if str(e)=='Header mismatch':
                         continue
                 else:
                     break         
-
+          
+    
             tracks = clustering.dbScan(evt)    
             if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
                continue

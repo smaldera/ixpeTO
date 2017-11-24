@@ -33,6 +33,11 @@ from xpeSimo import *
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeInputBinaryFile
+from gpdswswig.Io import ixpeLvl0bFitsFile
+
+from gpdswswig.MonteCarlo import ixpeMcInfo
+
+
 from gpdswswig.Event import ixpeEvent
 from gpdswswig.Geometry import *
 
@@ -85,7 +90,9 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
      #for i, track in enumerate(tracks):
 
                    
-       binary_file = ixpeInputBinaryFile(filePath)
+       #binary_file = ixpeInputBinaryFile(filePath) # questo legge i files mdat
+       binary_file=ixpeLvl0bFitsFile(filePath)
+                  # ixpeLvl0bFitsFile
        clustering = ixpeClustering(zeroSupThreshold,5)
       
        for i in xrange(num_events):
@@ -99,8 +106,26 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
                         continue
                 else:
                     break         
+             
+           mcInfo = binary_file.readMcInfo(i+1)
+          
+           x_convMC=mcInfo.absorbtionPointX
+           y_convMC=mcInfo.absorbtionPointY
+           z_convMC=mcInfo.absorbtionPointZ
 
+           phiMC=mcInfo.photoElectronPhi
+           thetaMC=mcInfo.photoElectronTheta
+           augerPhi=mcInfo.augerEnergy
+           augerE=mcInfo.augerPhi
 
+           ionizationX=mcInfo.ionizationPosX
+
+           print "McInfo.E =",mcInfo.photonEnergy, "x_convMC =",x_convMC," y_convMC =",y_convMC," phiMC = ",phiMC
+           print "(ioni x) = ",ionizationX[0]
+           
+           
+           
+           
            tracks = clustering.dbScan(evt)
            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
               continue
