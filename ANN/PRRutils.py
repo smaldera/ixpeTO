@@ -118,10 +118,12 @@ def buildeventdict(event_params, mc_params, frame=(35,35)):
     """Build the dictionary with all relevant info of an event.
         The reframe hammens here.
         
-        ATT: The array of the charges for each pixel, starts fro the bottom-
-        left pixel and continues by rows up to the top-right pixel.
-        On the other hand the pixel orders starts from the top-lef pixel
-        and continues by columns up to the bottom-right pixel.
+        ATT: 
+        1. The array of the charges for each pixel, starts fro the bottom-
+           left pixel and continues by rows up to the top-right pixel.
+           On the other hand the pixel orders starts from the top-lef pixel
+           and continues by columns up to the bottom-right pixel.
+        2. The charge values are set to range from 0 to 1 (needed by TensorFlow)
     """
     dict = {}
     (en, conv_x, conv_y, pe_en, pe_phi) = mc_params
