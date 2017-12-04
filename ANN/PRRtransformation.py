@@ -48,7 +48,8 @@ PARSER = argparse.ArgumentParser(description=__description__,
                                  formatter_class=formatter)
 PARSER.add_argument('-c', '--config', type=str, required=True,
                     help='the input configuration file')
-
+PARSER.add_argument('-nevt', '--nevents', type=int, required=False,
+                    help='Number of events to consider')
 
 
 
@@ -86,10 +87,14 @@ def PRRtransform(**kwargs):
     events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
                                                     readsimfitsfile(f)
 
-##########################
-##### TRANSFORMATION #####
-##########################
-    for id, e in enumerate(events[:1]):
+    ##########################
+    ##### TRANSFORMATION #####
+    ##########################
+    if kwargs['nevents'] == None:
+        n = len(events)
+    else:
+        n = kwargs['nevents']
+    for id, e in enumerate(events[:n]):
         mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
                     mc_pe_energy[id], mc_pe_phi[id])
         event_params = (e[5], e[6], e[7], e[8], e[11])
@@ -134,7 +139,7 @@ def PRRtransform(**kwargs):
                            mc_abs_y[id], pitchcol, pitchrow)],
                     [np.tan(mc_pe_phi[id])*(xybottleft[0]-mc_abs_x[id])+mc_abs_y[id],
                      np.tan(mc_pe_phi[id])*(xytoprigth[0]-mc_abs_x[id])+mc_abs_y[id]],\
-                    'r--', linewidth=0.5)
+                    'r-', linewidth=0.5)
         sqr_ax.set_ylabel('Row ID', size=8)
         sqr_ax.set_xlabel('Column ID', size=8)
         sqr_ax.set_ylim(xybottleft[1], xytoprigth[1])
