@@ -33,6 +33,10 @@ cmap = cm.get_cmap('viridis')
 ###################################
 ######### GPD PARAMETERS ##########
 ###################################
+
+"""See gpd_coordinates.pdf for further details
+"""
+
 gpd_dict = {'Ncol' : 300,
             'Nrow' : 352,
             'pitchcol' : 50.0,
@@ -54,7 +58,8 @@ PRframe = (35,35)  #Pattern-Recongnition frame
 
 
 def reframe(min_col, max_col, min_row, max_row, frame=PRframe):
-    """ Function to fix the pixel area.
+    """ Function to fix the pixel area: it is important to give always 
+        the same number of inputs (number of pixels) to the NN.
     """
     Nrows = max_row-min_row
     Ncols = max_col-min_col
@@ -117,6 +122,12 @@ def ij2xy(i,j, Ncols, Nrows, pitchcol, pitchrow):
 
 def buildeventdict(event_params, mc_params):
     """Build the dictionary with all relevant info of an event.
+       The reframe hammens here.
+        
+       ATT: The array of the charges for each pixel, starts fro the bottom-
+            left pixel and continues by rows up to the top-right pixel.
+            On the other hand the pixel orders starts from the top-lef pixel 
+            and continues by columns up to the bottom-right pixel.
     """
     dict = {}
     (en, conv_x, conv_y, pe_en, pe_phi) = mc_params
@@ -143,7 +154,8 @@ def buildeventdict(event_params, mc_params):
         index = [ind for ind, (i,j) in enumerate(ij) if i == newpix[k][0] \
                     if j == newpix[k][1]]
         if len(index) != 0:
-            dict[k] = [rel_ij[k], newpix[k], (xpix[k], ypix[k]), colors_[index[0]]]
+            dict[k] = [rel_ij[k], newpix[k], (xpix[k], ypix[k]),
+                       colors_[index[0]]]
         else:
             dict[k] = [rel_ij[k], newpix[k], (xpix[k], ypix[k]), cmap(0.)]
     return dict
@@ -153,7 +165,8 @@ def buildeventdict(event_params, mc_params):
 ###### READ THE FILE #####
 ##########################
 f = '../../sim.fits'
-events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = readsimfitsfile(f)
+events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
+                                                          readsimfitsfile(f)
 for id, e in enumerate(events[:5]):
     mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
     event_params = (e[5], e[6], e[7], e[8], e[11])
@@ -165,9 +178,8 @@ for id, e in enumerate(events[:5]):
     ###### SOME DRAWING #####
     #########################
     fig = plt.figure(figsize=(12.4, 7.))
-    title = 'MC ENERGY = %.2f KeV\nMC X = %.2f mm\nMC Y = %.2f mm'%(mc_energy[id],
-                                                                    mc_abs_x[id],
-                                                                    mc_abs_y[id])+\
+    title = 'MC ENERGY = %.2f KeV\nMC X = %.2f mm\nMC Y = %.2f mm'\
+                %(mc_energy[id], mc_abs_x[id], mc_abs_y[id])+\
             '\nMC PE ENERGY = %.2f KeV\nMC PE PHI = %.3f'%(mc_pe_energy[id], mc_pe_phi[id])
     grid = plt.GridSpec(4, 6, hspace=0.8, wspace=1.2)
     gpd_ax = fig.add_subplot(grid[:, :-2])
@@ -202,8 +214,10 @@ for id, e in enumerate(events[:5]):
             [np.tan(mc_pe_phi[id])*(xybottleft[0]-mc_abs_x[id])+mc_abs_y[id],
              np.tan(mc_pe_phi[id])*(xytoprigth[0]-mc_abs_x[id])+mc_abs_y[id]],
             'r--', linewidth=0.5)
-    hex_ax.set_ylim(xybottleft[1]-2*pitchrow/1000, xytoprigth[1]+2*pitchrow/1000)
-    hex_ax.set_xlim(xybottleft[0]-2*pitchcol/1000, xytoprigth[0]+2*pitchcol/1000)
+    hex_ax.set_ylim(xybottleft[1]-2*pitchrow/1000,
+                    xytoprigth[1]+2*pitchrow/1000)
+    hex_ax.set_xlim(xybottleft[0]-2*pitchcol/1000,
+                    xytoprigth[0]+2*pitchcol/1000)
     hex_ax.set_xlabel('[mm]', size=8)
     hex_ax.set_ylabel('[mm]', size=8)
     hex_ax.set_title('%i x %i Area - Hexagonal pixels'%(PRframe[0], PRframe[1]),
