@@ -21,6 +21,7 @@
 
 
 import os
+import imp
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -29,6 +30,12 @@ import astropy.io.fits as pf
 from matplotlib import cm, colors
 cmap = cm.get_cmap('viridis')
 
+def get_var_from_file(filename):
+    f = open(filename)
+    global data
+    data = imp.load_source('data', '', f)
+    f.close()
+
 
 ###################################
 ######### GPD PARAMETERS ##########
@@ -36,11 +43,8 @@ cmap = cm.get_cmap('viridis')
 
 """See gpd_coordinates.pdf for further details
 """
-
-gpd_dict = {'Ncol' : 300,
-            'Nrow' : 352,
-            'pitchcol' : 50.0,
-            'pitchrow' : 43.3}
+get_var_from_file('gpd_param.py')
+gpd_dict = data.GPD_DICT
 
 Ncols = gpd_dict['Ncol']
 Nrows = gpd_dict['Nrow']
