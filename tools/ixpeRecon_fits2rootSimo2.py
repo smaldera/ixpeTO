@@ -133,7 +133,7 @@ if __name__ == '__main__':
   TRK_BARY =array('d',pha_data['TRK_BARY'])
   TRK_M2T =array('d',pha_data['TRK_M2T'])
   TRK_M2L =array('d',pha_data['TRK_M2L'])
-  TRK_M3L =array('d',pha_data['TRK_M2L'])
+  TRK_M3L =array('d',pha_data['TRK_M3L'])
   TRK_SKEW =array('d',pha_data['TRK_SKEW'])
 
 
