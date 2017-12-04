@@ -22,6 +22,7 @@
 
 import os
 import imp
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -34,12 +35,26 @@ from PRRutils import readsimfitsfile
 from PRRutils import buildeventdict
 from PRRutils import hexpix2sqrpix
 
-
 #to be moved to test file
 from PRRutils import reframe
 from PRRutils import ij2xy
 from PRRutils import hexx2sqrx
 
+
+__description__ = 'Data Transformation'
+
+formatter = argparse.ArgumentDefaultsHelpFormatter
+PARSER = argparse.ArgumentParser(description=__description__,
+                                 formatter_class=formatter)
+PARSER.add_argument('-c', '--config', type=str, required=True,
+                    help='the input configuration file')
+
+
+
+
+###################################
+######### GPD PARAMETERS ##########
+###################################
 
 def get_var_from_file(filename):
     f = open(filename)
@@ -47,13 +62,6 @@ def get_var_from_file(filename):
     data = imp.load_source('data', '', f)
     f.close()
 
-
-###################################
-######### GPD PARAMETERS ##########
-###################################
-
-"""See gpd_coordinates.pdf for further details
-"""
 get_var_from_file('gpd_param.py')
 gpd_dict = data.GPD_DICT
 
@@ -73,62 +81,68 @@ PRframe = (35,35)  #Pattern-Recongnition frame
 ##########################
 ###### READ THE FILE #####
 ##########################
-f = '../../sim.fits'
-events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
-                                                          readsimfitsfile(f)
+def PRRtransform(**kwargs):
+    f = kwargs['config']
+    events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
+                                                    readsimfitsfile(f)
 
 ##########################
 ##### TRANSFORMATION #####
 ##########################
-for id, e in enumerate(events[:1]):
-    mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
-    event_params = (e[5], e[6], e[7], e[8], e[11])
-    newpix, min_col, max_col, min_row, max_row = reframe(e[5], e[6], e[7], e[8])
-    dict = buildeventdict(event_params, mc_params, frame=PRframe)
-    dict = hexpix2sqrpix(dict, gpd_dict)
+    for id, e in enumerate(events[:1]):
+        mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
+                    mc_pe_energy[id], mc_pe_phi[id])
+        event_params = (e[5], e[6], e[7], e[8], e[11])
+        newpix, min_col, max_col, min_row, max_row = reframe(e[5], e[6],
+                                                             e[7], e[8])
+        dict = buildeventdict(event_params, mc_params, frame=PRframe)
+        dict = hexpix2sqrpix(dict, gpd_dict)
 
 
     
-    #########################
-    ###### SOME DRAWING #####
-    #########################
-    fig = plt.figure(figsize=(10.25, 4.3))
-    title = 'MC ENERGY = %.2f KeV\nMC X = %.2f mm\nMC Y = %.2f mm'\
+        #########################
+        ###### SOME DRAWING #####
+        #########################
+        fig = plt.figure(figsize=(10.25, 4))
+        title = 'MC ENERGY = %.2f KeV\nMC X = %.2f mm\nMC Y = %.2f mm'\
                 %(mc_energy[id], mc_abs_x[id], mc_abs_y[id])+\
-            '\nMC PE ENERGY = %.2f KeV\nMC PE PHI = %.3f'%(mc_pe_energy[id], mc_pe_phi[id])
-    xybottleft = ij2xy(min_col, max_row, Ncols, Nrows, pitchcol, pitchrow)
-    xytoprigth = ij2xy(max_col, min_row, Ncols, Nrows, pitchcol, pitchrow)
-    grid = plt.GridSpec(1, 2, hspace=0.8, wspace=0.1)
-    text_ax = fig.add_subplot(grid[0, 0])
-    sqr_ax = fig.add_subplot(grid[0,1])
-    text_ax.annotate(title,
+            '\nMC PE ENERGY = %.2f KeV\nMC PE PHI = %.3f'%(mc_pe_energy[id],
+                                                           mc_pe_phi[id])
+        xybottleft = ij2xy(min_col, max_row, Ncols, Nrows, pitchcol, pitchrow)
+        xytoprigth = ij2xy(max_col, min_row, Ncols, Nrows, pitchcol, pitchrow)
+        grid = plt.GridSpec(1, 2, hspace=0.8, wspace=0.1)
+        text_ax = fig.add_subplot(grid[0, 0])
+        sqr_ax = fig.add_subplot(grid[0, 1])
+        text_ax.annotate(title,
                 xy= (0.1, 0.7),
                 xytext=(0.1, 0.7),
                 size = 12)
-    text_ax.axis('off')
-    for k,v in dict.items():
-        square = patches.RegularPolygon((v[2][0], v[2][1]), 4,
+        text_ax.axis('off')
+        for k,v in dict.items():
+            square = patches.RegularPolygon((v[2][0], v[2][1]), 4,
                                         radius=pitchcol/2000,
                                         color=cmap(v[3]), orientation=np.pi/4)
-        sqr_ax.add_patch(square)
-    new_conv_x = hexx2sqrx(mc_abs_x[id], mc_abs_y[id], pitchcol, pitchrow)
-    sqr_ax.plot(hexx2sqrx(mc_abs_x[id], mc_abs_y[id], pitchcol, pitchrow), mc_abs_y[id], 'x',
+            sqr_ax.add_patch(square)
+        new_conv_x = hexx2sqrx(mc_abs_x[id], mc_abs_y[id], pitchcol, pitchrow)
+        sqr_ax.plot(hexx2sqrx(mc_abs_x[id], mc_abs_y[id], pitchcol, pitchrow), mc_abs_y[id], 'x',
                 color='r')
-    sqr_ax.plot([hexx2sqrx(xybottleft[0],
+        sqr_ax.plot([hexx2sqrx(xybottleft[0],
                            np.tan(mc_pe_phi[id])*(xybottleft[0]-mc_abs_x[id]) +\
                            mc_abs_y[id], pitchcol, pitchrow),
-                 hexx2sqrx(xytoprigth[0],
+                     hexx2sqrx(xytoprigth[0],
                            np.tan(mc_pe_phi[id])*(xytoprigth[0]-mc_abs_x[id]) + \
                            mc_abs_y[id], pitchcol, pitchrow)],
-            [np.tan(mc_pe_phi[id])*(xybottleft[0]-mc_abs_x[id]) + mc_abs_y[id],
-             np.tan(mc_pe_phi[id])*(xytoprigth[0]-mc_abs_x[id]) + mc_abs_y[id]],\
-                'r--', linewidth=0.5)
-    sqr_ax.set_ylabel('Row ID', size=8)
-    sqr_ax.set_xlabel('Column ID', size=8)
-    sqr_ax.set_ylim(xybottleft[1], xytoprigth[1])
-    sqr_ax.set_xlim(xybottleft[0]-10*pitchcol/1000, xytoprigth[0]+10*pitchcol/1000)
-    sqr_ax.set_title('%i x %i Area - Squared pixels'%(PRframe[0], PRframe[1]),
+                    [np.tan(mc_pe_phi[id])*(xybottleft[0]-mc_abs_x[id])+mc_abs_y[id],
+                     np.tan(mc_pe_phi[id])*(xytoprigth[0]-mc_abs_x[id])+mc_abs_y[id]],\
+                    'r--', linewidth=0.5)
+        sqr_ax.set_ylabel('Row ID', size=8)
+        sqr_ax.set_xlabel('Column ID', size=8)
+        sqr_ax.set_ylim(xybottleft[1], xytoprigth[1])
+        sqr_ax.set_xlim(xybottleft[0]-10*pitchcol/1000, xytoprigth[0]+10*pitchcol/1000)
+        sqr_ax.set_title('%i x %i Area - Squared pixels'%(PRframe[0], PRframe[1]),
                     fontsize=9)
-plt.show()
+    plt.show()
 
-
+if __name__ == '__main__':
+    args = PARSER.parse_args()
+    PRRtransform(**args.__dict__)
