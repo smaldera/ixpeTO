@@ -19,13 +19,21 @@ def conv2d(x, W):
 def max_pool_2x2(x):
   return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-x = tf.placeholder(tf.float32, shape=[None, 784])
-y_ = tf.placeholder(tf.float32, shape=[None, 10])
+x = tf.placeholder(tf.float32, shape=[None, 784]) # 28 x 28 images
+y_ = tf.placeholder(tf.float32, shape=[None, 10]) # 10 cifre
 
 W_conv1 = weight_variable([5, 5, 1, 32])
 b_conv1 = bias_variable([32])
+# The first two dimensions are the patch size, the next is the number
+# of input channels, and the last is the number of output channels. We
+# will also have a bias vector with a component for each output channel.
 
 x_image = tf.reshape(x, [-1, 28, 28, 1])
+# reshape x to a 4d tensor, with the second and third dimensions
+# corresponding to image width and height, and the final dimension
+# corresponding to the number of color channels.
+# -1: ti infer the dimention of the 4th dimention given the other 3 and
+# the total size
 
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
 h_pool1 = max_pool_2x2(h_conv1)
