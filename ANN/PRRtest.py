@@ -66,7 +66,7 @@ totlencol = (Nrows - 1)*pitchrow
 ###################################
 ####### PATTERN-REC PARAM #########
 ###################################
-PRframe = (32,32)  #Pattern-Recongnition frame
+PRframe = (35, 35)  #Pattern-Recongnition frame
 
 
 ##########################
