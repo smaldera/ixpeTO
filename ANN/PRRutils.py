@@ -231,35 +231,63 @@ def get_sqr_vertices(centers, radius):
     return list(zip(v1_, v2_, v3_, v4_))
 
 def get_charge_matrix(event_dict, shape=None):
-    """ Function to return an image to feed the NN
+    """ Function to return an image to build the tensor to feed NN.
     """
+    matrix = np.array([item[-1][-1] for item in event_dict.items()])
     if shape == None:
-        shape = (1, len(event_dict))
+        matrix.flatten()
     else:
-        pass
-    matrix = np.array([item[-1][-1] for item in dict.items()])
-    matrix = matrix.reshape((shape[0], shape[1]))
+        matrix = matrix.reshape((shape[0], shape[1]))
     return matrix
+
+def build_images_tensor(*args, frame=(32, 32), nevents=None):
+    """ Function to build a (N_events, M) array, where M is the size of the 
+        flattened images.
+    """
+    
+    for f in args:
+        tensor = []
+        events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
+                                                        readsimfitsfile(f)
+        if nevents is None:
+            n = len(events)
+        else:
+            n = nevents
+        for id, e in enumerate(events[:n]):
+            mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
+                                        mc_pe_energy[id], mc_pe_phi[id])
+            event_params = (e[5], e[6], e[7], e[8], e[11])
+            dict = buildeventdict(event_params, mc_params, frame=frame)
+            dict = complete_square_grid(dict, frame=frame)
+            dict = hexpix2sqrpix(dict, gpd_dict)
+            image = get_charge_matrix(dict)
+            tensor.append(image)
+        tensor = np.array(tensor)
+    return tensor
 
 if __name__ == "__main__":
     
-    """ Simple test session 
+    """ Simple test session
     """
     
     f = '../sim.fits'
+    PRframe = (36,36)
+
+    x = build_images_tensor(f, frame=PRframe, nevents=10)
+    print(x.shape)
+    
     events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
         readsimfitsfile(f)
-    PRframe = (32,32)
 
     for id, e in enumerate(events[:10]):
         mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
         event_params = (e[5], e[6], e[7], e[8], e[11])
-        
         dict = buildeventdict(event_params, mc_params, frame=PRframe)
         dict = complete_square_grid(dict, frame=PRframe)
         dict = hexpix2sqrpix(dict, gpd_dict)
-        image = get_charge_matrix(dict, shape=(int(len(dict)/33), 33))
-
+        
+        image = get_charge_matrix(dict, shape=(int(len(dict)/37), 37))
+        
         from matplotlib.collections import PolyCollection
         from matplotlib import cm, colors
         import matplotlib.pyplot as plt
