@@ -219,6 +219,8 @@ def get_hex_vertices(centers, radius):
     return list(zip(v1_, v2_, v3_, v4_, v5_, v6_))
 
 def get_sqr_vertices(centers, radius):
+    """
+    """
     v1_, v2_, v3_, v4_ = [], [], [], []
     for c in centers:
         v1 = (c[0]-radius/np.sqrt(2), c[1]-radius/np.sqrt(2))
@@ -228,51 +230,42 @@ def get_sqr_vertices(centers, radius):
         v4_.append(rotate_point(v1, (c[0], c[1]), 3*np.pi/2))
     return list(zip(v1_, v2_, v3_, v4_))
 
-
+def get_charge_matrix(event_dict, shape=None):
+    """ Function to return an image to feed the NN
+    """
+    if shape == None:
+        shape = (1, len(event_dict))
+    else:
+        pass
+    matrix = np.array([item[-1][-1] for item in dict.items()])
+    matrix = matrix.reshape((shape[0], shape[1]))
+    return matrix
 
 if __name__ == "__main__":
+    
+    """ Simple test session 
+    """
     
     f = '../sim.fits'
     events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
         readsimfitsfile(f)
     PRframe = (32,32)
-    for id, e in enumerate(events[:20]):
+
+    for id, e in enumerate(events[:10]):
         mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
         event_params = (e[5], e[6], e[7], e[8], e[11])
         
         dict = buildeventdict(event_params, mc_params, frame=PRframe)
-        
         dict = complete_square_grid(dict, frame=PRframe)
-        
         dict = hexpix2sqrpix(dict, gpd_dict)
+        image = get_charge_matrix(dict, shape=(int(len(dict)/33), 33))
 
         from matplotlib.collections import PolyCollection
         from matplotlib import cm, colors
         import matplotlib.pyplot as plt
         cmap = cm.get_cmap('viridis')
 
-        topleftpix = dict[0]
-        bottomrightpix = dict[len(dict)-1]
-        index_ = np.array([item[0] for item in dict.items()])
-        sqr_centers = np.array([dict[k][2] for k in index_])
-        sqr_values = np.array([dict[k][3] for k in index_])
-        sqr_verts = get_sqr_vertices(sqr_centers, pitchcol/2000.)
+        plt.matshow(image, cmap=cmap)
 
-        f, sqr_ax = plt.subplots()
-        square = PolyCollection(sqr_verts, array=sqr_values, cmap=cmap, edgecolors='none')
-        sqr_ax.add_collection(square)
-        sqr_ax.set_facecolor('black')
-        sqr_ax.set_ylabel('Row ID', size=8)
-        sqr_ax.set_xlabel('Column ID', size=8)
-        sqr_ax.set_ylim(bottomrightpix[2][1]-2*pitchcol/1000, topleftpix[2][1]+2*pitchcol/1000,)
-        sqr_ax.set_xlim(topleftpix[2][0]-10*pitchcol/1000, bottomrightpix[2][0]+40*pitchcol/1000)
-        sqr_ax.set_title('%i x %i Area - Squared pixels'%(PRframe[0], PRframe[1]),
-                                 fontsize=9)
-        """
-        for k,v in dict.items():
-            sqr_ax.annotate('%i\n%i'%(v[1][0],v[1][1]),
-                            xy=(v[2][0],v[2][1]),
-                            xytext=(v[2][0],v[2][1]),
-                    size = 6)"""
     plt.show()
 
