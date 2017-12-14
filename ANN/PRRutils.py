@@ -259,6 +259,7 @@ def build_CNN_tensors(*args, frame=(38, 38), shape=(58, 39), nevents=None):
                                         mc_pe_energy[id], mc_pe_phi[id])
             labels.append([mc_params[0], mc_params[-1]])
             if e[6]-e[5] > frame[1] or e[8]-e[7] > frame[0]:
+                print('lost event %i: too big'%id)
                 continue
             event_params = (e[5], e[6], e[7], e[8], e[11])
             dict = buildeventdict(event_params, mc_params, frame=frame)
