@@ -45,7 +45,9 @@ PARSER.add_argument('-c', '--config', type=str, required=True,
                     help='the input configuration file')
 PARSER.add_argument('-nevt', '--nevents', type=int, required=False,
                     default=None, help='Number of events to consider')
-
+"""
+Add argument to overwrite files
+"""
 
 ###################################
 ####### PATTERN-REC PARAM #########
@@ -81,7 +83,7 @@ def PRRtransform(**kwargs):
     ###### SOME DRAWING #####
     #########################
     plt.figure()
-    plt.imshow(images[1], cmap=cmap)
+    plt.imshow(images[3], cmap=cmap)
     plt.title('MC energy = %.2f KeV, MC phi = %.2f rad'%(labels[1][0], labels[1][1]))
     frame = plt.gca()
     frame.axes.get_xaxis().set_visible(False)

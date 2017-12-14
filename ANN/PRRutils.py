@@ -192,7 +192,7 @@ def buildeventdict(event_params, mc_params, frame=(35,35)):
             dict[k] = [rel_ij[k], newpix[k], (xpix[k], ypix[k]),
                        relcharge_[index[0]]]
         else:
-            dict[k] = [rel_ij[k], newpix[k], (xpix[k], ypix[k]), 0.]
+            dict[k] = [(None, None), newpix[k], (xpix[k], ypix[k]), 0.]
     return dict
 
 def rotate_point(xy_tuple, xy_center, angle, deg = False):
@@ -240,13 +240,6 @@ def get_charge_matrix(event_dict, shape=None):
         matrix = matrix.reshape((shape[0], shape[1]))
     return matrix
 
-def build_labels_tensor(*args, classes, nevents=None):
-    """ Function to build a (N_events, Possible_values) array, where M is the size of the
-        flattened images. This
-    """
-    pass
-
-
 def build_CNN_tensors(*args, frame=(38, 38), shape=(58, 39), nevents=None):
     """ Function to build a (N_events, M) array, where M is the size of the 
         flattened images.
@@ -260,13 +253,13 @@ def build_CNN_tensors(*args, frame=(38, 38), shape=(58, 39), nevents=None):
             n = len(events)
         else:
             n = nevents
-        for id, e in enumerate(events[:n]):
-            print(id)
-            if id == 123 or id == 1098 or id == 1105 or id == 1788 or id == 2339:
-                continue
+        for id, e in enumerate(events[100:n]):
+            print(id) #substitute with logger
             mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
                                         mc_pe_energy[id], mc_pe_phi[id])
             labels.append([mc_params[0], mc_params[-1]])
+            if e[6]-e[5] > frame[1] or e[8]-e[7] > frame[0]:
+                continue
             event_params = (e[5], e[6], e[7], e[8], e[11])
             dict = buildeventdict(event_params, mc_params, frame=frame)
             dict = complete_square_grid(dict, frame=frame)
@@ -292,7 +285,7 @@ if __name__ == "__main__":
     
     PRframe = (38,38)
     final_shape = (58,39)
-    n_events = 10
+    n_events = 125
     
     f_images = f.replace('.fits', '_images.pkl')
     f_labels = f.replace('.fits', '_labels.pkl')
@@ -302,13 +295,13 @@ if __name__ == "__main__":
         pic.dump(labels, open(f_labels,'wb'))
     else:
         with open(f_images, 'rb') as ff:
-            restored_images = pic.load(ff)
+            images = pic.load(ff)
         with open(f_labels, 'rb') as fff:
-            restored_labels = pic.load(fff)
+            labels = pic.load(fff)
     
     plt.figure()
-    plt.imshow(restored_images[1], cmap=cmap)
-    plt.title('MC energy = %.2f KeV, MC phi = %.2f rad'%(restored_labels[1][0], restored_labels[1][1]))
+    plt.imshow(images[1], cmap=cmap)
+    plt.title('MC energy = %.2f KeV, MC phi = %.2f rad'%(labels[1][0], labels[1][1]))
     frame = plt.gca()
     frame.axes.get_xaxis().set_visible(False)
     frame.axes.get_yaxis().set_visible(False)

@@ -82,7 +82,7 @@ events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
 for id, e in enumerate(events[:10]):
     mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
     event_params = (e[5], e[6], e[7], e[8], e[11])
-    newpix, min_col, max_col, min_row, max_row = reframe(e[5], e[6], e[7], e[8])
+    newpix, min_col, max_col, min_row, max_row = reframe(e[5], e[6], e[7], e[8], frame=PRframe)
     dict = buildeventdict(event_params, mc_params, frame=PRframe)
     
     index_ = np.array([item[0] for item in dict.items()])
