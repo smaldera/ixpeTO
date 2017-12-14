@@ -36,7 +36,7 @@ from PRRutils import build_CNN_tensors
 
 
 
-__description__ = 'Data Transformation'
+__description__ = 'Data Transformation: from hexagonal to squared pixels to tensors'
 
 formatter = argparse.ArgumentDefaultsHelpFormatter
 PARSER = argparse.ArgumentParser(description=__description__,
@@ -46,27 +46,6 @@ PARSER.add_argument('-c', '--config', type=str, required=True,
 PARSER.add_argument('-nevt', '--nevents', type=int, required=False,
                     default=None, help='Number of events to consider')
 
-
-
-###################################
-######### GPD PARAMETERS ##########
-###################################
-
-def get_var_from_file(filename):
-    f = open(filename)
-    global data
-    data = imp.load_source('data', '', f)
-    f.close()
-
-get_var_from_file('gpd_param.py')
-gpd_dict = data.GPD_DICT
-
-Ncols = gpd_dict['Ncol']
-Nrows = gpd_dict['Nrow']
-pitchcol = gpd_dict['pitchcol']
-pitchrow = gpd_dict['pitchrow']
-totlenrow = (Ncols - 1/2)*pitchcol
-totlencol = (Nrows - 1)*pitchrow
 
 ###################################
 ####### PATTERN-REC PARAM #########
