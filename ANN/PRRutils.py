@@ -240,13 +240,20 @@ def get_charge_matrix(event_dict, shape=None):
         matrix = matrix.reshape((shape[0], shape[1]))
     return matrix
 
-def build_images_tensor(*args, frame=(32, 32), nevents=None):
+def build_labels_tensor(*args, classes, nevents=None):
+    """ Function to build a (N_events, Possible_values) array, where M is the size of the
+        flattened images. This
+    """
+    pass
+
+
+def build_CNN_tensors(*args, frame=(38, 38), shape=(58, 39), nevents=None):
     """ Function to build a (N_events, M) array, where M is the size of the 
         flattened images.
     """
-    
+    tensor = []
+    labels = []
     for f in args:
-        tensor = []
         events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
                                                         readsimfitsfile(f)
         if nevents is None:
@@ -254,46 +261,56 @@ def build_images_tensor(*args, frame=(32, 32), nevents=None):
         else:
             n = nevents
         for id, e in enumerate(events[:n]):
+            print(id)
+            if id == 123 or id == 1098 or id == 1105 or id == 1788 or id == 2339:
+                continue
             mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
                                         mc_pe_energy[id], mc_pe_phi[id])
+            labels.append([mc_params[0], mc_params[-1]])
             event_params = (e[5], e[6], e[7], e[8], e[11])
             dict = buildeventdict(event_params, mc_params, frame=frame)
             dict = complete_square_grid(dict, frame=frame)
             dict = hexpix2sqrpix(dict, gpd_dict)
-            image = get_charge_matrix(dict)
-            tensor.append(image)
-        tensor = np.array(tensor)
-    return tensor
+            image = get_charge_matrix(dict, shape=shape)
+            tensor.append(image[:40])
+    tensor = np.array(tensor)
+    labels = np.array(labels)
+    return tensor, labels
 
 if __name__ == "__main__":
     
     """ Simple test session
     """
+    import os
+    import pickle as pic
+    from matplotlib import cm, colors
+    import matplotlib.pyplot as plt
+    cmap = cm.get_cmap('viridis')
+
     
     f = '../sim.fits'
-    PRframe = (36,36)
-
-    x = build_images_tensor(f, frame=PRframe, nevents=10)
-    print(x.shape)
     
-    events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
-        readsimfitsfile(f)
-
-    for id, e in enumerate(events[:10]):
-        mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
-        event_params = (e[5], e[6], e[7], e[8], e[11])
-        dict = buildeventdict(event_params, mc_params, frame=PRframe)
-        dict = complete_square_grid(dict, frame=PRframe)
-        dict = hexpix2sqrpix(dict, gpd_dict)
-        
-        image = get_charge_matrix(dict, shape=(int(len(dict)/37), 37))
-        
-        from matplotlib.collections import PolyCollection
-        from matplotlib import cm, colors
-        import matplotlib.pyplot as plt
-        cmap = cm.get_cmap('viridis')
-
-        plt.matshow(image, cmap=cmap)
-
+    PRframe = (38,38)
+    final_shape = (58,39)
+    n_events = 10
+    
+    f_images = f.replace('.fits', '_images.pkl')
+    f_labels = f.replace('.fits', '_labels.pkl')
+    if not os.path.exists(f_images):
+        images, labels = build_CNN_tensors(f, frame=PRframe, shape=final_shape, nevents=n_events)
+        pic.dump(images, open(f_images,'wb'))
+        pic.dump(labels, open(f_labels,'wb'))
+    else:
+        with open(f_images, 'rb') as ff:
+            restored_images = pic.load(ff)
+        with open(f_labels, 'rb') as fff:
+            restored_labels = pic.load(fff)
+    
+    plt.figure()
+    plt.imshow(restored_images[1], cmap=cmap)
+    plt.title('MC energy = %.2f KeV, MC phi = %.2f rad'%(restored_labels[1][0], restored_labels[1][1]))
+    frame = plt.gca()
+    frame.axes.get_xaxis().set_visible(False)
+    frame.axes.get_yaxis().set_visible(False)
     plt.show()
-
+    

@@ -66,7 +66,7 @@ totlencol = (Nrows - 1)*pitchrow
 ###################################
 ####### PATTERN-REC PARAM #########
 ###################################
-PRframe = (35, 35)  #Pattern-Recongnition frame
+PRframe = (38, 38)  #Pattern-Recongnition frame
 
 
 ##########################
@@ -133,10 +133,10 @@ for id, e in enumerate(events[:10]):
              np.tan(mc_pe_phi[id])*(xytoprigth[0]-mc_abs_x[id])+mc_abs_y[id]],
             'r--', linewidth=0.8)
     hex_ax.set_facecolor('black')
-    hex_ax.set_ylim(xybottleft[1]-2*pitchrow/1000,
+    hex_ax.set_ylim(xybottleft[1]-3*pitchrow/1000,
                     xytoprigth[1]+2*pitchrow/1000)
     hex_ax.set_xlim(xybottleft[0]-2*pitchcol/1000,
-                    xytoprigth[0]+2*pitchcol/1000)
+                    xytoprigth[0]+3*pitchcol/1000)
     hex_ax.set_xlabel('[mm]', size=8)
     hex_ax.set_ylabel('[mm]', size=8)
     hex_ax.set_title('%i x %i Area - Hexagonal pixels'%(PRframe[0], PRframe[1]),
@@ -164,7 +164,7 @@ for id, e in enumerate(events[:10]):
     sqr_ax.set_ylabel('Row ID', size=8)
     sqr_ax.set_xlabel('Column ID', size=8)
     sqr_ax.set_ylim(bottomrightpix[2][1]-2*pitchcol/1000, topleftpix[2][1]+2*pitchcol/1000,)
-    sqr_ax.set_xlim(topleftpix[2][0]-5*pitchcol/1000, bottomrightpix[2][0]+40*pitchcol/1000)
+    sqr_ax.set_xlim(topleftpix[2][0]-5*pitchcol/1000, bottomrightpix[2][0]+45*pitchcol/1000)
     sqr_ax.set_title('%i x %i Area - Squared pixels'%(PRframe[0], PRframe[1]),
                     fontsize=9)
 plt.show()
