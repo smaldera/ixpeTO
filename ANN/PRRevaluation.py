@@ -46,6 +46,7 @@ PARSER.add_argument('-lb', '--labels', type=str, required=True,
 ###################################
 ####### PATTERN-REC PARAM #########
 ###################################
+FILTER_SHAPE = [3, 3, 1, 2]
 FILTER = np.zeros(shape=(3, 3, 1, 2), dtype=np.float32) # 2 features
 FILTER[:,:,0,0] = 1/6
 FILTER[:,:,0,1] = 1
@@ -55,6 +56,16 @@ FILTER[-1,-1,0,:] = 0.
 CONV_STRIDES = [1,1,1,1]
 POOL_KSIZE = [1,2,2,1]
 POOL_STRIDES = [1,2,2,1]
+FULLY_CONNECTED_SIZE = []
+
+BATCH_SIZE = 50
+IM_WIDTH = 40
+IM_HEIGHT = 39
+LEARNING_RATE = 0.005
+EVAL_SIZE = 200
+GENERATIONS = 500
+CONV_FEATURES = 25
+
 
 tf.reset_default_graph()
 sess = tf.Session()
@@ -74,7 +85,29 @@ def PRRevaluation(**kwargs):
         images = pic.load(f)
     with open(f_labels, 'rb') as ff:
         labels = pic.load(ff)
-    
+
+    # devide in to train and test
+    images_train = images[:int(len(images)*0.6)]
+    labels_train = labes[:int(len(images)*0.6)]
+    images_test = images[int(len(images)*0.6):]
+    labels_test = labels[int(len(images)*0.6):]
+
+    # define placeholdes fot train and test
+    train_im_input_shape = (BATCH_SIZE, IM_WIDTH, IM_HEIGHT, 1)
+    train_im_input = tf.placeholder(tf.float32, shape=train_im_input_shape)
+    train_target = tf.placeholder(tf.float32, shape=(BATCH_SIZE))
+
+    test_im_input_shape = (EVAL_SIZE, IM_WIDTH, IM_HEIGHT, 1 )
+    test_im_input = tf.placeholder(tf.float32, shape=test_im_input_shape)
+    test_target = tf.placeholder(tf.float32, shape=(EVAL_SIZE))
+
+    # Convolutional layer variables
+    conv_weight = tf.Variable(tf.truncated_normal(FILTER_SHAPE, stddev=0.1,
+                                                   dtype=tf.float32))
+    conv_bias = tf.Variable(tf.zeros([FILTER_SHAPE[-1]], dtype=tf.float32))
+
+
+    #### test
     events = len(images)
     height, width = images[0].shape
     images = images.reshape(events, height, width, 1)
