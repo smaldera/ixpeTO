@@ -73,6 +73,7 @@ PRframe = (38, 38)  #Pattern-Recongnition frame
 ###### READ THE FILE #####
 ##########################
 f = '../sim.fits'
+f = '../sim500000_line4_pol45.fits'
 events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
                                                           readsimfitsfile(f)
 
