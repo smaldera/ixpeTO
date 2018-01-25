@@ -32,7 +32,7 @@ import astropy.io.fits as pf
 from matplotlib import cm, colors
 cmap = cm.get_cmap('viridis')
 
-from PRRutils import build_CNN_tensors
+from PRRutils import build_CNN_tensors_2
 
 
 
@@ -61,16 +61,16 @@ PRframe = (38,38)  #Pattern-Recongnition frame
 def PRRtransform(**kwargs):
     
     f = kwargs['config']
-    final_shape = (58,39)
+    #final_shape = (58,39)
     n_events = kwargs['nevents']
     
     #############################################
     ##### TRANSFORMATION and RETURN TENSORS #####
     #############################################
-    f_images = f.replace('.fits', '_images.pkl')
-    f_labels = f.replace('.fits', '_labels.pkl')
+    f_images = f.replace('.fits', '_images2.pkl')
+    f_labels = f.replace('.fits', '_labels2.pkl')
     if not os.path.exists(f_images):
-        images, labels = build_CNN_tensors(f, frame=PRframe, shape=final_shape, nevents=n_events)
+        images, labels = build_CNN_tensors_2(f, frame=PRframe, nevents=n_events)
         pic.dump(images, open(f_images,'wb'))
         pic.dump(labels, open(f_labels,'wb'))
     else:
@@ -83,7 +83,7 @@ def PRRtransform(**kwargs):
     ###### SOME DRAWING #####
     #########################
     plt.figure()
-    plt.imshow(images[3], cmap=cmap)
+    plt.imshow(images[1], cmap=cmap)
     plt.title('MC energy = %.2f KeV, MC phi = %.2f rad'%(labels[1][0], labels[1][1]))
     frame = plt.gca()
     frame.axes.get_xaxis().set_visible(False)

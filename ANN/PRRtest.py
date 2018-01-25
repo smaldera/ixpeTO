@@ -73,14 +73,18 @@ PRframe = (38, 38)  #Pattern-Recongnition frame
 ###### READ THE FILE #####
 ##########################
 f = '../sim.fits'
-f = '../sim500000_line4_pol45.fits'
+#f = '../sim500000_line4_pol45.fits'
+#f = '../sim_5keV_nopol.fits'
+#f = '../sim_Fe55_nopol.fits'
+#f = '../sim_line59_nopol.fits'
+
 events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
                                                           readsimfitsfile(f)
 
 ##########################
 ##### TRANSFORMATION #####
 ##########################
-for id, e in enumerate(events[:10]):
+for id, e in enumerate(events[:2]):
     mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id], mc_pe_energy[id], mc_pe_phi[id])
     event_params = (e[5], e[6], e[7], e[8], e[11])
     newpix, min_col, max_col, min_row, max_row = reframe(e[5], e[6], e[7], e[8], frame=PRframe)

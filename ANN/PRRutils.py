@@ -28,7 +28,7 @@ import imp
 import numpy as np
 import astropy.io.fits as pf
 from itertools import product
-
+import matplotlib.pyplot as plt
 def get_var_from_file(filename):
     f = open(filename)
     global data
@@ -157,7 +157,7 @@ def ij2xy(ij, Ncols, Nrows, pitchcol, pitchrow):
 
 def buildeventdict(event_params, mc_params, frame=(35,35)):
     """Build the dictionary with all relevant info of an event.
-        The reframe hammens here.
+        The reframe happens here.
         
         ATT: 
         1. The array of the charges for each pixel, starts fro the bottom-
@@ -193,6 +193,10 @@ def buildeventdict(event_params, mc_params, frame=(35,35)):
                        relcharge_[index[0]]]
         else:
             dict[k] = [(None, None), newpix[k], (xpix[k], ypix[k]), 0.]
+    a = np.array([dict[k][-1] for k in range(len(dict))])
+    #plt.figure()
+    #plt.imshow(a.reshape(frame[0]+1, frame[1]+1).T)
+    #plt.title('%.3f'%pe_phi)
     return dict
 
 def rotate_point(xy_tuple, xy_center, angle, deg = False):
@@ -253,20 +257,50 @@ def build_CNN_tensors(*args, frame=(38, 38), shape=(58, 39), nevents=None):
             n = len(events)
         else:
             n = nevents
-        for id, e in enumerate(events[100:n]):
+        for id, e in enumerate(events[:n]):
             print(id) #substitute with logger
-            mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
-                                        mc_pe_energy[id], mc_pe_phi[id])
-            labels.append([mc_params[0], mc_params[-1]])
             if e[6]-e[5] > frame[1] or e[8]-e[7] > frame[0]:
                 print('lost event %i: too big'%id)
                 continue
+            mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
+                         mc_pe_energy[id], mc_pe_phi[id])
+            labels.append([mc_params[0], mc_params[-1]])
             event_params = (e[5], e[6], e[7], e[8], e[11])
             dict = buildeventdict(event_params, mc_params, frame=frame)
             dict = complete_square_grid(dict, frame=frame)
             dict = hexpix2sqrpix(dict, gpd_dict)
             image = get_charge_matrix(dict, shape=shape)
             tensor.append(image[:40])
+    tensor = np.array(tensor)
+    labels = np.array(labels)
+    return tensor, labels
+
+def build_CNN_tensors_2(*args, frame=(38, 38), nevents=None):
+    """ Function to build a (N_events, M) array, where M is the size of the
+        flattened images.
+        """
+    tensor = []
+    labels = []
+    for f in args:
+        events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi = \
+            readsimfitsfile(f)
+        if nevents is None:
+            n = len(events)
+        else:
+            n = nevents
+        for id, e in enumerate(events[:n]):
+            print(id)
+            if e[6]-e[5] > frame[1] or e[8]-e[7] > frame[0]:
+                print('lost event %i: too big'%id)
+                continue
+            mc_params = (mc_energy[id], mc_abs_x[id], mc_abs_y[id],
+                         mc_pe_energy[id], mc_pe_phi[id])
+            labels.append([mc_params[0], mc_params[1], mc_params[2], mc_params[-1]])
+            event_params = (e[5], e[6], e[7], e[8], e[11])
+            dict = buildeventdict(event_params, mc_params, frame=frame)
+            image = np.array([dict[k][-1] for k in range(len(dict))])
+            image = image.reshape(frame[0]+1, frame[1]+1).T
+            tensor.append(image)
     tensor = np.array(tensor)
     labels = np.array(labels)
     return tensor, labels
