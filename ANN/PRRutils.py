@@ -139,6 +139,16 @@ def readsimfitsfile(file_path):
     gpdcharge = data_f['EVENTS'].data['PIX_PHAS']
     return events, mc_energy, mc_abs_x, mc_abs_y, mc_pe_energy, mc_pe_phi
 
+def readreconfitsfile(file_path):
+    """Function to extract parameters from a Monte Carlo fits file.
+        """
+    data_f = pf.open(file_path)
+    data_f.info()
+    events = data_f['EVENTS'].data
+    rec_phi1 = events['TRK_PHI1']
+    rec_phi2 = events['TRK_PHI2']
+    return rec_phi1, rec_phi2
+
 def ij2xy(ij, Ncols, Nrows, pitchcol, pitchrow):
     """Function to go from i (col) and j (row) to gpd absolute x and y in mm.
     """

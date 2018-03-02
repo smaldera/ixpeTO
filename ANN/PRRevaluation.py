@@ -53,13 +53,16 @@ PARSER.add_argument('-lb', '--labels', type=str, required=True,
 BATCH_SIZE = 120
 LR = 1e-4
 EPOCHS = 200
-FRAC = 0.9
+FRAC = 0.8
 SAVE = True
-OUTNAME = 'PHI_powerlaw_nopol'
+OUTNAME = 'PHI_59line_nopol'
 ###################################
 
 f_images = '../sim_line59_nopol_images2.pkl'
 f_labels = '../sim_line59_nopol_labels2.pkl'
+
+#f_images = '../sim_5KeV_nopol_images2.pkl'
+#f_labels = '../sim_5KeV_nopol_labels2.pkl'
 
 #f_images = '../sim500000_powerlaw_nopol_images2.pkl'
 #f_labels = '../sim500000_powerlaw_nopol_labels2.pkl'
@@ -88,6 +91,7 @@ def PRRevaluation():
     index_clean = np.where(labels_all[:,0] != -1000.)[0]
     images = images_all[index_clean]
     labels = labels_all[index_clean][:,-1]
+    labels = labels
     print('Found %i bad events' %(len(images_all)-len(images)))
 
     (img_rows, img_cols) = images[0].shape
@@ -115,12 +119,17 @@ def PRRevaluation():
     # Convolutional model
     backend.clear_session()
     model = Sequential()
-    model.add(Conv2D(64, (3, 3), padding='same', activation='relu',
+    model.add(Conv2D(64, (9, 9), padding='same', activation='relu',
                  input_shape=input_shape, kernel_regularizer=regularizers.l2(0.01),
                  bias_initializer='RandomUniform', kernel_initializer='RandomUniform'))
     model.add(MaxPooling2D(pool_size=(2, 2), padding='same', strides=(2,2)))
     model.add(Dropout(0.20))
 
+    model.add(Conv2D(32, (3, 3), padding='same', activation='relu',
+                 kernel_regularizer=regularizers.l2(0.01),
+                 bias_initializer='RandomUniform', kernel_initializer='RandomUniform'))
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same', strides=(2,2)))
+    model.add(Dropout(0.1))
     ####
     #model.add(Conv2D(128, (3, 3), padding='same', kernel_regularizer=regularizers.l2(0.01),
     #                        bias_initializer='RandomNormal', activation='relu'))
