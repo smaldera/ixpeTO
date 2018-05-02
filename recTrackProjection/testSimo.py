@@ -30,12 +30,12 @@ import ROOT
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeInputBinaryFile
-
+from gpdswswig.Event import ixpeEvent
 
 #FILE_PATH = os.path.join(os.environ['GPDSWROOT'], 'Recon', 'data',
 #                         'test_fe_500evts.mdat')
 
-FILE_PATH = '/home/maldera/FERMI/Xipe/rec/data/mdat/xpol_2081.mdat'
+FILE_PATH = '/home/maldera/IXPE/data/realData/xpol_2081.mdat'
 
 
 
@@ -50,10 +50,10 @@ def rec_and_draw(track):
    #pyIt= track.begin
    #print pyIt
    hit=track.hits()
-   print hit
+   print (hit)
  
    n_hits=track.numHits()
-   print "n_hits  = ",n_hits
+   print ("n_hits  = ",n_hits)
 
    x1=-2
    x2=2
@@ -82,23 +82,30 @@ def rec_and_draw(track):
 
 def threshold_scan(zeroSupThreshold=5, num_events=1):
         binary_file = ixpeInputBinaryFile(FILE_PATH)
-        clustering = ixpeClustering(zeroSupThreshold)
+        min_hits=5
+        clustering = ixpeClustering(zeroSupThreshold,min_hits)
         #binary_file.buildEventTable()
         #num_events=binary_file.numEvents()
-        print " n event  = ",num_events
+        print (" n event  = ",num_events)
 
         
         for i in range (0, num_events):
             try:    
-                evt = binary_file.next()
+                digiEvt = binary_file.next()
             except RuntimeError  as  e:
                 #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
                 if str(e)=='Header mismatch':
                         continue
                 else:
                     break         
+            evt = ixpeEvent(digiEvt)
 
-            tracks = clustering.dbScan(evt)    
+            clustering.dbScan(evt)
+            print ('Number of above threshold pixels: %d' %evt.numAboveThresholdPixels())
+            print ('Number of noise pixels: %d' % evt.numNoisePixels())
+            tracks = ixpeTrackBuilder.buildTracks(evt)
+            
+           
             if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
                continue
 
