@@ -29,13 +29,15 @@ import ROOT
 
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
-from gpdswswig.Io import ixpeInputBinaryFile
+#from gpdswswig.Io import ixpeInputBinaryFile
+from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
 
 #FILE_PATH = os.path.join(os.environ['GPDSWROOT'], 'Recon', 'data',
 #                         'test_fe_500evts.mdat')
 
-FILE_PATH = '/home/maldera/IXPE/data/realData/xpol_2081.mdat'
+#FILE_PATH = '/home/maldera/IXPE/data/realData/xpol_2081.mdat'
+FILE_PATH = '/home/maldera/IXPE/data/realData/xpol_2081.fits'
 
 
 
@@ -76,12 +78,13 @@ def rec_and_draw(track):
    c=ROOT.TCanvas("c","",0)        
    h2.Draw("colZ")
    c.Update()
-   valore = raw_input('continue?')
+   valore = input('continue?')
    h2.Reset()
  
 
-def threshold_scan(zeroSupThreshold=5, num_events=1):
-        binary_file = ixpeInputBinaryFile(FILE_PATH)
+def threshold_scan(zeroSupThreshold=5, num_events=20):
+        #binary_file = ixpeInputBinaryFile(FILE_PATH)
+        binary_file = ixpeLvl1FitsFile(FILE_PATH)
         min_hits=5
         clustering = ixpeClustering(zeroSupThreshold,min_hits)
         #binary_file.buildEventTable()
@@ -112,7 +115,7 @@ def threshold_scan(zeroSupThreshold=5, num_events=1):
 
             track = tracks[0]
             rec_and_draw(track)
-            #threshold=5
+            threshold=5
             track.reconstruct(threshold, threshold, False)      # la soglia deve essere un intero (ADC)
             
             #phi = track.secondPassMomentsAnalysis().phi()
