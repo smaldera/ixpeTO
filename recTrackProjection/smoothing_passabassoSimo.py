@@ -10,7 +10,7 @@ class filtra_segnale:
   def  init_filtro(self):
 
           
-        print "inizio init filtro,... "
+        print ("inizio init filtro,... ")
 
         #self.M = 240 #lunghezza del filtro
 
@@ -41,7 +41,7 @@ class filtra_segnale:
         self.Win=numpy.array([0]*self.M,dtype=float) 
 
 
-        self.H[self.M/2]=2.*self.Pi*self.Fc
+        self.H[int(self.M/2)]=2.*self.Pi*self.Fc
 
         for  i in range (0, self.M ):        
 	        
@@ -76,14 +76,14 @@ class filtra_segnale:
   def  filtra(self, X):
 
         #aggiungo  M/2 bin a zero in x
-        x0=numpy.zeros(self.M/2)
+        x0=numpy.zeros(int(self.M/2))
         Xfake=numpy.concatenate( (x0,X), axis=0)
 
         NBIN=len(Xfake);
         Yfake=numpy.array([0]*(NBIN),dtype=float) 
-        print "lenx = ",len(Xfake)
+        print ("lenx = ",len(Xfake))
         if NBIN<self.M:
-          print "histogram too short!!!!!"
+          print ("histogram too short!!!!!")
           return -1
         
     
@@ -91,11 +91,10 @@ class filtra_segnale:
         for  j in range (self.M, NBIN): 
            Yfake[j]=0  # ridondante!!!!
            for  i in range (0,self.M): 
-		  #Y[j]=Y[j]+X[j-i]*self.H[i]         # ogni X viene moltiplicato per gli M punti della H; l'aumentare della lunghezza del filtro permette di calcolare una larghezza di banda + stretta M=4/BW
-		  Yfake[j]=Yfake[j]+Xfake[j-i]*self.H[i]         # ogni X viene moltiplicato per gli M punti della H; l'aumentare della lunghezza del filtro permette di calcolare una larghezza di banda + stretta M=4/BW	 
+             Yfake[j]=Yfake[j]+Xfake[j-i]*self.H[i]  # ogni X viene moltiplicato per gli M punti della H; l'aumentare della lunghezza del filtro permette di calcolare una larghezza di banda + stretta M=4/BW	 
 
         Y0=Yfake[self.M:]
-        y1=numpy.zeros(self.M/2)
+        y1=numpy.zeros(int(self.M/2))
         Y=numpy.concatenate((Y0,y1))
 
                            
@@ -115,10 +114,10 @@ if __name__ == '__main__':
    h_tracciaF = ROOT.TH1F("h_tracciaF","",525,0,525)                 	       
 
 
-   print "creo oggetto..."
+   print ("creo oggetto...")
    simoFilter=filtra_segnale()
 
-   print "init filtro.. "
+   print ("init filtro.. ")
    aa=simoFilter.init_filtro();
    #print aa
        	  
@@ -150,7 +149,7 @@ if __name__ == '__main__':
    
    y=simoFilter.filtra(x)
    
-   print y  	       
+   print (y)  	       
 
    for  jj in range (0, 525):
       h_tracciaF.Fill(jj,y[jj])
@@ -159,10 +158,10 @@ if __name__ == '__main__':
    c1=ROOT.TCanvas ("c1","",0)
    c1.Divide(1,2)
    c1.cd(1)
-   h_traccia.Draw()
+   h_traccia.Draw("hist")
    c1.cd(2)
-   h_tracciaF.Draw()
+   h_tracciaF.Draw("hist")
    
-
+   c1.Update()
 
 

@@ -173,9 +173,9 @@ class xpeSimo(object):
        
     def rec_simo(self):
 
-        print ""
-        print "==================== "
-        print ""
+        print ("")
+        print ("==================== ")
+        print ("")
         
         import time
         import math
@@ -226,7 +226,7 @@ class xpeSimo(object):
         self.profx.Reset()
        
         err=0.1*numpy.sqrt(adc)/adc
-        print "Err = ",err
+        print ("Err = ",err)
 
         
         for i in range (0,len(x)):
@@ -284,7 +284,7 @@ class xpeSimo(object):
         #if self.pcubo==0:
         #    self.f_p3.FixParameter(0,0) # il cubo diventa una parabola!
         #    self.f_p3.FixParameter(1,0) # il cubo diventa una retta!!!!!
-        print "fit con  cubo... "
+        print ("fit con  cubo... ")
         self.profx.Fit("f_p3","MERw")
 
         #uso la spline3(4nodi)!!!!!!!!!!!!!!!!!!!!!!
@@ -359,7 +359,7 @@ class xpeSimo(object):
 
         #m=3.*a*self.newPoint[0]**3+2.*b*self.newPoint[0]+c
         m=self.f_p3.Derivative(self.newPoint[0])
-        #print "m=",m," m2 =",m2," diff = ",m-m2 
+        #print ("m=",m," m2 =",m2," diff = ",m-m2 )
         
 
         
@@ -369,7 +369,7 @@ class xpeSimo(object):
         new_coord=self.undo_rotoTraslation (self.newPoint[0],self.newPoint[1])
         self.xnew=new_coord[0]
         self.ynew=new_coord[1]
-        print "AAA x= ", self.xnew, "y = ", self.ynew
+        print ("AAA x= ", self.xnew, "y = ", self.ynew)
                         
 
 
@@ -438,7 +438,7 @@ class xpeSimo(object):
         self.outRootFile.cd()
         self.c_init.Write()
             
-        valore = raw_input('continue?')
+        #valore = input('continue?')
                 
         
         return 1
@@ -481,7 +481,7 @@ class xpeSimo(object):
             x_stop=x_min+dx1
         #end for n_iters
 
-        #print "min dist = ",min, "xmin = ",x_min
+        #print ("min dist = ",min, "xmin = ",x_min)
         return x_min
 
 
@@ -514,7 +514,7 @@ class xpeSimo(object):
             x_stop=x_min+dx1
         #end for n_iters
 
-        #print "min dist = ",min, "xmin = ",x_min
+        #print ("min dist = ",min, "xmin = ",x_min)
         return x_min
 """
 
@@ -530,7 +530,7 @@ class xpeSimo(object):
         sup_min=x_min
         xfound=0
 
-        print "x_min=",x_min
+        print ("x_min=",x_min)
         
         for n_iter in range (0,2):
 
@@ -549,7 +549,7 @@ class xpeSimo(object):
             dx=(sup_max-sup_min)/n_steps        
             
             
-        print "returning xfound = ",xfound
+        print ("returning xfound = ",xfound)
         return xfound 
 
     
@@ -562,17 +562,17 @@ class xpeSimo(object):
        for i in range (1,nbins):
            x[i]=h1.GetBinContent(i)
 
-       print "creo oggetto..."
+       print ("creo oggetto...")
        simoFilter=smooth_simo.filtra_segnale()
 
-       print "init filtro.. "
+       print ("init filtro.. ")
        aa=simoFilter.init_filtro();
        y=simoFilter.filtra(x)
        hF=h1.Clone()
        hF.Reset()
        for i in range (1,nbins):
            hF.SetBinContent(i,y[i])
-           #print "filtered: i= ",i," y = ",y[i]
+           #print ("filtered: i= ",i," y = ",y[i])
 
        return hF
 
@@ -661,11 +661,11 @@ class xpeSimo(object):
 
         #ottimizzato per dividiBins=1 ,filtro: M=18 cutoff=7e7
         
-        print "fit con cut-off"
+        print ("fit con cut-off")
         
         max = h.GetBinCenter( h.GetMaximumBin())
         convp=self.distConv
-        print "distConv= ",self.distConv
+        print ("distConv= ",self.distConv)
 
         
         G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
@@ -761,10 +761,10 @@ class xpeSimo(object):
 
         #ottimizzato per dividiBins=1 ,filtro: M=18 cutoff=7e7
         
-        print "fit con gaus + exp+ cut-off"
+        print ("fit con gaus + exp+ cut-off")
         max = h.GetBinCenter( h.GetMaximumBin())
         convp=self.distConv
-        print "distConv= ",self.distConv
+        print ("distConv= ",self.distConv)
 
 
         G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
@@ -825,7 +825,7 @@ class xpeSimo(object):
 
 
 
-        print " sigma G1 = ",fsum.GetParameter(2)     
+        print (" sigma G1 = ",fsum.GetParameter(2)  )
             
         return fsum
 
@@ -842,7 +842,7 @@ class xpeSimo(object):
         
         #cerca picchi!
         if (self.peakFinding==1):
-            print " inizio ROOT.Tspectrum"
+            print (" inizio ROOT.Tspectrum")
             s=ROOT.TSpectrum(self.maxnP)
             n_foundPeaks=s.Search(h,self.Psigma,"",self.Pthr)               
             x_peaks_raw=s.GetPositionX()
@@ -854,7 +854,7 @@ class xpeSimo(object):
             x_peaks.sort()
 
             #for i in range (0,n_foundPeaks):
-            #   print "x peak found = ",x_peaks[i] 
+            #   print ("x peak found = ",x_peaks[i] )
         
             if n_foundPeaks >=2:
                 self.x_picco=x_peaks[0]
@@ -888,9 +888,9 @@ class xpeSimo(object):
         x_lin= self.get_xDist(fLin2, minX,self.x_picco)
         #y_lin=par[0]*(x_lin**3)+par[1]*(x_lin**2)+(par[2]*x_lin)+par[3]
         y_lin=self.f_spline3.Eval(x_lin)
-        print "x_picco = ",self.x_picco, "x_lin = ",x_lin
+        print ("x_picco = ",self.x_picco, "x_lin = ",x_lin)
         
-        #print "===============>>>>>>>>>>>> y_lin=",y_lin,"  y_lin2=",y_lin2,"  diff= ",y_lin-y_lin2
+        #print ("===============>>>>>>>>>>>> y_lin=",y_lin,"  y_lin2=",y_lin2,"  diff= ",y_lin-y_lin2)
           
         newPoint=[x_lin,y_lin]
         return newPoint

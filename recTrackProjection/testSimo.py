@@ -32,6 +32,7 @@ from gpdswswig.Utils import ixpeMath
 #from gpdswswig.Io import ixpeInputBinaryFile
 from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
+from  gpdswswig.Geometry import *
 
 #FILE_PATH = os.path.join(os.environ['GPDSWROOT'], 'Recon', 'data',
 #                         'test_fe_500evts.mdat')
@@ -53,7 +54,9 @@ def rec_and_draw(track):
    #print pyIt
    hit=track.hits()
    print (hit)
- 
+
+   print ("---->>>>>>>>>>>> bary = ",track.barycenter().x())
+   
    n_hits=track.numHits()
    print ("n_hits  = ",n_hits)
 
@@ -85,8 +88,10 @@ def rec_and_draw(track):
 def threshold_scan(zeroSupThreshold=5, num_events=20):
         #binary_file = ixpeInputBinaryFile(FILE_PATH)
         binary_file = ixpeLvl1FitsFile(FILE_PATH)
-        min_hits=5
-        clustering = ixpeClustering(zeroSupThreshold,min_hits)
+        min_hits=6
+        minDensityPoints=4
+        # default values= zeroSupThreshold, minTrackHits=6, minDensityPoints=4):
+        clustering = ixpeClustering(zeroSupThreshold,min_hits,minDensityPoints)
         #binary_file.buildEventTable()
         #num_events=binary_file.numEvents()
         print (" n event  = ",num_events)

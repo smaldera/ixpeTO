@@ -3,8 +3,8 @@ import ROOT
 
 
 
-nomefile="out_dataFF_0.20_new_readHisto.root"
-nomefileOut="plots_mappe_dataFF_0.20.root"
+nomefile="out_dataFF_0.08_new_readHisto_dev3.root"
+nomefileOut="plots_mappe_dataFF_0.08_dev3.root"
 
 infile =ROOT.TFile(nomefile)
 
@@ -68,13 +68,25 @@ tree.Draw("pix_y:pix_x>>h2meanCic3", "meanCic3")
 tree.Draw("pix_y:pix_x>>h2gaussAve", "gaussAve")
 tree.Draw("pix_y:pix_x>>h2landauAve", "landauAve")
 
+risMean=0
+risMeanG=0 
+risMeanCic=0
+risMeanCic3=0
+risGaussAve=0
+risLAndauAve=0
 
-risMean=h_mean.GetRMS()/h_mean.GetMean()
-risMeanG=h_meanG.GetRMS()/h_meanG.GetMean()
-risMeanCic=h_meanCic.GetRMS()/h_meanCic.GetMean()
-risMeanCic3=h_meanCic3.GetRMS()/h_meanCic3.GetMean()
-risGaussAve=h_gaussAve.GetRMS()/h_gaussAve.GetMean()
-risLandauAve=h_landauAve.GetRMS()/h_landauAve.GetMean()
+if h_mean.GetMean()!=0:
+   risMean=h_mean.GetRMS()/h_mean.GetMean()
+if h_meanG.GetMean()!=0:   
+   risMeanG=h_meanG.GetRMS()/h_meanG.GetMean()
+if h_meanCic.GetMean()!=0:
+   risMeanCic=h_meanCic.GetRMS()/h_meanCic.GetMean()
+if h_meanCic3.GetMean()!=0:
+   risMeanCic3=h_meanCic3.GetRMS()/h_meanCic3.GetMean()
+if h_gaussAve.GetMean()!=0:
+   risGaussAve=h_gaussAve.GetRMS()/h_gaussAve.GetMean()
+if h_landauAve.GetMean()!=0:
+   risLandauAve=h_landauAve.GetRMS()/h_landauAve.GetMean()
 
 c1=ROOT.TCanvas("c1","",0)
 

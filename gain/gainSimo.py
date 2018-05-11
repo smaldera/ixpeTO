@@ -21,7 +21,7 @@ def createHistogramsMatrix(nCol,nRows):
         for row in range (0,nRows):
             name='hist_'+str(col)+'_'+str(row)
             #print name
-            pixHist[col][row]=ROOT.TH1F(name,name,500,0.,500.)
+            pixHist[col][row]=ROOT.TH1F(name,name,2000,0.,2000.)
             ROOT.SetOwnership(pixHist[col][row], False) # importantissimo!!! se no il grabage collector python ci mette una vita!!!
     return pixHist
 
@@ -167,8 +167,7 @@ def doAll(args):
     hzRMS.Write()
     h2pixel.Write()
     print ("closing root file...")
-    outRootFile.Close()
-  
+    outRootFile.Close()  
     return 0
 
 
