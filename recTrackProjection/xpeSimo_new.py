@@ -23,7 +23,8 @@ import ROOT
 import numpy 
 from array import array
 import math
-
+#import scipy
+from scipy.interpolate import UnivariateSpline
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
@@ -123,6 +124,22 @@ class xpeSimo(object):
         self.phi=self.phi0
         self.x0=self.conversion_point_X
         self.y0=self.conversion_point_Y
+
+        self.McInfo=-1
+
+
+        # scipy spline:
+        self.uniSpiline=0
+
+    def fitScipy_spline(self,x,y,err):
+            self.uniSpline= UnivariateSpline(x, y, w=err, s=10)
+            
+            
+    def eval_scipySpline_TF1(self, x):
+            xx=float(x[0]) 
+            return  self.uniSpline(xx) 
+
+  
         
     """
     def fit_spline(self, zero_suppression=12):
@@ -167,8 +184,6 @@ class xpeSimo(object):
         #yy=math.sqrt( 1+( math.pow( self.f_p3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
         yy=math.sqrt( 1+( math.pow( self.f_spline3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
         return yy
-
-
     
        
     def rec_simo(self):
@@ -179,8 +194,14 @@ class xpeSimo(object):
         
         import time
         import math
-        #import ROOT
+       
+        if self.McInfo!=-1:
+            print ("Xmc=",self.McInfo.absorbtionPointX)
+        
 
+
+
+        
         #creo liste con x,y,z di ogni pixel!!! forse meglio spostarlo fuori da questa classe e passare le liste!
         n_hits=self.track.numHits()
         hit=self.track.hits()
@@ -193,8 +214,7 @@ class xpeSimo(object):
             x[i]=hit[i].x
             y[i]=hit[i].y
             adc[i]=hit[i].pulseHeight
-            
-        
+                   
         
         x0=self.x0
         y0=self.y0
@@ -217,15 +237,17 @@ class xpeSimo(object):
         self.h2 = ROOT.TH2F("h2","",self.nbinsX,self.x1,self.x2,self.nbinsY,self.y1,self.y2)
         self.profx=ROOT.TProfile("profx","profile",100,-2,2,"")
 
-        # probabilmente inutile, gisuto per essere sicuro che siano vuoti
+        # probabilmente inutile, giusto per essere sicuro che siano vuoti
         self.h1.Reset()
         self.h1L.Reset()
         self.h1L_smoothSimo.Reset()
         self.h1L_ave.Reset()
         self.h2.Reset()
         self.profx.Reset()
-       
-        err=0.1*numpy.sqrt(adc)/adc
+
+        
+        #err=0.1*numpy.sqrt(adc)/adc # come normalizzo l'errore?????
+        err= (adc/float(adc.max()))**0.5
         print ("Err = ",err)
 
         
@@ -305,7 +327,11 @@ class xpeSimo(object):
         
         #self.profx.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.gr1.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+        # fitto con spline scipy:
+        self.fitScipy_spline(xp,yp,err)
+        # creo TF1 della spline:
+        self.f_splineScipy=ROOT.TF1("f_splineScipy", self.eval_scipySpline_TF1, minX,maxX,0 ) # spline3  per ora nessun controllo su passagio per/vicino  p.conv.
+                 
         #self.profx.Fit("f_p3","MERw")
 
 
@@ -384,7 +410,9 @@ class xpeSimo(object):
         
         self.h2.Draw("colZ")
         self.profx.Draw("samep")
-        self.gr1.Draw("samep")
+
+        #self.gr1.Draw("samep")
+
         #ellips=ROOT.TEllipse(self.baricenter_X,self.baricenter_Y, math.sqrt(self.mom2_long), math.sqrt(self.mom2_trans), 0,360, self.phi0*ROOT.TMath.RadToDeg())
         #ellips.SetFillStyle(0)
         #ellips.Draw()
@@ -395,18 +423,57 @@ class xpeSimo(object):
         self.line1.Draw("samel")
         self.line2.Draw("samel")
         self.f_p3.Draw("samel")
+        self.f_splineScipy.Draw("samel")
+        
 
-         
+        self.f_spline3.Draw("samel")
+        
+        
         PeakImpP=ROOT.TMarker( self.newPoint[0],  self.newPoint[1],34)
-        PeakImpP.SetMarkerColor(2)    
+        PeakImpP.SetMarkerColor(6)
+        PeakImpP.SetMarkerSize(2.1)
         PeakImpP.Draw()   
                               
         self.h1L.GetXaxis().SetRangeUser(-0.4,1.5)
         self.h1L.SetLineColor(1)
         self.h1L.SetLineWidth(1)
             
+        # conv point MC:
+        if self.McInfo!=-1:
+            #print ("Xmc=",self.McInfo.absorbtionPointX)
+            dx = (self.McInfo.absorbtionPointX - self.x0)
+            dy = (self.McInfo.absorbtionPointY- self.y0)
+            xp = numpy.cos(self.phi)*dx +numpy.sin(self.phi)*dy
+            yp = -numpy.sin(self.phi)*dx + numpy.cos(self.phi)*dy
+            MCconvPoint=ROOT.TMarker( xp, yp ,20)
+            MCconvPoint.SetMarkerColor(6)
+            MCconvPoint.Draw()
+            
+            ionXnp=numpy.array(self.McInfo.ionizationPosX)
+            ionYnp=numpy.array(self.McInfo.ionizationPosY)
+
+            #da fattorizzare in una funzione!!!!
+            dx=ionXnp- self.x0
+            dy=ionYnp- self.y0
+            xp = numpy.cos(self.phi)*dx +numpy.sin(self.phi)*dy
+            yp = -numpy.sin(self.phi)*dx + numpy.cos(self.phi)*dy
+
+            ionX=array('d',xp)
+            ionY=array('d',yp)
+            
+            
+            nIon=len(ionX)
+            gIon=ROOT.TGraph(nIon,ionX,ionY)
+            gIon.Draw("*")
+            #for i in range(0, len(ionX)): 
+            #print ("(ioni x) = ",ionX[i], "ioniY",ionY[i])
+            
+           
+
+
         
-        
+        ###########
+        # pad2
         self.c_init.cd(2)
         self.h1L.Draw("hist")
         convPoint = ROOT.TMarker(self.distConv,0,22)
@@ -438,7 +505,7 @@ class xpeSimo(object):
         self.outRootFile.cd()
         self.c_init.Write()
             
-        #valore = input('continue?')
+        valore = input('continue?')
                 
         
         return 1
