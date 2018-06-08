@@ -30,22 +30,13 @@ from xpeSimo_ttree import *
 from xpeSimo_new import *
 #from xpeSimo import *
 
-"""
-from gpdswswig.Recon import *
-from gpdswswig.Utils import ixpeMath
-from gpdswswig.Io import ixpeInputBinaryFile
-#from gpdswswig.Io import ixpeLvl0bFitsFile
-from gpdswswig.MonteCarlo import ixpeMcInfo
-from gpdswswig.Event import ixpeEvent
-from gpdswswig.Geometry import *
-"""
 
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
 #from gpdswswig.Io import ixpeInputBinaryFile
 from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
-
+from gpdswswig.MonteCarlo import *
 
 
 
@@ -85,17 +76,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        event_id=0
        outRootFile=ROOT.TFile("out.root","recreate")
        myTree=myTTree()  # from xpeSimo_ttree.py
-     ########       
-     #clustering = ixpeClustering(threshold, min_hits)
-     #   for i in range (0, num_events):
-     #       digiEvt = binary_file.next()
-     #       print(digiEvt)
-     #       evt = ixpeEvent(digiEvt)
-     #       tracks = clustering.dbScan(evt)
-     #       print('%d track(s) found!' % (tracks.size()))
-     #for i, track in enumerate(tracks):
-
-                   
+                     
        #binary_file = ixpeInputBinaryFile(filePath) # questo legge i files mdat ormai obsoleto???
        binary_file= ixpeLvl1FitsFile(filePath)  # questo legge i files fits
        
@@ -118,25 +99,16 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
                 else:
                     break         
            evt = ixpeEvent(digiEvt)
-           """
+           
            # read MC info NOT WORKING!!!!!!
-           mcInfo = binary_file.readMcInfo(i+1)
-           x_convMC=mcInfo.absorbtionPointX
-           y_convMC=mcInfo.absorbtionPointY
-           z_convMC=mcInfo.absorbtionPointZ
+           mcInfo=0
+           try:
+                  mcInfo = binary_file.readMcInfo(i+1)
+           except:
+                 
+                 mcInfo=-1 
 
-           phiMC=mcInfo.photoElectronPhi
-           thetaMC=mcInfo.photoElectronTheta
-           augerPhi=mcInfo.augerEnergy
-           augerE=mcInfo.augerPhi
-
-           ionizationX=mcInfo.ionizationPosX
-
-           print ("McInfo.E =",mcInfo.photonEnergy, "x_convMC =",x_convMC," y_convMC =",y_convMC," phiMC = ",phiMC)
-           print ("(ioni x) = ",ionizationX[0])
-           """
-           
-           
+                      
            
            clustering.dbScan(evt)
            print ('Number of above threshold pixels: %d' %evt.numAboveThresholdPixels())
@@ -155,7 +127,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
            xpeSimoAA.event_id=event_id
            xpeSimoAA.outRootFile= outRootFile
-                     
+           xpeSimoAA.McInfo=mcInfo        
            
            recSimo=xpeSimoAA.rec_simo()
            if draw:
