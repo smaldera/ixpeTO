@@ -219,12 +219,9 @@ class xpeSimo(object):
         x0=self.x0
         y0=self.y0
         phi=self.phi
-        
-        dx = (x - x0)
-        dy = (y - y0)
-        xp = numpy.cos(phi)*dx + numpy.sin(phi)*dy
-        yp = -numpy.sin(phi)*dx + numpy.cos(phi)*dy
+        xp,yp= self.rotoTraslate(x,y)
 
+        
         phi0_bary=self.phi0-phi
         phi1_bary=self.phi1 -phi
                
@@ -262,22 +259,12 @@ class xpeSimo(object):
         self.gr1 = ROOT.TGraphErrors (len(xp),xp,yp,err,err )
 
 
-          #calcolo coodrdinate bary1 e 2 nel sistema roto traslato:
-
-        dx_bary1=(self.baricenter_X-x0)
-        dy_bary1=(self.baricenter_Y-y0)
-        x_bary1= numpy.cos(phi)*dx_bary1 + numpy.sin(phi)*dy_bary1
-        y_bary1 = -numpy.sin(phi)*dx_bary1 + numpy.cos(phi)*dy_bary1
-
-
+        #calcolo coodrdinate bary1 e 2 nel sistema roto traslato:       
+        x_bary1,y_bary1=self.rotoTraslate(self.baricenter_X,self.baricenter_Y)
         self.bary1=ROOT.TMarker(x_bary1,y_bary1,20)
         self.bary1.SetMarkerColor(2)
 
-        dx_bary2=(self.conversion_point_X-x0)
-        dy_bary2=(self.conversion_point_Y-y0)
-        x_bary2= numpy.cos(phi)*dx_bary2 + numpy.sin(phi)*dy_bary2
-        y_bary2 = -numpy.sin(phi)*dx_bary2 + numpy.cos(phi)*dy_bary2
-        
+        x_bary2,y_bary2=self.rotoTraslate(self.conversion_point_X,self.conversion_point_Y)
         self.bary2=ROOT.TMarker(x_bary2, y_bary2,20)
         self.bary2.SetMarkerColor(4)
 
@@ -440,24 +427,17 @@ class xpeSimo(object):
             
         # conv point MC:
         if self.McInfo!=-1:
-            #print ("Xmc=",self.McInfo.absorbtionPointX)
-            dx = (self.McInfo.absorbtionPointX - self.x0)
-            dy = (self.McInfo.absorbtionPointY- self.y0)
-            xp = numpy.cos(self.phi)*dx +numpy.sin(self.phi)*dy
-            yp = -numpy.sin(self.phi)*dx + numpy.cos(self.phi)*dy
-            MCconvPoint=ROOT.TMarker( xp, yp ,20)
+            
+            xConvMC,yConvMC=self.rotoTraslate(self.McInfo.absorbtionPointX,self.McInfo.absorbtionPointY )
+            MCconvPoint=ROOT.TMarker( xConvMC, yConvMC ,20)
             MCconvPoint.SetMarkerColor(6)
             MCconvPoint.Draw()
             
             ionXnp=numpy.array(self.McInfo.ionizationPosX)
             ionYnp=numpy.array(self.McInfo.ionizationPosY)
 
-            #da fattorizzare in una funzione!!!!
-            dx=ionXnp- self.x0
-            dy=ionYnp- self.y0
-            xp = numpy.cos(self.phi)*dx +numpy.sin(self.phi)*dy
-            yp = -numpy.sin(self.phi)*dx + numpy.cos(self.phi)*dy
-
+            
+            xp,yp=self.rotoTraslate(ionXnp, ionYnp)
             ionX=array('d',xp)
             ionY=array('d',yp)
             
@@ -465,10 +445,7 @@ class xpeSimo(object):
             nIon=len(ionX)
             gIon=ROOT.TGraph(nIon,ionX,ionY)
             gIon.Draw("*")
-            #for i in range(0, len(ionX)): 
-            #print ("(ioni x) = ",ionX[i], "ioniY",ionY[i])
-            
-           
+                       
 
 
         
@@ -964,4 +941,15 @@ class xpeSimo(object):
          
       
   
-
+    #def rotoTraslate (self, x,y,x0,y0,phi):
+    def rotoTraslate(self, x,y):
+          
+        x0=self.x0
+        y0=self.y0
+        phi=self.phi 
+        dx = (x - x0)
+        dy = (y - y0)
+        xp = numpy.cos(phi)*dx + numpy.sin(phi)*dy
+        yp = -numpy.sin(phi)*dx + numpy.cos(phi)*dy
+        #aaa=[xp,yp]
+        return xp,yp
