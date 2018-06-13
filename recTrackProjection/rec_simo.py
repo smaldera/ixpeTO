@@ -28,6 +28,8 @@ import time
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
 from xpeSimo_new import *
+from xpeSimo_newMC import *
+
 #from xpeSimo import *
 
 
