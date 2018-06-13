@@ -27,36 +27,35 @@ import time
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
-#from xpeSimo_new import *
-from xpeSimo import *
+from xpeSimo_new import *
+from xpeSimo_newMC import *
+
+#from xpeSimo import *
+
 
 from gpdswswig.Recon import *
 from gpdswswig.Utils import ixpeMath
-from gpdswswig.Io import ixpeInputBinaryFile
-from gpdswswig.Io import ixpeLvl0bFitsFile
-
-from gpdswswig.MonteCarlo import ixpeMcInfo
-
-
+#from gpdswswig.Io import ixpeInputBinaryFile
+from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
-from gpdswswig.Geometry import *
+from gpdswswig.MonteCarlo import *
 
 
 
 def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=0):
        """
        """
-       print "file = ",filePath
-       print "raggioCut = ",raggioCut
-       print "dividiBins= ",dividiBins
-       print "baryPadding = ",baryPadding 
-       print "findMaxAlg = ",findMaxAlg
-       print "pcubo = ", pcubo
-       print "maxnP = ", maxnP
-       print "Psigma ",Psigma
-       print "Pthr = ",Pthr
-       print "draw = ",draw
-       print "zeroSupThresold = ",zeroSupThreshold
+       print ("file = ",filePath)
+       print ("raggioCut = ",raggioCut)
+       print ("dividiBins= ",dividiBins)
+       print ("baryPadding = ",baryPadding) 
+       print ("findMaxAlg = ",findMaxAlg)
+       print ("pcubo = ", pcubo)
+       print ("maxnP = ", maxnP)
+       print ("Psigma ",Psigma)
+       print ("Pthr = ",Pthr)
+       print ("draw = ",draw)
+       print ("zeroSupThresold = ",zeroSupThreshold)
       
 
        
@@ -79,54 +78,44 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        event_id=0
        outRootFile=ROOT.TFile("out.root","recreate")
        myTree=myTTree()  # from xpeSimo_ttree.py
-     ########       
-     #clustering = ixpeClustering(threshold, min_hits)
-     #   for i in range (0, num_events):
-     #       digiEvt = binary_file.next()
-     #       print(digiEvt)
-     #       evt = ixpeEvent(digiEvt)
-     #       tracks = clustering.dbScan(evt)
-     #       print('%d track(s) found!' % (tracks.size()))
-     #for i, track in enumerate(tracks):
+                     
+       #binary_file = ixpeInputBinaryFile(filePath) # questo legge i files mdat ormai obsoleto???
+       binary_file= ixpeLvl1FitsFile(filePath)  # questo legge i files fits
+       
 
-                   
-       #binary_file = ixpeInputBinaryFile(filePath) # questo legge i files mdat
-       binary_file=ixpeLvl0bFitsFile(filePath)
-                  # ixpeLvl0bFitsFile
-       clustering = ixpeClustering(zeroSupThreshold,5)
+       # default values= zeroSupThreshold, minTrackHits=6, minDensityPoints=4):
+       min_hits=6
+       minDensityPoints=4
+       clustering = ixpeClustering(zeroSupThreshold,min_hits,minDensityPoints)           
+       
       
-       for i in xrange(num_events):
+       for i in range(num_events):
            try:    
 
                   digiEvt = binary_file.next()
-                  evt = ixpeEvent(digiEvt)
+                  
            except RuntimeError  as  e:
                 #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
                 if str(e)=='Header mismatch':
                         continue
                 else:
                     break         
-             
-           mcInfo = binary_file.readMcInfo(i+1)
-          
-           x_convMC=mcInfo.absorbtionPointX
-           y_convMC=mcInfo.absorbtionPointY
-           z_convMC=mcInfo.absorbtionPointZ
+           evt = ixpeEvent(digiEvt)
+           
+           # read MC info NOT WORKING!!!!!!
+           mcInfo=0
+           try:
+                  mcInfo = binary_file.readMcInfo(i+1)
+           except:
+                 
+                 mcInfo=-1 
 
-           phiMC=mcInfo.photoElectronPhi
-           thetaMC=mcInfo.photoElectronTheta
-           augerPhi=mcInfo.augerEnergy
-           augerE=mcInfo.augerPhi
-
-           ionizationX=mcInfo.ionizationPosX
-
-           print "McInfo.E =",mcInfo.photonEnergy, "x_convMC =",x_convMC," y_convMC =",y_convMC," phiMC = ",phiMC
-           print "(ioni x) = ",ionizationX[0]
+                      
            
-           
-           
-           
-           tracks = clustering.dbScan(evt)
+           clustering.dbScan(evt)
+           print ('Number of above threshold pixels: %d' %evt.numAboveThresholdPixels())
+           print ('Number of noise pixels: %d' % evt.numNoisePixels())
+           tracks = ixpeTrackBuilder.buildTracks(evt)
            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
               continue
 
@@ -140,7 +129,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
            xpeSimoAA.event_id=event_id
            xpeSimoAA.outRootFile= outRootFile
-                     
+           xpeSimoAA.McInfo=mcInfo        
            
            recSimo=xpeSimoAA.rec_simo()
            if draw:
@@ -205,7 +194,7 @@ if __name__ == '__main__':
                         help='the input binary file')
     parser.add_argument('-n', '--num_events', type=int, default=100,
                         help = 'number of events to be processed')
-    parser.add_argument('-z', '--zero-suppression', type=int, default=9,
+    parser.add_argument('-z', '--zero-suppression', type=int, default=5,
                         help = 'zero-suppression threshold')
     
 

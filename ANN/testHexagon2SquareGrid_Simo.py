@@ -35,10 +35,8 @@ from gpdswswig.Io import ixpeInputBinaryFile
 from gpdswswig.Event import ixpeEvent
 
 
-#FILE_PATH = os.path.join(os.environ['GPDSWROOT'], 'Recon', 'data',
-#                         'test_fe_500evts.mdat')
-
-FILE_PATH = '/home/maldera/FERMI/Xipe/rec/data/mdat/xpol_2081.mdat'
+FILE_PATH = os.path.join(os.environ['GPDSWROOT'],'data','102_0000020_data_trimmed.fits')
+#FILE_PATH = '/home/maldera/IXPE/data/realData/xpol_2081.fits'
 
 
 
@@ -173,24 +171,26 @@ if __name__ == "__main__":
 
         
      for i in range (0, num_events):
-            try:    
-                #evt = binary_file.next()
-                 digiEvt = binary_file.next()
-                 evt = ixpeEvent(digiEvt)
 
-                
-            except RuntimeError  as  e:
-                #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
-                if str(e)=='Header mismatch':
-                        continue
-                else:
-                    break         
-          
-    
-            tracks = clustering.dbScan(evt)    
-            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
-               continue
+       
+            try:
+                digiEvt = binary_file.next() 
+            except:
+                #if str(e)=='StopIteration':
+                break
+            if i%10000==0:
+                print "event = ",i
+            evt= ixpeEvent(digiEvt)
+            clustering.dbScan(evt)
+            tracks = ixpeTrackBuilder.buildTracks(evt)
+            #track = tracks.front()
+            #tracks = clustering.dbScan(evt)    
+            #if len(tracks)==0:
+            #    print "skipping event n. ",i,
+            #    continue       #skip events whit no trace!!!!
+            #track = tracks[0] # sono in ordine????
+            track=tracks.front()
+            
 
-            track = tracks[0]
             rec_and_draw(track)
 

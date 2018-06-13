@@ -24,6 +24,7 @@ import numpy
 from array import array
 import math
 
+import time
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
@@ -31,6 +32,7 @@ from xpeSimo_ttree import *
 
 import matplotlib.pyplot as plt
 from gpdswswig.Recon import *
+from gpdswswig.Geometry import *
 
 class xpeSimo:
 
@@ -48,7 +50,7 @@ class xpeSimo:
         self.phiTang=0
         self.track=track #!!!!!!!!!!!
         
-        
+        #print (track.numHits()
 
         
         self.xnew=0
@@ -143,12 +145,12 @@ class xpeSimo:
        
     def rec_simo(self):
 
-        print ""
-        print "==================== "
-        print ""
+        print ("")
+        print ("==================== ")
+        print ("")
         
-        import time
-        import math
+        # import time
+        # import math
         #import ROOT
 
         #creo liste con x,y,z di ogni pixel!!! forse meglio spostarlo fuori da questa classe e passare le liste!
@@ -252,7 +254,7 @@ class xpeSimo:
         if self.pcubo==0:
             self.f_p3.FixParameter(0,0) # il cubo diventa una parabola!
             #self.f_p3.FixParameter(1,0) # il cubo diventa una retta!!!!!
-        print "fit con  cubo... "
+        print ("fit con  cubo... ")
 
         self.profx.Fit("f_p3","MERw")
 
@@ -282,7 +284,7 @@ class xpeSimo:
              y_min_dist=par[0]*x_min_dist**3+par[1]*x_min_dist**2+par[2]*x_min_dist+par[3]
              
              distL=fLin.Integral(minX,x_min_dist)          
-             #print "dist x= ",x_min_dist-minX, "distL = ",distL
+             #print ("dist x= ",x_min_dist-minX, "distL = ",distL)
              radius=math.sqrt( (x_min_dist-xp[i])**2 + (y_min_dist-yp[i])**2)
              
              if radius <self.raggioCut:
@@ -303,7 +305,7 @@ class xpeSimo:
         new_coord=self.undo_rotoTraslation (self.newPoint[0],self.newPoint[1])
         self.xnew=new_coord[0]
         self.ynew=new_coord[1]
-        print "AAA x= ", self.xnew, "y = ", self.ynew
+        print ("AAA x= ", self.xnew, "y = ", self.ynew)
                         
 
 
@@ -415,7 +417,7 @@ class xpeSimo:
             x_stop=x_min+dx1
         #end for n_iters
 
-        #print "min dist = ",min, "xmin = ",x_min
+        #print ("min dist = ",min, "xmin = ",x_min)
         return x_min
       
         
@@ -447,7 +449,7 @@ class xpeSimo:
             dx=(sup_max-sup_min)/n_steps        
             
             
-        print "returning xfound = ",xfound
+        print ("returning xfound = ",xfound)
         return xfound 
 
     
@@ -460,17 +462,17 @@ class xpeSimo:
        for i in range (1,nbins):
            x[i]=h1.GetBinContent(i)
 
-       print "creo oggetto..."
+       print ("creo oggetto...")
        simoFilter=smooth_simo.filtra_segnale()
 
-       print "init filtro.. "
+       print ("init filtro.. ")
        aa=simoFilter.init_filtro();
        y=simoFilter.filtra(x)
        hF=h1.Clone()
        hF.Reset()
        for i in range (1,nbins):
            hF.SetBinContent(i,y[i])
-           #print "filtered: i= ",i," y = ",y[i]
+           
 
        return hF
 
@@ -559,11 +561,11 @@ class xpeSimo:
 
         #ottimizzato per dividiBins=1 ,filtro: M=18 cutoff=7e7
         
-        print "fit con cut-off"
+        print ("fit con cut-off")
         
         max = h.GetBinCenter( h.GetMaximumBin())
         convp=self.distConv
-        print "distConv= ",self.distConv
+        print ("distConv= ",self.distConv)
 
         
         G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
@@ -659,10 +661,10 @@ class xpeSimo:
 
         #ottimizzato per dividiBins=1 ,filtro: M=18 cutoff=7e7
         
-        print "fit con gaus + exp+ cut-off"
+        print ("fit con gaus + exp+ cut-off")
         max = h.GetBinCenter( h.GetMaximumBin())
         convp=self.distConv
-        print "distConv= ",self.distConv
+        print ("distConv= ",self.distConv)
 
 
         G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
@@ -735,7 +737,7 @@ class xpeSimo:
         
         #cerca picchi!
         if (self.peakFinding==1):
-            print " inizio ROOT.Tspectrum"
+            print (" inizio ROOT.Tspectrum")
             s=ROOT.TSpectrum(self.maxnP)
             n_foundPeaks=s.Search(h,self.Psigma,"",self.Pthr)               
             x_peaks_raw=s.GetPositionX()
@@ -747,7 +749,7 @@ class xpeSimo:
             x_peaks.sort()
 
             #for i in range (0,n_foundPeaks):
-            #   print "x peak found = ",x_peaks[i] 
+            #   print ("x peak found = ",x_peaks[i] )
         
             if n_foundPeaks >=2:
                 self.x_picco=x_peaks[0]
