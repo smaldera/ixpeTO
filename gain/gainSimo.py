@@ -5,7 +5,7 @@ from math import *
 
 
 
-##from gpdswswig.Io import ixpeLvl0bFitsFile## OBSOLETE???
+#from gpdswswig.Io import ixpeLvl0bFitsFile## OBSOLETE???
 from gpdswswig.Io import ixpeInputBinaryFile
 from gpdswswig.MonteCarlo import *
 from gpdswswig.Recon import *
@@ -57,7 +57,7 @@ def doAll(args):
     for filename in infileList:
            
         print ("processing ",filename)
-       #binary_file=ixpeLvl0bFitsFile(filename)  
+        #binary_file=ixpeLvl0bFitsFile(filename)  
         binary_file=ixpeInputBinaryFile(filename)  
        
         for i in range (0, nEvents):
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     parser.add_argument('outFile', type=str,  help='the output root file')
     parser.add_argument('-n', '--num_events', type=int, default=10000000, help = 'number of events to be processed')
     parser.add_argument('-z', '--zero_suppression', type=int, default=5,help = 'zero-suppression threshold')
-    parser.add_argument('-r', '--radius', type=int, default=0.08,help = 'radius around conv. point')
+    parser.add_argument('-r', '--radius', type=float, default=0.08,help = 'radius around conv. point')
     parser.add_argument('-pMin', '--minPHA', type=int, default=3500,help = 'min value for PHA')
     parser.add_argument('-pMax', '--maxPHA', type=int, default=6000,help = 'max value for PHA')
     
