@@ -34,28 +34,27 @@ import matplotlib.pyplot as plt
 from gpdswswig.Recon import *
 from gpdswswig.Geometry import *
 
+from scipy.integrate import quad
 
-
-from numba import jit
+#from numba import jit
 
 
 class xpeSimo(object):
 
-    def __init__(self, track,   raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
+    def __init__(self,  raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
 
         
-        self.event_id=-1
-        self.baricenter_X=track.barycenter().x()
-        print ("bary X = ",self.baricenter_X)
-        self.baricenter_Y=track.barycenter().y()
-        self.conversion_point_X=track.absorptionPoint().x()
-        self.conversion_point_Y=track.absorptionPoint().y()
-       
-        self.phi0=track.firstPassMomentsAnalysis().phi()
-        self.phi1=track.secondPassMomentsAnalysis().phi()
-        self.phiTang=0
-        self.track=track #!!!!!!!!!!!
-  
+        self.track=-1 #!!!!!!!!!!!
+        self.event_id=-100
+        self.baricenter_X=-100
+      
+        self.baricenter_Y=-100
+        self.conversion_point_X=-100
+        self.conversion_point_Y=-100 
+        self.phi0=-100
+        self.phi1=-1090
+        self.phiTang=-100
+        
         
         self.xnew=0
         self.ynew=0 #  nuovo punto di conversione!!
@@ -93,7 +92,10 @@ class xpeSimo(object):
         self.h1L= ROOT.TH1F("h1L","",int (self.nbinsX/self.dividi_bins),self.x1,self.x2)
         self.h1L_smoothSimo= ROOT.TH1F("h1L_smoothSimo","",int (self.nbinsX/self.dividi_bins),self.x1,self.x2)
         self.h1L_ave= ROOT.TH1F("h1L_ave","",int (self.nbinsX/self.dividi_bins),self.x1,self.x2)
-             
+
+        self.h2 = ROOT.TH2F("h2","",self.nbinsX,self.x1,self.x2,self.nbinsY,self.y1,self.y2)
+        self.profx=ROOT.TProfile("profx","profile",100,-2,2,"")
+
 
         # funzione fit istogramma long. cariche
         self.fFit_histo=0
@@ -112,37 +114,56 @@ class xpeSimo(object):
         self.line2=ROOT.TF1()
         self.f_p3=ROOT.TF1()
         self.f_spline3=ROOT.TF1()
-        self.fLin2=ROOT.TF1()
-      
-        
-        self.h2 = ROOT.TH2F()
-        self.gr1=ROOT.TGraphErrors() # aggiunto...
-        self.profx=ROOT.TProfile()
-        self.newPoint=[0,0]
-
-        self.MCconvPoint=ROOT.TMarker()
+        self.fLin2=ROOT.TF1("fLin2",self.f_dist, self.x1,self.x2,0)
+        # self.f_splineScipy=ROOT.TF1()
+        self.f_splineScipy=ROOT.TF1("f_splineScipy", self.eval_scipySpline_TF1, self.x1, self.x2,0 )
          
+        #self.h2 = ROOT.TH2F()
+        self.gr1=ROOT.TGraphErrors() # aggiunto...
+        #self.profx=ROOT.TProfile()
+        self.newPoint=[0,0]
+        self.gIon=ROOT.TGraph()
+        self.MCconvPoint=ROOT.TMarker()
+
+        """
+        ROOT.SetOwnership(self.h2, False)
+        ROOT.SetOwnership(self.gr1, False)
+        ROOT.SetOwnership(self.profx, False)
+        ROOT.SetOwnership(self.gIon, False)
+        ROOT.SetOwnership(self.f_p3, False)
+        ROOT.SetOwnership(self.f_spline3, False)
+        ROOT.SetOwnership(self.fLin2, False)
+        ROOT.SetOwnership(self.h1, False)
+        ROOT.SetOwnership(self.h1L, False)
+        ROOT.SetOwnership(self.h1L_ave, False)
+        ROOT.SetOwnership(self.h1L_smoothSimo, False)
+        ROOT.SetOwnership(self.outRootFile, False)
+        ROOT.SetOwnership(self.f_splineScipy, False)
+        """
+        
         
         
         # parametri per rototraslazione!!!
         
-        self.phi=self.phi0
-        self.x0=self.conversion_point_X
-        self.y0=self.conversion_point_Y
-
+        
         self.McInfo=-1
 
-
         # scipy spline:
-        self.uniSpiline=0
+        #self.uniSpline=UnivariateSpline
+        #self.uniSplineDerivative= 0
+
+        
 
     def fitScipy_spline(self,x,y,err):
-            self.uniSpline= UnivariateSpline(x, y, w=err, s=10)
-            
+        self.uniSpline= UnivariateSpline(x, y, w=err, s=10)
+        self.uniSpilineDerivative=self.uniSpline.derivative()
+        
+        
+
             
     def eval_scipySpline_TF1(self, x):
-            xx=float(x[0]) 
-            return  self.uniSpline(xx) 
+        xx=float(x[0]) 
+        return  self.uniSpline(xx) 
 
   
         
@@ -163,8 +184,22 @@ class xpeSimo(object):
         xx =float(x[0])
         #yy=math.sqrt( 1+( math.pow( self.f_p3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
         #yy=math.sqrt( 1+( math.pow( self.f_spline3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
-        yy=math.sqrt( 1+( math.pow( self.f_splineScipy.Derivative(xx),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!    
+        #yy=math.sqrt( 1+( math.pow( self.f_splineScipy.Derivative(xx),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!
+        yy=math.sqrt( 1+( math.pow( self.uniSpilineDerivative(xx),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!
+       
         return yy
+
+
+    def f_distNew(self,x):
+         yy=math.sqrt( 1+( math.pow( self.uniSpilineDerivative(x),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!
+         return yy
+
+    def distNew(self,x1,x2):
+
+        dist=quad(self.f_distNew,x1,x2)
+        return dist[0]
+    
+
     
        
     def rec_simo(self):
@@ -172,11 +207,19 @@ class xpeSimo(object):
         print ("")
         print ("==================== ")
         print ("")
-        
-        import time
-        import math
-       
+
+       # return 1
+
+        self.baricenter_X=self.track.barycenter().x()
+        print ("bary X = ",self.baricenter_X)
+        self.baricenter_Y=self.track.barycenter().y()
+        self.conversion_point_X=self.track.absorptionPoint().x()
+        self.conversion_point_Y=self.track.absorptionPoint().y()
+        self.phi0=self.track.firstPassMomentsAnalysis().phi()
+        self.phi1=self.track.secondPassMomentsAnalysis().phi()
+
         if self.McInfo!=-1:
+            
             print ("Xmc=",self.McInfo.absorbtionPointX)
         
 
@@ -186,6 +229,7 @@ class xpeSimo(object):
         #creo liste con x,y,z di ogni pixel!!! forse meglio spostarlo fuori da questa classe e passare le liste!
         n_hits=self.track.numHits()
         hit=self.track.hits()
+        print ("n HITS = ",n_hits)
         
         x=numpy.array([0.]*n_hits)
         y=numpy.array([0.]*n_hits)
@@ -195,27 +239,26 @@ class xpeSimo(object):
             x[i]=hit[i].x
             y[i]=hit[i].y
             adc[i]=hit[i].pulseHeight
-                   
+            #print (x[i]," ",y[i]," adc = ",adc[i])
+
         
-        x0=self.x0
-        y0=self.y0
-        phi=self.phi
+        
         xp,yp= self.rotoTraslate(x,y)
 
         
-        phi0_bary=self.phi0-phi
-        phi1_bary=self.phi1 -phi
+        phi0_bary=self.phi0-self.phi0
+        phi1_bary=self.phi1 -self.phi0
                
                 
-        maxX= max(xp)
-        minX=min(xp)
-        maxY= max(yp)
-        minY=min(yp)
+        self.maxX= max(xp)
+        self.minX=min(xp)
+        self.maxY= max(yp)
+        self.minY=min(yp)
                 
-        self.h2 = ROOT.TH2F("h2","",self.nbinsX,self.x1,self.x2,self.nbinsY,self.y1,self.y2)
-        self.profx=ROOT.TProfile("profx","profile",100,-2,2,"")
+       # self.h2 = ROOT.TH2F("h2","",self.nbinsX,self.x1,self.x2,self.nbinsY,self.y1,self.y2)
+        #self.profx=ROOT.TProfile("profx","profile",100,-2,2,"")
 
-        # probabilmente inutile, giusto per essere sicuro che siano vuoti
+        # ora e' importante!!!
         self.h1.Reset()
         self.h1L.Reset()
         self.h1L_smoothSimo.Reset()
@@ -224,36 +267,50 @@ class xpeSimo(object):
         self.profx.Reset()
 
         
+        
         #err=0.1*numpy.sqrt(adc)/adc # come normalizzo l'errore?????
         err= (adc/float(adc.max()))**0.5
-        print ("Err = ",err)
-
+        #print ("Err = ",err)
+ 
         
         for i in range (0,len(x)):
              self.h2.Fill(xp[i], yp[i],adc[i])
              self.profx.Fill(xp[i], yp[i],  numpy.sqrt(adc[i])) # peso con la radice dei conteggi... assumo che siano sempre >0!!! 
-             self.h1.Fill(xp[i]-minX,adc[i])
+             self.h1.Fill(xp[i]-self.minX,adc[i])
         
         self.h2.GetXaxis().SetRangeUser(-0.8,1)
         self.h2.GetYaxis().SetRangeUser(-0.6, 0.6)
 
-        self.gr1 = ROOT.TGraphErrors (len(xp),xp,yp,err,err )
+        
+        
+        self.gr1 = ROOT.TGraphErrors (len(xp),xp,yp,err,err ) 
 
-
+       
+        
+        
         #MC ionization track: !!!!! solo con files MC   FIXMEsimo!!!!
         #if self.McInfo!=-1:    
         xConvMC,yConvMC=self.rotoTraslate(self.McInfo.absorbtionPointX,self.McInfo.absorbtionPointY )
+       
+       
         self.MCconvPoint=ROOT.TMarker( xConvMC, yConvMC ,20)
         self.MCconvPoint.SetMarkerColor(6)
             
             
         ionXnp=numpy.array(self.McInfo.ionizationPosX)
-        ionYnp=numpy.array(self.McInfo.ionizationPosY)            
+        ionYnp=numpy.array(self.McInfo.ionizationPosY)
+                   
+        
         ion_xp,ion_yp=self.rotoTraslate(ionXnp, ionYnp)
+
         ionX=array('d',ion_xp)
         ionY=array('d',ion_yp)
         nIon=len(ionX)
-        self.gIon=ROOT.TGraph(nIon,ionX,ionY)
+        self.gIon=ROOT.TGraph(nIon,ionX,ionY) 
+
+        
+        
+        
         #------------------ funzione solo con files MC!!!   
         
             
@@ -266,6 +323,7 @@ class xpeSimo(object):
         self.bary2=ROOT.TMarker(x_bary2, y_bary2,20)
         self.bary2.SetMarkerColor(4)
 
+          
                 
         m=(math.tan(phi0_bary))
         q=y_bary1-m*x_bary1
@@ -274,138 +332,67 @@ class xpeSimo(object):
         q2=y_bary2-m2*x_bary2
       
         
-        self.line1=ROOT.TF1("f1","[0]*x+[1]",minX, maxX)
-        self.line1.SetParameters(m,q)
-
-        self.line2=ROOT.TF1("f2","[0]*x+[1]",minX,maxX)
-        self.line2.SetParameters(m2,q2)
-        self.line2.SetLineColor(4)
-
-        self.f_p3=ROOT.TF1("f_p3","[0]*x*x*x+[1]*x*x+[2]*x+ ([3]- [0]*[4]*[4]*[4]-[1]*[4]*[4]-[2]*[4] )", minX, maxX) # pol3  per bary2 
-        # fissa il passaggio per il punto di conv. della rec standard
-        #self.f_p3.FixParameter(3,y_bary2)
-        #self.f_p3.FixParameter(4,x_bary2)
-        self.f_p3.SetParLimits(3,y_bary2-self.baryPadding ,y_bary2+self.baryPadding)
-        self.f_p3.SetParLimits(4,x_bary2-self.baryPadding,x_bary2+self.baryPadding)
-
-        #if self.pcubo==0:
-        #    self.f_p3.FixParameter(0,0) # il cubo diventa una parabola!
-        #    self.f_p3.FixParameter(1,0) # il cubo diventa una retta!!!!!
-        #print ("fit con  cubo... ")
-      #  self.profx.Fit("f_p3","MERw")
-
-        #uso la spline3(4nodi)!!!!!!!!!!!!!!!!!!!!!!
-        self.f_spline3=ROOT.TF1("f_spline3",self.spline3, minX, maxX, 10) # spline3  per ora nessun controllo su passagio per/vicino  p.conv.
-        deltaX=(maxX-minX)/5.
-        self.f_spline3.SetParameters(1.*deltaX ,2.*deltaX,3.*deltaX,4.*deltaX,self.f_p3.Eval(1.*deltaX ),self.f_p3.Eval(2.*deltaX),self.f_p3.Eval(3.*deltaX), self.f_p3.Eval(4.*deltaX),self.f_p3.Derivative(minX),self.f_p3.Derivative(maxX))#parametri iniziali!!!!!
-        self.f_spline3.SetLineColor(6);
-        self.f_spline3.SetLineWidth(5);
        
-             
-        #self.profx.Fit("f_p3","MERw")
-        #self.f_spline3=ROOT.TF1("f_spline3","[0]*x*x*x+[1]*x*x+[2]*x+ ([3]- [0]*[4]*[4]*[4]-[1]*[4]*[4]-[2]*[4] )", minX, maxX) # pol3  per bary2 
-        #self.f_spline3.SetParLimits(3,y_bary2-self.baryPadding ,y_bary2+self.baryPadding)
-        #self.f_spline3.SetParLimits(4,x_bary2-self.baryPadding,x_bary2+self.baryPadding)
-        
-        #self.profx.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     #   self.gr1.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # fitto con spline scipy:
-       
-        #self.fitScipy_spline(xp,yp,err)
         err_fitMC=numpy.array([1.]*len(ion_xp))
         self.fitScipy_spline(ion_xp,ion_yp,err_fitMC)
-    
-
         
-        # creo TF1 della spline:
-        self.f_splineScipy=ROOT.TF1("f_splineScipy", self.eval_scipySpline_TF1, minX,maxX,0 ) # spline3  per ora nessun controllo su passagio per/vicino  p.conv.
-
-
         #compute X2:
         chi2=0.
         for i in range (0,len(ion_xp)):
-            chi2=chi2+( (ion_yp[i]-self.f_splineScipy.Eval(ion_xp[i]) )**2)
+            chi2=chi2+( (ion_yp[i]-self.uniSpline(ion_xp[i]) )**2)
         print ("======> chi2 = ",chi2)     
-
+        
+        
        # if chi2>0.2:
        #     return -1
         
         #self.profx.Fit("f_p3","MERw")
-        
-
-        
-        par3=self.f_p3.GetParameter(3)
-        par4=self.f_p3.GetParameter(4)
-        
-        a=self.f_p3.GetParameter(0)
-        b=self.f_p3.GetParameter(1)
-        c= self.f_p3.GetParameter(2)
-        d= par3-a*par4**3-b*par3**2-c*par4    
-        
-        m=3.*a*x_bary2**3+2.*b*x_bary2+c
-        self.phiTang=numpy.arctan(m)-phi
-        par=[a,b,c,d] 
-        
-        
+                
         x_min_dist=0
          
-        #fLin=ROOT.TF1("fLin","pow(  (1+ pow(3*[0]*x*x+2*[1]*x+[2],2) ) ,0.5)", minX, maxX)
-        #fLin.SetParameter(0,a)
-        #fLin.SetParameter(1,b)
-        #fLin.SetParameter(2,c)
-
-        fLin2=ROOT.TF1("fLin2",self.f_dist, minX, maxX,0)
-        
-       
-       
-        
+                
         for i in range (0,len(x)):
                          
-             #x_min_dist2=self.min_dist2(xp[i], yp[i], self.f_spline3, minX, maxX)
-             x_min_dist2=self.min_dist2(xp[i], yp[i], self.f_splineScipy, minX, maxX)
-            
-             #y_min_dist2=self.f_spline3.Eval( x_min_dist2)
-             y_min_dist2=self.f_splineScipy.Eval( x_min_dist2)
              
-             distL2=fLin2.Integral(minX,x_min_dist2)
-             
+             x_min_dist2=self.min_dist2(xp[i], yp[i], self.uniSpline, self.minX, self.maxX)
+             y_min_dist2=self.uniSpline( x_min_dist2)
+             distL2=self.distNew(self.minX,x_min_dist2 )
+
              radius=math.sqrt( (x_min_dist2-xp[i])**2 + (y_min_dist2-yp[i])**2)
              
              if radius <self.raggioCut:   # e se peso inversamente al raggio???
                  self.h1L.Fill(distL2,adc[i]) 
             
-                 
-        self.distConv=fLin2.Integral(minX,0.) # in questo sitema di rif. il punto di conv e' in (0,0)
-        self.distConvMC=fLin2.Integral(minX, xConvMC) # in questo sitema di rif. il punto di conv e' in (0,0)
-       
+
+        self.distConv=self.distNew(self.minX,0.) # in questo sitema di rif. il punto di conv e' in (0,0)
+        self.distConvMC=self.distNew(self.minX, xConvMC) # in questo sitema di rif. il punto di conv e' in (0,0)
+ 
         self.h1L_smoothSimo=self.smooth_simo(self.h1L)
         self.h1L_ave=self.media_mobile(self.h1L)
         
         
         # restituisce punto sulla traccia
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, fLin, minX,par)
-
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, fLin2, minX)
-        self.newPoint= self.cerca_piccoAugerElectron(self.h1L_ave, fLin2, minX)
+        self.newPoint= self.cerca_piccoAugerElectron(self.h1L_ave, self.minX)
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L, fLin2, minX)
-       
 
         #m=3.*a*self.newPoint[0]**3+2.*b*self.newPoint[0]+c
-        m=self.f_p3.Derivative(self.newPoint[0])
+        #m=self.f_p3.Derivative(self.newPoint[0])
         #print ("m=",m," m2 =",m2," diff = ",m-m2 )
-        
-
-        
-        self.phiTang=numpy.arctan(m)-phi       
+                
+        #self.phiTang=numpy.arctan(m)-phi       
                 
         
         new_coord=self.undo_rotoTraslation (self.newPoint[0],self.newPoint[1])
+     
         self.xnew=new_coord[0]
         self.ynew=new_coord[1]
         print ("AAA x= ", self.xnew, "y = ", self.ynew)
                         
 
-
+    #    del self.McInfo,  ionX,ion_xp,ionY,ion_yp
         
     def draw_simo(self):
         #============================================
@@ -418,23 +405,58 @@ class xpeSimo(object):
         self.h2.Draw("colZ")
         self.profx.Draw("samep")
 
+
+
+       
+        phi0_bary=self.phi0-self.phi0
+        phi1_bary=self.phi1 -self.phi0
+        #calcolo coodrdinate bary1 e 2 nel sistema roto traslato:       
+        x_bary1,y_bary1=self.rotoTraslate(self.baricenter_X,self.baricenter_Y)
+        self.bary1=ROOT.TMarker(x_bary1,y_bary1,20)
+        self.bary1.SetMarkerColor(2)
+
+        x_bary2,y_bary2=self.rotoTraslate(self.conversion_point_X,self.conversion_point_Y)
+        self.bary2=ROOT.TMarker(x_bary2, y_bary2,20)
+        self.bary2.SetMarkerColor(4)
+
+
+
+        m=(math.tan(phi0_bary))
+        q=y_bary1-m*x_bary1
+
+        m2=(math.tan(phi1_bary))
+        q2=y_bary2-m2*x_bary2
+      
         #self.gr1.Draw("samep")
 
         #ellips=ROOT.TEllipse(self.baricenter_X,self.baricenter_Y, math.sqrt(self.mom2_long), math.sqrt(self.mom2_trans), 0,360, self.phi0*ROOT.TMath.RadToDeg())
         #ellips.SetFillStyle(0)
         #ellips.Draw()
-        
+
+        self.line1=ROOT.TF1("f1","[0]*x+[1]",self.minX, self.maxX)
+        self.line1.SetParameters(m,q)
+
+        self.line2=ROOT.TF1("f2","[0]*x+[1]",self.minX,self.maxX)
+        self.line2.SetParameters(m2,q2)
+        self.line2.SetLineColor(4)
+
         self.bary1.Draw()   
         self.bary2.Draw()
            
         self.line1.Draw("samel")
         self.line2.Draw("samel")
-        #self.f_p3.Draw("samel")
-        self.f_splineScipy.Draw("samel")
-        
 
-        #self.f_spline3.Draw("samel")
+
+        xFit=numpy.linspace(self.minX, self.maxX,1000)
+        yFit=self.uniSpline(xFit)
         
+        gfit=ROOT.TGraph(1000,array('f',xFit),array('f',yFit))
+        gfit.SetMarkerColor(6)
+        gfit.SetLineColor(6)
+        gfit.SetLineWidth(2)
+        gfit.Draw("pl")
+        
+        #self.f_splineScipy.Draw("samel") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         PeakImpP=ROOT.TMarker( self.newPoint[0],  self.newPoint[1],34)
         PeakImpP.SetMarkerColor(6)
@@ -450,7 +472,7 @@ class xpeSimo(object):
             self.MCconvPoint.Draw()
             self.gIon.Draw("*")
                        
-
+        
 
         
         ###########
@@ -499,6 +521,7 @@ class xpeSimo(object):
         return 1
 
 
+    """
     def deleteHistos(self):
         del  self.h1      
         del  self.h1L
@@ -506,7 +529,7 @@ class xpeSimo(object):
         del  self.h1L_ave
         del  self.h2
         del  self.profx
-
+    """
        
     #@jit     
     def min_dist2 (self, pixel_x, pixel_y, func, xmin,xmax): 
@@ -526,7 +549,8 @@ class xpeSimo(object):
             dx1=(x_stop-x_start)/n_steps
             for i in range (0, int(n_steps)):
                 x=x_start+i*dx1
-                y=func.Eval(x)
+                #y=func.Eval(x)
+                y=func(x)
                 dist=math.sqrt( (x-pixel_x)*(x-pixel_x)+(y-pixel_y)*(y-pixel_y))
                 if (dist<=min): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! aggiunto <= !!!
                     min=dist
@@ -574,7 +598,7 @@ class xpeSimo(object):
 """
 
     #jit    
-    def get_xDist (self,fLin2, x_min, l):
+    def get_xDist (self,x_min, l):
         """ cerco l'estremo superiore tale che l'integrale tra xmin e b sia ==l   
              SAREBBE DA CALCOLARE ANALITICAMENTE!!!!!!!, ma per ora mi accontento di calcolo numerico... 
         """
@@ -592,8 +616,10 @@ class xpeSimo(object):
             min_d=1000
             for i in range (0, int( n_steps)):
                 sup=sup_min+i*dx 
-                d_calc=  math.fabs(fLin2.Integral(x_min,sup)-l)
-            
+                #d_calc=  math.fabs(fLin2.Integral(x_min,sup)-l)
+                d_calc=  math.fabs(self.distNew(x_min,sup)-l)
+                
+                
                 if (d_calc<min_d):
                     min_d=d_calc
                     xfound=sup
@@ -609,7 +635,7 @@ class xpeSimo(object):
 
     
 
-    @jit
+   # @jit
     def smooth_simo (self, h1):
        # ficco i valore dellh su un vettore
        nbins=h1.GetNbinsX()
@@ -642,12 +668,12 @@ class xpeSimo(object):
            hF.SetBinContent(i,ave)
        return hF      
 
-    @jit
+    #@jit
     def undo_rotoTraslation (self,xp,yp):
 
-       phi=self.phi
-       x0=self.x0
-       y0=self.y0
+       phi=self.phi0
+       x0=self.conversion_point_X
+       y0=self.conversion_point_Y
        
        dx=xp*numpy.sin(phi)+yp*numpy.cos(phi)
        dy=xp*numpy.cos(phi)-yp*numpy.sin(phi)
@@ -901,7 +927,7 @@ class xpeSimo(object):
 
 
     
-    def cerca_piccoAugerElectron (self, h, fLin2, minX):
+    def cerca_piccoAugerElectron (self, h, minX):
        # h e' l'istogramma in funzione della lunghezza lungo la traccia
       # restituisce le coord del picco auger 
        
@@ -958,7 +984,7 @@ class xpeSimo(object):
             
          # converto allo spazio xy    
                     
-        x_lin= self.get_xDist(fLin2, minX,self.x_picco)
+        x_lin= self.get_xDist(minX,self.x_picco)
         #y_lin=par[0]*(x_lin**3)+par[1]*(x_lin**2)+(par[2]*x_lin)+par[3]
         #y_lin=self.f_spline3.Eval(x_lin)
         y_lin=self.f_splineScipy.Eval(x_lin)
@@ -972,12 +998,13 @@ class xpeSimo(object):
          
       
   
-    #def rotoTraslate (self, x,y,x0,y0,phi):
+    
     def rotoTraslate(self, x,y):
           
-        x0=self.x0
-        y0=self.y0
-        phi=self.phi 
+        x0=self.conversion_point_X
+        y0=self.conversion_point_Y
+        phi=self.phi0
+           
         dx = (x - x0)
         dy = (y - y0)
         xp = numpy.cos(phi)*dx + numpy.sin(phi)*dy
