@@ -40,7 +40,8 @@ from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
 from gpdswswig.MonteCarlo import *
 
-
+import gc
+#from mem_top import mem_top
 
 def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=0):
        """
@@ -88,7 +89,11 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        minDensityPoints=4
        clustering = ixpeClustering(zeroSupThreshold,min_hits,minDensityPoints)           
        
-      
+       xpeSimoAA=xpeSimo(raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
+       xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
+       xpeSimoAA.outRootFile= outRootFile
+       print ("event id II= ",xpeSimoAA.event_id)
+
        for i in range(num_events):
            try:    
 
@@ -125,11 +130,15 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
 
        
                
-           xpeSimoAA=xpeSimo(track,raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
-           xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
+           #xpeSimoAA=xpeSimo(track,raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
+           #xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
+
+           print ("event id = ",xpeSimoAA.event_id)
            xpeSimoAA.event_id=event_id
-           xpeSimoAA.outRootFile= outRootFile
+           #xpeSimoAA.outRootFile= outRootFile
            xpeSimoAA.McInfo=mcInfo        
+           #xpeSimoAA.McInfo=-1
+           xpeSimoAA.track=track
            
            recSimo=xpeSimoAA.rec_simo()
            if draw:
@@ -147,9 +156,18 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
                    h_y.Fill(xpeSimoAA.conversion_point_Y)
                    h_y1.Fill(xpeSimoAA.ynew)
 
-           xpeSimoAA.deleteHistos()
+           #xpeSimoAA.deleteHistos()
            event_id =event_id+1
-                   
+           #mcInfo=None
+           del tracks, mcInfo
+           #gc.collect()
+           #del gc.garbage[:]
+           
+           #print(mem_top())
+
+
+           
+       ####################################3    
        c3=ROOT.TCanvas("c3","",2000,1000)
        c3.Divide(1,2)
               
