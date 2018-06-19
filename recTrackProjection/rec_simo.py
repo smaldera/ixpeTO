@@ -98,28 +98,30 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            try:    
 
                   digiEvt = binary_file.next()
-                  
-           except RuntimeError  as  e:
-                #print "AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e)
+
+           except StopIteration:
+                   print ("!!!!!!!!!!!!!!!!!! STOP ITERATION EXCEPTION, break loop")
+                   break
+           except   RuntimeError  as  e:
+                #print ("AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e))
                 if str(e)=='Header mismatch':
                         continue
                 else:
-                    break         
+                    break 
+           
            evt = ixpeEvent(digiEvt)
            
-           # read MC info NOT WORKING!!!!!!
            mcInfo=0
            try:
                   mcInfo = binary_file.readMcInfo(i+1)
-           except:
-                 
+           except:      
                  mcInfo=-1 
 
                       
            
            clustering.dbScan(evt)
-           print ('Number of above threshold pixels: %d' %evt.numAboveThresholdPixels())
-           print ('Number of noise pixels: %d' % evt.numNoisePixels())
+           #print ('Number of above threshold pixels: %d' %evt.numAboveThresholdPixels())
+           #print ('Number of noise pixels: %d' % evt.numNoisePixels())
            tracks = ixpeTrackBuilder.buildTracks(evt)
            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
               continue
@@ -128,17 +130,14 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            threshold=zeroSupThreshold
            track.reconstruct(threshold, threshold, False)      # la soglia deve essere un intero (ADC)
 
-       
-               
-           #xpeSimoAA=xpeSimo(track,raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
-           #xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
-
-           print ("event id = ",xpeSimoAA.event_id)
+           if xpeSimoAA.event_id%100==0: 
+                  print ("event id = ",xpeSimoAA.event_id)
            xpeSimoAA.event_id=event_id
-           #xpeSimoAA.outRootFile= outRootFile
            xpeSimoAA.McInfo=mcInfo        
-           #xpeSimoAA.McInfo=-1
            xpeSimoAA.track=track
+
+           xMC=mcInfo.absorbtionPointX
+           yMC=mcInfo.absorbtionPointY
            
            recSimo=xpeSimoAA.rec_simo()
            if draw:
@@ -151,20 +150,15 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            h_phi1.Fill(xpeSimoAA.phi1*ROOT.TMath.RadToDeg() )
            h_phi_tang.Fill(xpeSimoAA.phiTang*ROOT.TMath.RadToDeg() )
            if (xpeSimoAA.xnew!=-100):
-                   h_x.Fill(xpeSimoAA.conversion_point_X)
-                   h_x1.Fill(xpeSimoAA.xnew)
-                   h_y.Fill(xpeSimoAA.conversion_point_Y)
-                   h_y1.Fill(xpeSimoAA.ynew)
+                   h_x.Fill(xpeSimoAA.conversion_point_X-xMC)
+                   h_x1.Fill(xpeSimoAA.xnew-xMC)
+                   h_y.Fill(xpeSimoAA.conversion_point_Y-yMC)
+                   h_y1.Fill(xpeSimoAA.ynew-yMC)
 
-           #xpeSimoAA.deleteHistos()
+
            event_id =event_id+1
-           #mcInfo=None
            del tracks, mcInfo
-           #gc.collect()
-           #del gc.garbage[:]
            
-           #print(mem_top())
-
 
            
        ####################################3    
@@ -195,11 +189,12 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        h_x.Write()
        h_x1.Write()
        c3.Write()
-
+       xpeSimoAA.h1LCumul.Write()
        myTree.treeSimo.Write()
        
        outRootFile.Close()
-       
+       del c3
+       del h_phi1,    h_phi_tang,  h_y, h_y1, h_x,  h_x1
 
        
        #valore = raw_input('continue?')    
