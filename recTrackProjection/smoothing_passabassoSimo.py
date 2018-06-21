@@ -10,7 +10,7 @@ class filtra_segnale:
   def  init_filtro(self):
 
           
-        print ("inizio init filtro,... ")
+        #print ("inizio init filtro,... ")
 
         #self.M = 240 #lunghezza del filtro
 
@@ -81,7 +81,7 @@ class filtra_segnale:
 
         NBIN=len(Xfake);
         Yfake=numpy.array([0]*(NBIN),dtype=float) 
-        print ("lenx = ",len(Xfake))
+        #print ("lenx = ",len(Xfake))
         if NBIN<self.M:
           print ("histogram too short!!!!!")
           return -1
@@ -114,10 +114,10 @@ if __name__ == '__main__':
    h_tracciaF = ROOT.TH1F("h_tracciaF","",525,0,525)                 	       
 
 
-   print ("creo oggetto...")
+   #print ("creo oggetto...")
    simoFilter=filtra_segnale()
 
-   print ("init filtro.. ")
+   #print ("init filtro.. ")
    aa=simoFilter.init_filtro();
    #print aa
        	  
@@ -149,7 +149,7 @@ if __name__ == '__main__':
    
    y=simoFilter.filtra(x)
    
-   print (y)  	       
+   #print (y)  	       
 
    for  jj in range (0, 525):
       h_tracciaF.Fill(jj,y[jj])
