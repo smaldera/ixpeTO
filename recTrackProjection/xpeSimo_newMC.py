@@ -340,8 +340,12 @@ class xpeSimo(object):
              radius=math.sqrt( (x_min_dist2-xp[i])**2 + (y_min_dist2-yp[i])**2)
              
              if radius <self.raggioCut:   # e se peso inversamente al raggio???
-                 self.h1L.Fill(distL2,adc[i]/(2.7**(-radius**2)))
-                 self.h1LCumul.Fill(distL2-self.distConvMC,adc[i]/(2.7**(-radius**2)))
+                # self.h1L.Fill(distL2,adc[i]/(2.7**(-radius**2)))
+                # self.h1LCumul.Fill(distL2-self.distConvMC,adc[i]/(2.7**(-radius**2)))
+                 self.h1L.Fill(distL2,adc[i])
+                 self.h1LCumul.Fill(distL2-self.distConvMC,adc[i])
+
+                 
  
         self.h1L_smoothSimo=self.smooth_simo(self.h1L)
         self.h1L_ave=self.media_mobile(self.h1L)
@@ -349,9 +353,9 @@ class xpeSimo(object):
         
         # restituisce punto sulla traccia
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, fLin, minX,par)
-        #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, fLin2, minX)
+        self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, self.minX)
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_ave, self.minX)
-        self.newPoint= self.cerca_piccoAugerElectron(self.h1L, self.minX)
+        #self.newPoint= self.cerca_piccoAugerElectron(self.h1L, self.minX)
 
 
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L, fLin2, minX)
@@ -473,12 +477,12 @@ class xpeSimo(object):
         
         self.h1L_smoothSimo.SetLineColor(4)
         self.h1L_smoothSimo.SetLineWidth(2)
-        #self.h1L_smoothSimo.Draw("sames")
+        self.h1L_smoothSimo.Draw("sames")
             
             
         self.h1L_ave.SetLineColor(8)
         self.h1L_ave.SetLineWidth(4)
-        self.h1L_ave.Draw("sames")
+        #self.h1L_ave.Draw("sames")
 
         if self.peakFinding>1 and self.peakFinding!=5:
             self.fFit_histo.Draw("samel")
@@ -895,7 +899,9 @@ class xpeSimo(object):
                 
         if (self.peakFinding==2): 
             # uso fit doppia gaussiana
-            self.fFit_histo=self.fitGaus_cutoff(h)
+            #self.fFit_histo=self.fitGaus_cutoff(h)
+            self.fFit_histo=self. fit2Gaussiane(h)
+           
             self.x_picco=self.fFit_histo.GetParameter(1)
 
 
