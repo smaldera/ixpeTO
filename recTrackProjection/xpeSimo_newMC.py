@@ -106,19 +106,20 @@ class xpeSimo(object):
         self.sumpars=array('d',[0.]*7) 
         
         self.c_init=0
+
         # ROOT.TCanvas("cc","cc", 2000,1000) 
-        #self.c_init.Divide(2,1)
-        #self.c_init.Draw()
+        if draw==1:
+            self.c_init=ROOT.TCanvas("cc","cc", 2000,1000) 
+            self.c_init.Divide(2,1)
+            self.c_init.Draw()
+            
+        
         self.outRootFile=ROOT.TFile()
 
         self.bary1=ROOT.TMarker()
         self.bary2=ROOT.TMarker()
         self.line1=ROOT.TF1()
         self.line2=ROOT.TF1()
-        self.f_p3=ROOT.TF1()
-        self.f_spline3=ROOT.TF1()
-        self.fLin2=ROOT.TF1("fLin2",self.f_dist, self.x1,self.x2,0)
-        # self.f_splineScipy=ROOT.TF1()
         self.f_splineScipy=ROOT.TF1("f_splineScipy", self.eval_scipySpline_TF1, self.x1, self.x2,0 )
          
         #self.h2 = ROOT.TH2F()
@@ -127,71 +128,23 @@ class xpeSimo(object):
         self.newPoint=[0,0]
         self.gIon=ROOT.TGraph()
         self.MCconvPoint=ROOT.TMarker()
-
-        """
-        ROOT.SetOwnership(self.h2, False)
-        ROOT.SetOwnership(self.gr1, False)
-        ROOT.SetOwnership(self.profx, False)
-        ROOT.SetOwnership(self.gIon, False)
-        ROOT.SetOwnership(self.f_p3, False)
-        ROOT.SetOwnership(self.f_spline3, False)
-        ROOT.SetOwnership(self.fLin2, False)
-        ROOT.SetOwnership(self.h1, False)
-        ROOT.SetOwnership(self.h1L, False)
-        ROOT.SetOwnership(self.h1L_ave, False)
-        ROOT.SetOwnership(self.h1L_smoothSimo, False)
-        ROOT.SetOwnership(self.outRootFile, False)
-        ROOT.SetOwnership(self.f_splineScipy, False)
-        """
-        
-        
-        
+                
         # parametri per rototraslazione!!!
-        
-        
         self.McInfo=-1
 
-        # scipy spline:
-        #self.uniSpline=UnivariateSpline
-        #self.uniSplineDerivative= 0
-
-        
+                
 
     def fitScipy_spline(self,x,y,err):
         self.uniSpline= UnivariateSpline(x, y, w=err, s=10)
         self.uniSpilineDerivative=self.uniSpline.derivative()
         
         
-
             
     def eval_scipySpline_TF1(self, x):
         xx=float(x[0]) 
         return  self.uniSpline(xx) 
 
-  
-        
    
-    
-    def spline3(self,x,par):
-
-        xx = float(x[0])
-        xn = numpy.array( [par[0], par[1], par[2], par[3]], dtype=float)
-        yn = numpy.array ([par[4], par[5], par[6], par[7]], dtype=float) 
-        b1 =float(par[8])
-        e1 =float( par[9])
-        sp3=ROOT.TSpline3("sp3", xn, yn, 4, "b0e0", b1, e1);
-        return sp3.Eval(xx)
-        
-    
-    def f_dist(self,x):
-        xx =float(x[0])
-        #yy=math.sqrt( 1+( math.pow( self.f_p3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
-        #yy=math.sqrt( 1+( math.pow( self.f_spline3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
-        #yy=math.sqrt( 1+( math.pow( self.f_splineScipy.Derivative(xx),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!
-        yy=math.sqrt( 1+( math.pow( self.uniSpilineDerivative(xx),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!
-       
-        return yy
-
 
     def f_distNew(self,x):
          yy=math.sqrt( 1+( math.pow( self.uniSpilineDerivative(x),2)  ) )  #!!!!!!!!! spline con scipy!!!!!!!
@@ -235,7 +188,6 @@ class xpeSimo(object):
         
         xp,yp= self.rotoTraslate(x,y)
 
-        
         phi0_bary=self.phi0-self.phi0
         phi1_bary=self.phi1 -self.phi0
                
@@ -319,7 +271,7 @@ class xpeSimo(object):
         chi2=0.
         for i in range (0,len(ion_xp)):
             chi2=chi2+( (ion_yp[i]-self.uniSpline(ion_xp[i]) )**2)
-        print ("======> chi2 = ",chi2)     
+        #print ("======> chi2 = ",chi2)     
         
         
         if chi2>0.13:
@@ -352,17 +304,10 @@ class xpeSimo(object):
         
         
         # restituisce punto sulla traccia
-        #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, fLin, minX,par)
         self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, self.minX)
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L_ave, self.minX)
         #self.newPoint= self.cerca_piccoAugerElectron(self.h1L, self.minX)
 
-
-        #self.newPoint= self.cerca_piccoAugerElectron(self.h1L, fLin2, minX)
-
-        #m=3.*a*self.newPoint[0]**3+2.*b*self.newPoint[0]+c
-        #m=self.f_p3.Derivative(self.newPoint[0])
-        #print ("m=",m," m2 =",m2," diff = ",m-m2 )
                 
         #self.phiTang=numpy.arctan(m)-phi       
                 
@@ -372,9 +317,6 @@ class xpeSimo(object):
         self.xnew=new_coord[0]
         self.ynew=new_coord[1]
         
-                        
-
-    #    del self.McInfo,  ionX,ion_xp,ionY,ion_yp
         
     def draw_simo(self):
         #============================================
@@ -386,8 +328,6 @@ class xpeSimo(object):
         
         self.h2.Draw("colZ")
         self.profx.Draw("samep")
-
-
 
        
         phi0_bary=self.phi0-self.phi0
@@ -438,7 +378,6 @@ class xpeSimo(object):
         gfit.SetLineWidth(2)
         gfit.Draw("pl")
         
-        #self.f_splineScipy.Draw("samel") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         PeakImpP=ROOT.TMarker( self.newPoint[0],  self.newPoint[1],34)
         PeakImpP.SetMarkerColor(6)
@@ -581,10 +520,8 @@ class xpeSimo(object):
        for i in range (1,nbins):
            x[i]=h1.GetBinContent(i)
 
-       #print ("creo oggetto...")
        simoFilter=smooth_simo.filtra_segnale()
 
-       #print ("init filtro.. ")
        aa=simoFilter.init_filtro();
        y=simoFilter.filtra(x)
        hF=h1.Clone()
@@ -592,7 +529,6 @@ class xpeSimo(object):
        for i in range (1,nbins):
            hF.SetBinContent(i,y[i])
            #print ("filtered: i= ",i," y = ",y[i])
-
        return hF
 
     def media_mobile (self, h1):        
