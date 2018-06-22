@@ -27,10 +27,8 @@ import time
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
-from xpeSimo_new import *
+#from xpeSimo_new import *
 from xpeSimo_newMC import *
-
-#from xpeSimo import *
 
 
 from gpdswswig.Recon import *
@@ -40,8 +38,8 @@ from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
 from gpdswswig.MonteCarlo import *
 
-import gc
-#from mem_top import mem_top
+#import gc
+
 
 def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=0):
        """
@@ -70,14 +68,10 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        h_y=ROOT.TH1F("h_y","",200,-0.5,0.5)
        h_y1=ROOT.TH1F("h_y1","",200,-0.5,0.5)
 
-
-       # if draw?
-       cc=ROOT.TCanvas("cc","cc", 2000,1000) 
-       cc.Divide(2,1)
-       
+              
        #if salva tree?
        event_id=0
-       outRootFile=ROOT.TFile("out.root","recreate")
+       outRootFile=ROOT.TFile("prova1.root","recreate")
        myTree=myTTree()  # from xpeSimo_ttree.py
                      
        #binary_file = ixpeInputBinaryFile(filePath) # questo legge i files mdat ormai obsoleto???
@@ -90,17 +84,14 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        clustering = ixpeClustering(zeroSupThreshold,min_hits,minDensityPoints)           
        
        xpeSimoAA=xpeSimo(raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
-       xpeSimoAA.c_init=cc  # passo un canvas per poter disegnare sempre sullo stesso (sicuramente c'e' un modo piu' furbo!!!!! )
        xpeSimoAA.outRootFile= outRootFile
        print ("event id II= ",xpeSimoAA.event_id)
 
        for i in range(num_events):
            try:    
-
                   digiEvt = binary_file.next()
-
            except StopIteration:
-                   print ("!!!!!!!!!!!!!!!!!! STOP ITERATION EXCEPTION, break loop")
+                   #print ("!!!!!!!!!!!!!!!!!! STOP ITERATION EXCEPTION, break loop")
                    break
            except   RuntimeError  as  e:
                 #print ("AAAAAAAAAGGGGHHHHHH!!!!!  e.Value=",str(e))
@@ -117,11 +108,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            except:      
                  mcInfo=-1 
 
-                      
-           
            clustering.dbScan(evt)
-           #print ('Number of above threshold pixels: %d' %evt.numAboveThresholdPixels())
-           #print ('Number of noise pixels: %d' % evt.numNoisePixels())
            tracks = ixpeTrackBuilder.buildTracks(evt)
            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
               continue
@@ -135,7 +122,6 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            xpeSimoAA.event_id=event_id
            xpeSimoAA.McInfo=mcInfo        
            xpeSimoAA.track=track
-
            xMC=mcInfo.absorbtionPointX
            yMC=mcInfo.absorbtionPointY
            
@@ -175,7 +161,6 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        h_y1.Draw("sames")
 
 
-       
        # scrivi outfile 
        miofile = open('miofile.txt','w')   
        miofile.write(str(raggioCut)+ " "+str(dividiBins)+ "  "+str(baryPadding)+"  "+str(findMaxAlg)+" "+str(pcubo)+ "  "+str(maxnP)+"  "+str(Psigma)+" "+str(Pthr)+"  " +str( h_x1.GetRMS() )+" \n")
