@@ -24,11 +24,13 @@ import numpy
 from array import array
 import math
 import time
+from gpdswpy.matplotlib_ import plt
+
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
 #from xpeSimo_new import *
-from xpeSimo_newMC import *
+from xpeSimo_newMC2 import *
 
 
 from gpdswswig.Recon import *
@@ -37,8 +39,9 @@ from gpdswswig.Utils import ixpeMath
 from gpdswswig.Io import ixpeLvl1FitsFile
 from gpdswswig.Event import ixpeEvent
 from gpdswswig.MonteCarlo import *
-
+from gpdswpy.event import plot_event
 #import gc
+from gpdswswig.Calib import ixpeCalibrationSvc, ixpeEventCalibrator
 
 
 def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  zeroSupThreshold=5,  pcubo=0, maxnP=4, Psigma=2, Pthr=0.0001, draw=0):
@@ -82,10 +85,12 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        min_hits=6
        minDensityPoints=4
        clustering = ixpeClustering(zeroSupThreshold,min_hits,minDensityPoints)           
-       
-       xpeSimoAA=xpeSimo(raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
-       xpeSimoAA.outRootFile= outRootFile
-       print ("event id II= ",xpeSimoAA.event_id)
+       ixpeCalibrationSvc.setCoherentNoiseOffset(0)
+       ixpeCalibrationSvc.setTriggerMiniclusterOffset(0)
+
+       # xpeSimoAA=xpeSimo(raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
+      # xpeSimoAA.outRootFile= outRootFile
+       #print ("event id II= ",xpeSimoAA.event_id)
 
        for i in range(num_events):
            try:    
@@ -105,10 +110,21 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            mcInfo=0
            try:
                   mcInfo = binary_file.readMcInfo(i+1)
+                  print("mc INFO OK")
            except:      
                  mcInfo=-1 
 
+
+                 
+          # print("adcCounts= ",[adc for adc in evt.adcCounts()], )      
+
+                 
+           ixpeEventCalibrator.calibrate(evt)
            clustering.dbScan(evt)
+           print ("time = ",evt.timestamp())   
+          # plot_event(evt, 25)
+          # plt.show()
+           
            tracks = ixpeTrackBuilder.buildTracks(evt)
            if len(tracks)==0:     # escludo eventi con 0 cluster!!!!
               continue
@@ -117,8 +133,12 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            threshold=zeroSupThreshold
            track.reconstruct(threshold, threshold, False)      # la soglia deve essere un intero (ADC)
 
-           if xpeSimoAA.event_id%100==0: 
-                  print ("event id = ",xpeSimoAA.event_id)
+
+           xpeSimoAA=xpeSimo(track,raggioCut,dividiBins,baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw)
+           xpeSimoAA.outRootFile= outRootFile
+
+           
+           
            xpeSimoAA.event_id=event_id
            xpeSimoAA.McInfo=mcInfo        
            xpeSimoAA.track=track
@@ -126,6 +146,9 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            yMC=mcInfo.absorbtionPointY
            
            recSimo=xpeSimoAA.rec_simo()
+           if xpeSimoAA.event_id%100==0: 
+                  print ("event id = ",xpeSimoAA.event_id)
+       
            if draw:
                    xpeSimoAA.draw_simo()
                
@@ -144,7 +167,7 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
 
            event_id =event_id+1
            del tracks, mcInfo
-           
+           del xpeSimoAA
 
            
        ####################################3    
@@ -192,23 +215,23 @@ if __name__ == '__main__':
                         help='the input binary file')
     parser.add_argument('-n', '--num_events', type=int, default=100,
                         help = 'number of events to be processed')
-    parser.add_argument('-z', '--zero-suppression', type=int, default=5,
+    parser.add_argument('-z', '--zero-suppression', type=int, default=20,
                         help = 'zero-suppression threshold')
     
 
-    parser.add_argument('-r', '--raggioCut', type=float, default=0.07,
+    parser.add_argument('-r', '--raggioCut', type=float, default=100,
                         help = 'raggio intorno al fit per accetare i pixel da proiettare')
 
 
-    parser.add_argument('-divbins', '--dividiBins', type=float, default=0.5,
+    parser.add_argument('-divbins', '--dividiBins', type=float, default=1,
                         help = 'fattore per n. di bins histo proiettato')
 
 
-    parser.add_argument('-baryPadding', '--baryPadding', type=float, default=0.005,
+    parser.add_argument('-baryPadding', '--baryPadding', type=float, default=0.5,
                         help = 'limite distanxa funzione da baricentro ')
 
 
-    parser.add_argument('-findMaxAlg', '--findMaxAlg', type=int, default=1,
+    parser.add_argument('-findMaxAlg', '--findMaxAlg', type=int, default=2,
                         help = 'algoritmo ricerca picco e auger... 1 TSpectrum, 2->due gauss - 3-> fit gaus + cutoff ') 
      
 
