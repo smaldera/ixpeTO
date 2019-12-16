@@ -28,7 +28,8 @@ from scipy.interpolate import UnivariateSpline
 
 import smoothing_passabassoSimo  as smooth_simo
 from xpeSimo_ttree import *
-
+#from fit_distro_simo  import fitDistrib  as fitSimo
+import fit_distro_simo  
 
 import matplotlib.pyplot as plt
 from gpdswswig.Recon import *
@@ -140,7 +141,7 @@ class xpeSimo(object):
         self.uniSpiline=0
 
     def fitScipy_spline(self,x,y,err):
-            self.uniSpline= UnivariateSpline(x, y, w=err, s=10)
+            self.uniSpline= UnivariateSpline(x, y, w=err, k=5,   s=None)
             
             
     def eval_scipySpline_TF1(self, x):
@@ -216,6 +217,12 @@ class xpeSimo(object):
         # fissa il passaggio per il punto di conv. della rec standard
         #self.f_p3.FixParameter(3,y_bary2)
         #self.f_p3.FixParameter(4,x_bary2)
+
+        # fissa il passaggio per il punto di conv. MC
+        self.f_p3.FixParameter(3,self.yConvMC)
+        self.f_p3.FixParameter(4,self.xConvMC)
+
+        
         #self.f_p3.SetParLimits(3,y_bary2-self.baryPadding ,y_bary2+self.baryPadding)
         #self.f_p3.SetParLimits(4,x_bary2-self.baryPadding,x_bary2+self.baryPadding)
 
@@ -347,6 +354,7 @@ class xpeSimo(object):
         self.gIon=ROOT.TGraph(nIon,ionX,ionY) 
         self.gIon_xz=ROOT.TGraph(nIon,ionX,ionZ)
         self.gIon_yz=ROOT.TGraph(nIon,ionY,ionZ)
+        
         # fit angolo theta:
         rettaZ=ROOT.TF1("rettaZ","[0]+[1]*x",-1,1)
         self.gIon_xz.Fit("rettaZ","MER")
@@ -359,7 +367,7 @@ class xpeSimo(object):
         #calcolo coodrdinate bary1 e 2 nel sistema roto traslato:       
         self.x_bary1,self.y_bary1=self.rotoTraslate(self.baricenter_X,self.baricenter_Y)
         self.x_bary2, self.y_bary2=self.rotoTraslate(self.conversion_point_X,self.conversion_point_Y)
-         
+        self.xConvMC,self.yConvMC=self.rotoTraslate(self.McInfo.absorbtionPointX,self.McInfo.absorbtionPointY )  
 
 
        
@@ -377,35 +385,76 @@ class xpeSimo(object):
                  
                 
         
-        x_min_dist=0
-        self.fFit=self.f_splineScipy
+        self.creaFunzioniFit()      
+        #self.fFit=self.f_splineScipy
+        self.fFit=self.f_p3
+        self.gIon.Fit("f_p3","ME") 
+        
         fLin2=ROOT.TF1("fLin2",self.f_dist, self.minX, self.maxX,0)
         
+        self.distBary=fLin2.Integral(self.minX, self.x_bary1)  
+         
         
-        distCorrection=math.fabs( 1./math.cos(thetaSimo-3.1415/2.))
+        #distCorrection=math.fabs( 1./math.cos(thetaSimo-3.1415/2.))
+        distCorrection=1
+        
+       
         print("distCorrection = ",distCorrection, "theta = ",self.McInfo.photoElectronTheta*ROOT.TMath.RadToDeg(), " thetaSimo = ", thetaSimo*ROOT.TMath.RadToDeg() )
-        r0=0.04
-        for i in range (0,len(x)):
+        r0=0.7
+        for i in range (0,len(xp)):
                          
              
              x_min_dist2=self.min_dist2(xp[i], yp[i], self.fFit, self.minX, self.maxX)
              y_min_dist2=self.fFit.Eval( x_min_dist2)
             
-             distL2=fLin2.Integral(self.minX, x_min_dist2)   *distCorrection        
+             distL2=(fLin2.Integral(self.minX, x_min_dist2)-    self.distBary)   *distCorrection     # d=o a dist baricentro    
              radius=math.sqrt( (x_min_dist2-xp[i])**2 + (y_min_dist2-yp[i])**2)
              
              # if radius <self.raggioCut:   # e se peso inversamente al raggio???
              #     self.h1L.Fill(distL2,adc[i]) 
              
              self.h1L.Fill(distL2,adc[i]*math.exp(-radius/r0)) 
+             # self.h1L.Fill(distL2,adc[i]) 
+
+
+
+        ################### prova spot
+        """
+        minIon_d=fLin2.Integral(self.minX, xp[0])
+        maxIon_d=fLin2.Integral(self.minX, max(xp))
+
+        
+        print("minIon_d=",minIon_d,"  max = ",maxIon_d)
+        
+        d_i=numpy.linspace(minIon_d,maxIon_d,200)
+        print ("D_i=",d_i)
+
+      
+        
+        for i in range (0,len(d_i)):
+             x_i= self.get_xDist(fLin2,self.minX, d_i[i])  
+             distIon=(d_i[i]-self.distBary)*distCorrection 
+             y_i=self.fFit.Eval(x_i)                     
+             for jj in range (0,len(xp)):
+                radiusIon=math.sqrt( (x_i-xp[jj])**2 + (y_i-yp[jj])**2)
+               # self.h1L.Fill(distIon,adc[jj]*math.exp(-radiusIon/r0))
+        """    
+
+
             
-                 
-        self.distConv=fLin2.Integral(self.minX,0.) # in questo sitema di rif. il punto di conv e' in (0,0)         
+
+
+        ####################
+
+
+
+
+
+            
+        self.distConv=fLin2.Integral(self.minX, self.x_bary2)-self.distBary 
+        self.distConvMC=fLin2.Integral(self.minX, self.xConvMC)-self.distBary
         self.h1L_smoothSimo=self.smooth_simo(self.h1L)
         self.h1L_ave=self.media_mobile(self.h1L)
-        
-        
-        
         self.newPoint= self.cerca_piccoAugerElectron(self.h1L_smoothSimo, fLin2, self.minX)
         
 
@@ -478,7 +527,7 @@ class xpeSimo(object):
         PeakImpP.SetMarkerSize(2.1)
         PeakImpP.Draw()   
                               
-        self.h1L.GetXaxis().SetRangeUser(-0.4,3)
+        self.h1L.GetXaxis().SetRangeUser(-1,2)
 
         
         self.h1L.SetLineColor(1)
@@ -487,8 +536,8 @@ class xpeSimo(object):
         # conv point MC:
         if self.McInfo!=-1:
             
-            xConvMC,yConvMC=self.rotoTraslate(self.McInfo.absorbtionPointX,self.McInfo.absorbtionPointY )
-            MCconvPoint=ROOT.TMarker( xConvMC, yConvMC ,48)
+ 
+            MCconvPoint=ROOT.TMarker( self.xConvMC, self.yConvMC ,48)
             MCconvPoint.SetMarkerColor(6)
             MCconvPoint.Draw()
             self.gIon.Draw("*")         
@@ -500,11 +549,17 @@ class xpeSimo(object):
         
         self.c_init.cd(2)
         self.h1L.Draw("hist")
+        
         convPoint = ROOT.TMarker(self.distConv,0,22)
         convPoint.SetMarkerColor(2)
         convPoint.Draw()
 
-        peakPoint = ROOT.TMarker(self.x_picco,0,22)
+        convPointMC = ROOT.TMarker(self.distConvMC,0,20)
+        convPointMC.SetMarkerColor(6)
+        convPointMC.Draw()
+
+        
+        peakPoint = ROOT.TMarker(self.x_picco-self.distBary,0,22)
         peakPoint.SetMarkerColor(4)
         peakPoint.Draw()
         
@@ -514,8 +569,8 @@ class xpeSimo(object):
         self.h1L_smoothSimo.Draw("sames")
             
             
-        self.h1L_ave.SetLineColor(8)
-        self.h1L_ave.SetLineWidth(4)
+        #self.h1L_ave.SetLineColor(8)
+        #self.h1L_ave.SetLineWidth(4)
         #self.h1L_ave.Draw("sames")
 
         if self.peakFinding==3:
@@ -670,236 +725,8 @@ class xpeSimo(object):
        y=dy+y0
        new_coord=[x,y]
        return new_coord        
+
    
-      
-    def fit2Gaussiane (self, h1):
-
-       G0 = ROOT.TF1 ("G0","gaus",0.2,0.6)
-       h1.Fit("G0","MER")
-       mean0=G0.GetParameter(1)
-       sigma0=G0.GetParameter(2)
-
-       G2 = ROOT.TF1 ("G2","gaus",0.25,0.5)
-       G2.SetParameter(0, 9.74680e+02 )
-       G2.SetParameter(1,  3.17394e-01)
-       G2.SetParameter(2, 5.47369e-02 )
-
-       G2.SetParLimits(1, mean0-sigma0/2., mean0+sigma0/2.)
-       #G2.FixParameter(1)
-       #G2.FixParameter(2)
-       
-       h1.Fit("G2","MER")
-        
-
-       G1 = ROOT.TF1 ("G1","gaus",0.05,0.35)
-       G1.SetParameter(0,3.33294e+02 )
-       G1.SetParameter(1, 1.35906e-01 )
-       G1.SetParameter(2, 5.30043e-02  )
-
-       G1.SetParLimits(1, 0.03,0.25)
-       G1.SetParLimits(2, 0.02,0.1)
-       
-       #G1.FixParameter(1)
-       #G1.FixParameter(2)
-       
-       h1.Fit("G1","MER")
-
-
-
-       Gsum=ROOT.TF1("Gsum","gaus(0)+gaus(3)",-0.05,0.7)
-       Gsum.SetParameter(0, G1.GetParameter(0))
-       Gsum.SetParameter(1, G1.GetParameter(1))
-       Gsum.SetParameter(2, G1.GetParameter(2))
-       Gsum.SetParameter(3, G2.GetParameter(0))
-       Gsum.SetParameter(4, G2.GetParameter(1))
-       Gsum.SetParameter(5, G2.GetParameter(2))
-
-       Gsum.SetParLimits(1, 0.03,0.3)
-       Gsum.SetParLimits(2, 0.02,0.1)
-       Gsum.SetParLimits(4,  mean0-sigma0/2., mean0+sigma0/2.)
-       
-            
-       Gsum.SetLineColor(2)
-       h1.Fit("Gsum","MER")
-       
-        
-       return Gsum
-       
-
-
-    def fitGaus_cutoff (self, h):
-
-        #ottimizzato per dividiBins=1 ,filtro: M=18 cutoff=7e7
-        
-        print ("fit con cut-off")
-        
-        max = h.GetBinCenter( h.GetMaximumBin())
-        convp=self.distConv
-        print ("distConv= ",self.distConv)
-
-        
-        G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
-        G0.SetParameter(1,max)
-
-        h.Fit("G0","LMER")
-
-        mean0=G0.GetParameter(1)
-        sigma0=G0.GetParameter(2)
-        G0.Draw("samel")
-        
-        
-        
-        #OK !!
-        #G1=ROOT.TF1 ("G1","gaus",0.05,mean0-sigma0)
-        G1=ROOT.TF1 ("G1","gaus",convp-0.1,convp+0.1)
-        
-        G1.SetLineColor(4)
-        h.Fit("G1","LMER")
-        G1.Draw("samel")
-        mean1=G1.GetParameter(1)
-        sigma1=G1.GetParameter(2)
-                
-        #ok2
-        #f1= ROOT.TF1 ("f1","  ([0]*x-[1])*(1./  (1+exp( (x-[2])/[3])  ))",mean1+sigma1,max+0.2)
-        #f1.SetParameters(500,88,mean0,0.01)
-        f1= ROOT.TF1 ("f1","  ([0]*x-[1])*(1./  (1+exp( (x-[2])/[3])  ))", mean0-sigma0,max+0.2)
-        f1.SetParameters(500,88,mean0,0.01)
-
-
-
-        
-        f1.SetParLimits(2, mean0-sigma0/2., mean0+sigma0)
-        #f1.FixParameter(2, mean0)
-        h.Fit("f1","LMER")
-        f1.SetLineColor(3)
-        #f1.Draw("samel")
-
-        
-        #OK
-        fsum=ROOT.TF1("fsum","gaus(0)+ (  ( ([3]*x-[4])*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  )))*(  ( ( ([3]*x-[4])*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  )))) >0  )  )",convp-0.2,max+0.2)
-        #fsum=ROOT.TF1("fsum","landau(0)+ (  ( ([3]*x-[4])*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  )))*(  ( ( ([3]*x-[4])*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  )))) >0  )  )",convp-0.1,max+0.2)
-             
-        #ok
-        fsum.SetParameter(0, G1.GetParameter(0))
-        fsum.SetParameter(1, G1.GetParameter(1))
-        fsum.SetParameter(2, G1.GetParameter(2))
-        
-        
-        #fsum.SetParameter(0, 200)
-        #fsum.SetParameter(1, max-sigma0 )
-        #fsum.SetParameter(2, sigma0 ) #!!!!!!!!!!!!!!!
-
-        fsum.SetParameter(3, f1.GetParameter(0))
-        fsum.SetParameter(4, f1.GetParameter(1))
-        fsum.SetParameter(5, f1.GetParameter(2))
-        fsum.SetParameter(6, f1.GetParameter(3))
-        fsum.SetParameter(7, 0.1)
-
-       
-        fsum.SetParLimits(0, 30,300)
-        
-        
-        #fsum.SetParLimits(1, convp-0.1 , min(convp+0.2,max-sigma0/2.) ) 
-        fsum.SetParLimits(1, convp-0.1 , min(convp+0.2,max-sigma0) ) 
-        
-        fsum.SetParLimits(2, 0.02, sigma0)
-        #fsum.SetParLimits(2, sigma1-0.01, sigma1+0.01)
-        
-        #fsum.SetParLimits(5,  mean0-2.*sigma0, mean0+2.*sigma0)
-        #fsum.FixParameter(5,  0.237)
-        
-        #OK
-        fsum.SetParLimits(5,  mean0-sigma0, mean0+sigma0)
-
-        fsum.SetLineColor(2)
-        fsum.SetLineWidth(4)
-        h.Fit("fsum","LMER")
-
-        if (fsum.GetNDF()>0):
-            self.redChi2=fsum.GetChisquare()/fsum.GetNDF()
-        else:
-            self.redChi2=1000 
-            #fsum.Draw("samel")
-
-
-        return fsum
-
-
-
-    
-    def fitExp_cutoff (self, h):
-
-        #ottimizzato per dividiBins=1 ,filtro: M=18 cutoff=7e7
-        
-        print ("fit con gaus + exp+ cut-off")
-        max = h.GetBinCenter( h.GetMaximumBin())
-        convp=self.distConv
-        print ("distConv= ",self.distConv)
-
-
-        G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
-        h.Fit("G0","LMER")
-        G0.SetParameter(1,max)
-        mean0=G0.GetParameter(1)
-        sigma0=G0.GetParameter(2)
-        G0.Draw("samel")
-
-        
-        
-        #OK !!
-        G1=ROOT.TF1 ("G1","gaus",convp-0.1,convp+0.1)
-        G1.SetLineColor(4)
-        h.Fit("G1","LMER")
-        G1.Draw("samel")
-        mean1=G1.GetParameter(1)
-        sigma1=G1.GetParameter(2)
-
-        f1= ROOT.TF1 ("f1","  (exp([0]+[1]*x))*(1./  (1+exp( (x-[2])/[3])  ))", convp+0.1,max+0.2)
-        f1.SetParameters(2.3,4,max,0.01)
-
-        f1.SetParLimits(2, max-sigma0/2., max+sigma0)
-        #f1.FixParameter(2, mean0)
-        h.Fit("f1","LMER")
-        f1.SetLineColor(3)
-        f1.Draw("samel")
-        
-        fsum=ROOT.TF1("fsum","gaus(0)+ (  ( exp([3]+[4]*x)*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  ))))",convp-0.2,max+0.2)
-
-        #ok
-        fsum.SetParameter(0, G1.GetParameter(0))
-        #fsum.SetParameter(1, convp)
-        fsum.SetParameter(1, G1.GetParameter(1))
-        fsum.SetParameter(2, G1.GetParameter(2))
-
-        fsum.SetParameter(3, f1.GetParameter(0))
-        fsum.SetParameter(4, f1.GetParameter(1))
-        fsum.SetParameter(5, f1.GetParameter(2))
-        fsum.SetParameter(6, f1.GetParameter(3))
-        fsum.SetParameter(7, 0.1)
-
-        #ok
-        #fsum.SetParLimits(0, 30,500)
-        fsum.SetParLimits(0, 15,200)
-       
-        fsum.SetParLimits(1, convp-0.1 , min(convp+0.2,max-sigma0) ) 
-        fsum.SetParLimits(2, 0.02, sigma0) #!!!!!!!!!!!!!
-        fsum.SetParLimits(5,  mean0-sigma0, mean0+sigma0)
-        
-        fsum.SetLineColor(2)
-        fsum.SetLineWidth(4)
-        h.Fit("fsum","LMER")
-        if (fsum.GetNDF()>0):
-            self.redChi2=fsum.GetChisquare()/fsum.GetNDF()
-        else:
-            self.redChi2=1000 
-
-
-
-        print (" sigma G1 = ",fsum.GetParameter(2)  )
-            
-        return fsum
-
-
     
     def cerca_piccoAugerElectron (self, h, fLin2, minX):
        # h e' l'istogramma in funzione della lunghezza lungo la traccia
@@ -927,34 +754,44 @@ class xpeSimo(object):
             #   print ("x peak found = ",x_peaks[i] )
         
             if n_foundPeaks >=2:
-                self.x_picco=x_peaks[0]
+                self.x_picco=x_peaks[0]  +self.distBary      #!!!!!!!!!!!1
             else:
                 newPoint=[-100,100]
                 return newPoint
         #------------------------        
-                
-        if (self.peakFinding==2): 
+        fitSimo= fit_distro_simo.fitDistrib()       
+        if (self.peakFinding==2):
+
+            #fitSimo= fit_distro_simo.fitDistrib()
+            
             # uso fit doppia gaussiana
-            self.fFit_histo=self.fitGaus_cutoff(h)
-            self.x_picco=self.fFit_histo.GetParameter(1)
+            
+            #self.fFit_histo=fitSimo.fit2Gaussiane(h)
+            self.fFit_histo=fitSimo.super_Fit2Gaussiane(h)
+            self.x_picco=self.fFit_histo.GetParameter(1)  +self.distBary      #!!!!!!!!!!!1
 
 
         if (self.peakFinding==4): 
             # uso fit gauss + exp + cutoff
-            self.fFit_histo=self.fitExp_cutoff(h)
-            self.x_picco=self.fFit_histo.GetParameter(1)
+            #self.fFit_histo=self.fitExp_cutoff(h)
+            self.fFit_histo=fitSimo.fitExp_cutoff(h)
+            self.x_picco=self.fFit_histo.GetParameter(2)  +self.distBary      #!!!!!!!!!!!1
 
 
             
         if (self.peakFinding==3):
-            self.fFit_histo=self.fit2Gaussiane(h)
-            self.x_picco=self.fFit_histo.GetParameter(1)
+            self.fFit_histo=fitSimo.fitExpCutoff_gaus(h)
+            self.x_picco=self.fFit_histo.GetParameter(1)  +self.distBary      #!!!!!!!!!!!1
 
 
+        if (self.peakFinding==5):
+            print("cerca picco simo")
+            self.x_picco=fitSimo.myPeakFind(h)  +self.distBary      #!!!!!!!!!!!1
+            
 
             
          # converto allo spazio xy    
-                    
+   
         x_lin= self.get_xDist(fLin2, minX,self.x_picco)
         y_lin=self.fFit.Eval(x_lin)
         
