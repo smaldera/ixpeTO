@@ -58,8 +58,8 @@ class fitDistrib:
        G1.SetParameter(2, 5.30043e-02  )       
        h1.Fit("G1","MERww")
 
-
        
+       #input("continue2?")
        
        Gsum=ROOT.TF1("Gsum","gaus(0)+gaus(3)",-0.4,0.4)
        #Gsum=ROOT.TF1("Gsum","gaus(0)+gaus(3)",-0.3,0.3)
@@ -73,7 +73,8 @@ class fitDistrib:
        
        #Gsum.SetParLimits(0,  G1.GetParameter(0)-G1.GetParameter(0)*0.2,  G1.GetParameter(0)+ G1.GetParameter(0)*0.2)
        Gsum.SetParLimits(0,  0,  1000)
-       Gsum.SetParLimits(1,  G1.GetParameter(1)-G1.GetParameter(1)*0.8,  min(G1.GetParameter(1)+ G1.GetParameter(1)*0.8,0))
+       #Gsum.SetParLimits(1,  G1.GetParameter(1)-G1.GetParameter(1)*0.8,  min(G1.GetParameter(1)+ G1.GetParameter(1)*0.8,0))
+       Gsum.SetParLimits(1,  convp-0.03, convp+0.03 )
        #Gsum.SetParLimits(2,  G1.GetParameter(2)-G1.GetParameter(2)*0.5,  G1.GetParameter(2)+ G1.GetParameter(2)*0.5)
 
        Gsum.SetParLimits(3,  0,  1000)
@@ -409,6 +410,8 @@ class fitDistrib:
         #fsum.SetParLimits(0, G1.GetParameter(0)- G1.GetParameter(0)*0.2,  G1.GetParameter(0)+ G1.GetParameter(0)*0.2 )
         #fsum.SetParLimits(0, 1,1000)
         fsum.SetParLimits(1,  G1.GetParameter(1)-G1.GetParameter(1)*0.5,  G1.GetParameter(1)+ G1.GetParameter(1)*0.5)
+        #fsum.SetParLimits(1,  convp-0.1, convp+0.1 )
+       
         #fsum.SetParLimits(2,  G1.GetParameter(2)-G1.GetParameter(2)*0.2,  G1.GetParameter(2)+ G1.GetParameter(2)*0.2)               
         #fsum.SetParLimits(5,  f1.GetParameter(2)-f1.GetParameter(2)*0.9,  f1.GetParameter(2)+ f1.GetParameter(2)*0.9)
         
@@ -486,6 +489,10 @@ class fitDistrib:
  ######################################
 
    def myPeakFind(self,h):
+  
+    # minPeakIId=-2.5
+     minPeakIId=-1.8 
+     
      nBins=h.GetNbinsX()
      hDiff=h.Clone()
      for i in range (2,nBins):
@@ -513,15 +520,42 @@ class fitDistrib:
            hDiff2.SetBinContent(i,diff2)       
 
      xZero2=-1e10   
-     for i in range (2,nBins):      
+     for i in range (2,nBins):
+          
+          xZero2=-1e10
           counts_i=hDiff2.GetBinContent(i)
           counts_prev=hDiff2.GetBinContent(i-1)    
-          if ( counts_i<0 and  counts_prev>0 and  h.GetBinContent(i)>0    ):
-         
-               xZero2=(h.GetBinCenter(i)+h.GetBinCenter(i-1))/2.
-               print("xero 2found... ",xZero2)
-               break       
+          #if ( counts_i<0 and  counts_prev>0 and  h.GetBinContent(i)>0    ):
+          if ( counts_i<0 and  counts_prev>0 and  h.GetBinContent(i)>50    ):
 
+             print("trovato zero2 a i=",i, " ",h.GetBinCenter(i) )
+             # cerco minimo successivo
+             primoMinimo=0
+             for jj in range (i,i+30):
+                  #primoMinimo=0
+                  print(" -- cerco minimo successivo, jj = ",jj," ",h.GetBinCenter(jj))
+                  if (hDiff2.GetBinContent(jj)- hDiff2.GetBinContent(jj-1 )<-0.05) and (hDiff2.GetBinContent(jj)- hDiff2.GetBinContent(jj+1 )<-0.05):
+                 # if (hDiff2.GetBinContent(jj)- hDiff2.GetBinContent(jj-1 )<-0.000005) and (hDiff2.GetBinContent(jj)- hDiff2.GetBinContent(jj+1 )<-0.00005):
+                     
+                     primoMinimo=hDiff2.GetBinContent(jj)
+                     print("    ===>>>  TROVATO --min successivo, jj = ",jj," min = ",hDiff2.GetBinContent(jj), " ",h.GetBinCenter(jj) )
+                     break
+                  
+                     
+             if primoMinimo<minPeakIId or ( primoMinimo==0 and hDiff2.GetBinContent(i+30-1)<minPeakIId ):   
+                  xZero2=(h.GetBinCenter(i)+h.GetBinCenter(i-1))/2.
+                  print("xero 2found... ",xZero2)
+                  break       
+
+
+     #c2=ROOT.TCanvas("c2","",0)       
+     #hDiff.Draw()
+     #hDiff2.SetLineColor(2)
+     #hDiff2.Draw("same")
+     #input("contiunue?")
+     
+
+            
      return xZero2
 
 
@@ -529,8 +563,33 @@ class fitDistrib:
 
 ####################################################
 
+def testall():
+   files=["","2","3","4","6","7","8","9","11","12","13","14","15","16"]
+   #files=["13","14","15","16"]
+   #files=["17"]
+   for num in files:
+      filename="pippo"+num+".root"
+      print ("")
+      print ("=======================================")
+      print ("processing file:",filename)
+      print ("=======================================")
+      print ("") 
+      inRootFile=ROOT.TFile(filename,"open")
+      h=inRootFile.Get("h1L")
+      h2=h.Clone()
+      h2.Draw()
+
+      a=fitDistrib()
+      a.super_Fit2Gaussiane(h2) # abbastanza buono per E=5KeV
+
+      input("continue3?")
+
+      
 if __name__ == '__main__':
 
+
+   testall()
+   """
    inRootFile=ROOT.TFile("pippo.root","open")
    h=inRootFile.Get("h1L")
    h2=h.Clone()
@@ -539,7 +598,7 @@ if __name__ == '__main__':
    a=fitDistrib()
    a.super_Fit2Gaussiane(h2)
    #fit2Gaussiane(h2) # ~ ok
-
+   """
 
    #fitExp_cutoff(h2) # circa ok
    #fitExpCutoff_gaus(h2)
