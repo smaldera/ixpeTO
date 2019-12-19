@@ -111,9 +111,9 @@ class xpeSimo(object):
         self.sumpars=array('d',[0.]*7) 
         
         #self.c_init=0
-        self.c_init= ROOT.TCanvas("cc","cc", 2000,1000) 
-        self.c_init.Divide(2,1)
-        self.c_init.Draw()
+        #self.c_init= ROOT.TCanvas("cc","cc", 2000,1000) 
+        #self.c_init.Divide(2,1)
+        #self.c_init.Draw()
         self.outRootFile=ROOT.TFile()
 
         
@@ -295,13 +295,7 @@ class xpeSimo(object):
         for i in range (0,n_hits):
             x[i]=hit[i].x
             y[i]=hit[i].y
-            adc1[i]=hit[i].pulseHeight
-                   
-        
-        
-        #self.x0=self.McInfo.absorbtionPointX
-        #self.y0= self.McInfo.absorbtionPointY
-        #self.phi=self.McInfo.photoElectronPhi
+            adc1[i]=hit[i].pulseHeight       
 
         xAbs_rot,yAbs_rot=self.rotoTraslate(self.McInfo.absorbtionPointX  ,  self.McInfo.absorbtionPointY )
         if xAbs_rot>0:
@@ -357,7 +351,7 @@ class xpeSimo(object):
         
         # fit angolo theta:
         rettaZ=ROOT.TF1("rettaZ","[0]+[1]*x",-1,1)
-        self.gIon_xz.Fit("rettaZ","MER")
+        self.gIon_xz.Fit("rettaZ","MERq")
         thetaSimo=numpy.arctan(rettaZ.GetParameter(0))
         print("thetaSimo = ",ROOT.TMath.RadToDeg()*thetaSimo)
         
@@ -388,7 +382,7 @@ class xpeSimo(object):
         self.creaFunzioniFit()      
         #self.fFit=self.f_splineScipy
         self.fFit=self.f_p3
-        self.gIon.Fit("f_p3","ME") 
+        self.gIon.Fit("f_p3","MENq") 
         
         fLin2=ROOT.TF1("fLin2",self.f_dist, self.minX, self.maxX,0)
         
@@ -476,6 +470,11 @@ class xpeSimo(object):
         #============================================
         #    Draw!!!!!!!!!!
         #===========================================
+
+
+
+
+        self.c_init= ROOT.TCanvas("cc","cc", 2000,1000) 
         self.c_init.Clear()
        # self.c_init.Divide(2,1)
         self.c_init.Divide(2,2)
@@ -567,11 +566,7 @@ class xpeSimo(object):
         self.h1L_smoothSimo.SetLineColor(4)
         self.h1L_smoothSimo.SetLineWidth(2)
         self.h1L_smoothSimo.Draw("sames")
-            
-            
-        #self.h1L_ave.SetLineColor(8)
-        #self.h1L_ave.SetLineWidth(4)
-        #self.h1L_ave.Draw("sames")
+              
 
         if self.peakFinding==3:
             self.fFit_histo.Draw("samel")
@@ -601,7 +596,7 @@ class xpeSimo(object):
         self.c_init.Write()
             
         valore = input('continue?')
-                
+        del  self.c_init         
         
         return 1
 

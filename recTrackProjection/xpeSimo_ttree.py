@@ -21,6 +21,13 @@ class myTTree:
         self.mom2trans = array('d', [0.])
         self.mom2long = array('d', [0.])
         self.skweness = array('d', [0.])
+
+        self.xMC= array('d', [0.])
+        self.yMC= array('d', [0.])
+        self.phiMC= array('d', [0.])
+        self.thetaMC= array('d', [0.])
+        self.E_MC= array('d', [0.])
+       
         
         self.x_simo= array('d', [0.])
         self.y_simo=array('d', [0.])
@@ -48,6 +55,12 @@ class myTTree:
         self.treeSimo.Branch('x_simo', self.x_simo, 'x_simo/D')
         self.treeSimo.Branch('y_simo', self.y_simo, 'y_simo/D')
         self.treeSimo.Branch('phiSimo', self.phiSimo, 'phiSimo/D')
+
+        self.treeSimo.Branch('thetaMC', self.thetaMC, 'thetaMC/D')
+        self.treeSimo.Branch('xMC', self.xMC, 'xMC/D')
+        self.treeSimo.Branch('yMC', self.yMC, 'yMC/D')
+        self.treeSimo.Branch('phiMC', self.phiMC, 'phiMC/D')
+        self.treeSimo.Branch('E_MC', self.E_MC, 'E_MC/D')
         self.treeSimo.Branch('redChi2', self.redChi2, 'redChi2/D')
         self.treeSimo.Branch('sumpars', self.sumpars, 'sumpars[7]/D')
 
@@ -72,6 +85,14 @@ class myTTree:
         self.mom2long[0]=xpeSimo.track.firstPassMomentsAnalysis().mom2long()
         self.skweness[0]=xpeSimo.track.firstPassMomentsAnalysis().mom3long()
         self.redChi2[0]=xpeSimo.redChi2
+        # if xpeSimo.McInfo!=-1:
+        self.xMC=xpeSimo.McInfo.absorbtionPointX
+        self.yMC=xpeSimo.McInfo.absorbtionPointY
+        self.E_MC= xpeSimo.McInfo.photonEnergy
+        self.phiMC= xpeSimo.McInfo.photoElectronPhi
+        self.thetaMC= xpeSimo.McInfo.photoElectronTheta
+        
+
         
         #self.sumpars=array('d',[0.]*7) # manca  il riempimento!!!!
         
