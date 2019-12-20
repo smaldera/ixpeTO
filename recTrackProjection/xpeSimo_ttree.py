@@ -85,15 +85,14 @@ class myTTree:
         self.mom2long[0]=xpeSimo.track.firstPassMomentsAnalysis().mom2long()
         self.skweness[0]=xpeSimo.track.firstPassMomentsAnalysis().mom3long()
         self.redChi2[0]=xpeSimo.redChi2
-        # if xpeSimo.McInfo!=-1:
-        
-        self.xMC[0]=xpeSimo.McInfo.absorbtionPointX
-        self.yMC[0]=xpeSimo.McInfo.absorbtionPointY
-        self.E_MC[0]= xpeSimo.McInfo.photonEnergy
-        self.phiMC[0]= xpeSimo.McInfo.photoElectronPhi
-        self.thetaMC[0]= xpeSimo.McInfo.photoElectronTheta
+        if xpeSimo.McInfo!=-1:
+                self.xMC[0]=xpeSimo.McInfo.absorbtionPointX
+                self.yMC[0]=xpeSimo.McInfo.absorbtionPointY
+                self.E_MC[0]= xpeSimo.McInfo.photonEnergy
+                self.phiMC[0]= xpeSimo.McInfo.photoElectronPhi
+                self.thetaMC[0]= xpeSimo.McInfo.photoElectronTheta
 
-        print("ttree xMC=", self.xMC, "  xpeSimo.McInfo.absorbtionPointX=",xpeSimo.McInfo.absorbtionPointX)
+                print("ttree xMC=", self.xMC, "  xpeSimo.McInfo.absorbtionPointX=",xpeSimo.McInfo.absorbtionPointX)
 
         
         #self.sumpars=array('d',[0.]*7) # manca  il riempimento!!!!
