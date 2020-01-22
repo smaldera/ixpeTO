@@ -41,10 +41,10 @@ from scipy.integrate import quad
 
 class xpeSimo(object):
 
-    def __init__(self,  raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
+    def __init__(self,track,  raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
 
         
-        self.track=-1 #!!!!!!!!!!!
+        self.track=track #!!!!!!!!!!! ??????????????
         self.event_id=-100
         self.baricenter_X=-100
       
@@ -130,6 +130,9 @@ class xpeSimo(object):
         self.MCconvPoint=ROOT.TMarker()
                 
         # parametri per rototraslazione!!!
+        self.phi=self.phi0
+        self.x0=self.conversion_point_X
+        self.y0=self.conversion_point_Y
         self.McInfo=-1
 
                 
@@ -152,7 +155,7 @@ class xpeSimo(object):
 
     def distNew(self,x1,x2):
 
-        dist=quad(self.f_distNew,x1,x2)
+        dist=quad(self.f_distNew,x1,x2)   # usa scipy.integrate.quad per integrare la spline tra x1 e x2
         return dist[0]
     
 
@@ -173,7 +176,25 @@ class xpeSimo(object):
         n_hits=self.track.numHits()
         hit=self.track.hits()
         #print ("n HITS = ",n_hits)
+
+
+        x=numpy.array([0.]*n_hits)
+        y=numpy.array([0.]*n_hits)
+        adc1=numpy.array([0.]*n_hits)
         
+        for i in range (0,n_hits):
+            x[i]=hit[i].x
+            y[i]=hit[i].y
+            adc1[i]=hit[i].pulseHeight
+                   
+        
+        x0=self.x0
+        y0=self.y0
+        phi=self.phi
+        xp1,yp1= self.rotoTraslate(x,y)
+        xp,yp,adc=self.ordinateByX(xp1,yp1,adc1)
+        
+        """
         x=numpy.array([0.]*n_hits)
         y=numpy.array([0.]*n_hits)
         adc=numpy.array([0.]*n_hits)
@@ -183,11 +204,11 @@ class xpeSimo(object):
             y[i]=hit[i].y
             adc[i]=hit[i].pulseHeight
             #print (x[i]," ",y[i]," adc = ",adc[i])
-
-        
         
         xp,yp= self.rotoTraslate(x,y)
+        """
 
+        
         phi0_bary=self.phi0-self.phi0
         phi1_bary=self.phi1 -self.phi0
                
@@ -875,15 +896,44 @@ class xpeSimo(object):
       
   
     
+    def ordinateByX(self,x,y,z):
+    
+       
+       from operator import itemgetter
+       dict_value={}
+       for i in range (0,len(x)):
+           dict_value[i]=x[i]
+           mySort=sorted(dict_value.items(), key=itemgetter(1))
+
+       index_sorted2= [val[0]  for  val in mySort]
+       x_sorted2= numpy.array([val[1]  for  val in mySort])
+       #y_sorted2=numpy.array([0.]*len(x),float)
+       #z_sorted2=numpy.array([0.]*len(x),float)
+
+
+       y_sorted2=numpy.array( [y[i]  for i in index_sorted2])
+       z_sorted2=numpy.array( [z[i]  for i in index_sorted2])
+
+       #print(index_sorted2)
+       #print(x_sorted2)
+       #print(y_sorted2)
+       #print(z_sorted2)
+       
+       return x_sorted2,y_sorted2,z_sorted2
+
+    
+  
+    #def rotoTraslate (self, x,y,x0,y0,phi):
     def rotoTraslate(self, x,y):
           
-        x0=self.conversion_point_X
-        y0=self.conversion_point_Y
-        phi=self.phi0
-           
+        x0=self.x0
+        y0=self.y0
+        phi=self.phi 
         dx = (x - x0)
         dy = (y - y0)
         xp = numpy.cos(phi)*dx + numpy.sin(phi)*dy
         yp = -numpy.sin(phi)*dx + numpy.cos(phi)*dy
         #aaa=[xp,yp]
-        return xp,yp
+
+        #ordinare per x crescente
+        #xs,ys,zs=self.ordinateByX(xp,yp,z)

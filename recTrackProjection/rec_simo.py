@@ -71,7 +71,11 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        h_y=ROOT.TH1F("h_y","",200,-0.5,0.5)
        h_y1=ROOT.TH1F("h_y1","",200,-0.5,0.5)
 
-              
+       x1=-2 
+       x2=4 
+       nbinsX=int( (x2-x1)/0.01);
+       h1Lcum=ROOT.TH1F("h1L","",int (nbinsX/dividiBins),x1,x2)
+       
        #if salva tree?
        event_id=0
        outRootFile=ROOT.TFile("prova1.root","recreate")
@@ -146,6 +150,9 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
            yMC=mcInfo.absorbtionPointY
            
            recSimo=xpeSimoAA.rec_simo()
+
+           h1Lcum.Add(xpeSimoAA.h1L_smoothSimo,1)
+           
            if xpeSimoAA.event_id%100==0: 
                   print ("event id = ",xpeSimoAA.event_id)
        
@@ -196,16 +203,18 @@ def test(filePath, num_events,raggioCut, dividiBins, baryPadding, findMaxAlg,  z
        h_y1.Write()
        h_x.Write()
        h_x1.Write()
+       h1Lcum.Write()
        c3.Write()
-       xpeSimoAA.h1LCumul.Write()
+       #xpeSimoAA.h1LCumul.Write()
        myTree.treeSimo.Write()
-       
+       c3.Update()
+       input('continue?')    
        outRootFile.Close()
        del c3
        del h_phi1,    h_phi_tang,  h_y, h_y1, h_x,  h_x1
 
        
-       #valore = raw_input('continue?')    
+       #valore = input('continue?')    
         
 if __name__ == '__main__':
     import argparse
@@ -232,7 +241,7 @@ if __name__ == '__main__':
 
 
     parser.add_argument('-findMaxAlg', '--findMaxAlg', type=int, default=2,
-                        help = 'algoritmo ricerca picco e auger... 1 TSpectrum, 2->due gauss - 3-> fit gaus + cutoff ') 
+                        help = 'algoritmo ricerca picco e auger... 1 TSpectrum, 2->due gauss - 3-> fit gaus + Expo cutoff  - 4->doppia expCutoff   5-> findPeakSimo ') 
      
 
     parser.add_argument('-pcubo', '--pcubo', type=int, default=0,

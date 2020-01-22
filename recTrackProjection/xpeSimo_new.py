@@ -42,6 +42,7 @@ from numba import jit
 class xpeSimo(object):
 
     def __init__(self, track,   raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
+   # def __init__(self,  raggioCut,dividiBins, baryPadding, findMaxAlg, pcubo, maxnP, Psigma, Pthr, draw  ):
 
         
         self.event_id=-1
@@ -55,6 +56,7 @@ class xpeSimo(object):
         self.phi1=track.secondPassMomentsAnalysis().phi()
         self.phiTang=0
         self.track=track #!!!!!!!!!!!
+       # self.track=0 #!!!!!!!!!!!
   
         
         self.xnew=0
@@ -99,10 +101,10 @@ class xpeSimo(object):
         self.redChi2=0
         self.sumpars=array('d',[0.]*7) 
         
-        self.c_init=0
-        # ROOT.TCanvas("cc","cc", 2000,1000) 
-        #self.c_init.Divide(2,1)
-        #self.c_init.Draw()
+        #self.c_init=0
+        self.c_init= ROOT.TCanvas("cc","cc", 2000,1000) 
+        self.c_init.Divide(2,1)
+        self.c_init.Draw()
         self.outRootFile=ROOT.TFile()
 
         self.bary1=ROOT.TMarker()
@@ -182,7 +184,9 @@ class xpeSimo(object):
     def f_dist(self,x):
         xx =float(x[0])
         #yy=math.sqrt( 1+( math.pow( self.f_p3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
-        yy=math.sqrt( 1+( math.pow( self.f_spline3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
+        #yy=math.sqrt( 1+( math.pow( self.f_spline3.Derivative(xx),2)  ) )  #!!!!!!!!! fp3!!!!!    
+        yy=math.sqrt( 1+( math.pow( self.f_splineScipy.Derivative(xx),2)  ) )  #!!!!!!!!! Scipy Spline    
+
         return yy
     
        
@@ -198,7 +202,7 @@ class xpeSimo(object):
         if self.McInfo!=-1:
             print ("Xmc=",self.McInfo.absorbtionPointX)
         
-
+        print(self.track)    
 
 
         
@@ -208,19 +212,21 @@ class xpeSimo(object):
         
         x=numpy.array([0.]*n_hits)
         y=numpy.array([0.]*n_hits)
-        adc=numpy.array([0.]*n_hits)
+        adc1=numpy.array([0.]*n_hits)
         
         for i in range (0,n_hits):
             x[i]=hit[i].x
             y[i]=hit[i].y
-            adc[i]=hit[i].pulseHeight
+            adc1[i]=hit[i].pulseHeight
                    
         
         x0=self.x0
         y0=self.y0
         phi=self.phi
-        xp,yp= self.rotoTraslate(x,y)
+        xp1,yp1= self.rotoTraslate(x,y)
+        xp,yp,adc=self.ordinateByX(xp1,yp1,adc1)
 
+        print ("type adc=",type(xp))
         
         phi0_bary=self.phi0-phi
         phi1_bary=self.phi1 -phi
@@ -294,7 +300,7 @@ class xpeSimo(object):
         #    self.f_p3.FixParameter(0,0) # il cubo diventa una parabola!
         #    self.f_p3.FixParameter(1,0) # il cubo diventa una retta!!!!!
         print ("fit con  cubo... ")
-        self.profx.Fit("f_p3","MERw")
+        #self.profx.Fit("f_p3","MERw") # fit del profile con p3
 
         #uso la spline3(4nodi)!!!!!!!!!!!!!!!!!!!!!!
         self.f_spline3=ROOT.TF1("f_spline3",self.spline3, minX, maxX, 10) # spline3  per ora nessun controllo su passagio per/vicino  p.conv.
@@ -313,7 +319,7 @@ class xpeSimo(object):
         #self.f_spline3.SetParLimits(4,x_bary2-self.baryPadding,x_bary2+self.baryPadding)
         
         #self.profx.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        self.gr1.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #self.gr1.Fit("f_spline3","MRw") ##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # fitto con spline scipy:
         self.fitScipy_spline(xp,yp,err)
         # creo TF1 della spline:
@@ -396,8 +402,7 @@ class xpeSimo(object):
         self.c_init.cd(1)
         
         self.h2.Draw("colZ")
-        self.profx.Draw("samep")
-
+        #self.profx.Draw("samep")
         #self.gr1.Draw("samep")
 
         #ellips=ROOT.TEllipse(self.baricenter_X,self.baricenter_Y, math.sqrt(self.mom2_long), math.sqrt(self.mom2_trans), 0,360, self.phi0*ROOT.TMath.RadToDeg())
@@ -409,7 +414,7 @@ class xpeSimo(object):
            
         self.line1.Draw("samel")
         self.line2.Draw("samel")
-        self.f_p3.Draw("samel")
+        #self.f_p3.Draw("samel")
         self.f_splineScipy.Draw("samel")
         
 
@@ -429,22 +434,20 @@ class xpeSimo(object):
         if self.McInfo!=-1:
             
             xConvMC,yConvMC=self.rotoTraslate(self.McInfo.absorbtionPointX,self.McInfo.absorbtionPointY )
-            MCconvPoint=ROOT.TMarker( xConvMC, yConvMC ,20)
+            MCconvPoint=ROOT.TMarker( xConvMC, yConvMC ,48)
             MCconvPoint.SetMarkerColor(6)
             MCconvPoint.Draw()
-            
-            ionXnp=numpy.array(self.McInfo.ionizationPosX)
-            ionYnp=numpy.array(self.McInfo.ionizationPosY)
 
-            
-            xp,yp=self.rotoTraslate(ionXnp, ionYnp)
-            ionX=array('d',xp)
-            ionY=array('d',yp)
-            
-            
-            nIon=len(ionX)
-            gIon=ROOT.TGraph(nIon,ionX,ionY)
-            gIon.Draw("*")
+            #traccia fotoelettrone... sembra non supportata... bisogna "swingare" la traccia di ionizzazione?????
+            #ionXnp=numpy.array(self.McInfo.ionizationPosX)
+            #ionYnp=numpy.array(self.McInfo.ionizationPosY)
+            #print(" AAAAAAAA ion track",ionXnp)
+            #xp,yp=self.rotoTraslate(ionXnp, ionYnp)
+            #ionX=array('d',xp)
+            #ionY=array('d',yp)
+            # nIon=len(ionX)
+            #gIon=ROOT.TGraph(nIon,ionX,ionY)
+            #gIon.Draw("*")
                        
 
 
@@ -931,7 +934,9 @@ class xpeSimo(object):
                     
         x_lin= self.get_xDist(fLin2, minX,self.x_picco)
         #y_lin=par[0]*(x_lin**3)+par[1]*(x_lin**2)+(par[2]*x_lin)+par[3]
-        y_lin=self.f_spline3.Eval(x_lin)
+        #y_lin=self.f_spline3.Eval(x_lin)
+        y_lin=self.f_splineScipy.Eval(x_lin)
+        
         print ("x_picco = ",self.x_picco, "x_lin = ",x_lin)
         
         #print ("===============>>>>>>>>>>>> y_lin=",y_lin,"  y_lin2=",y_lin2,"  diff= ",y_lin-y_lin2)
@@ -939,7 +944,34 @@ class xpeSimo(object):
         newPoint=[x_lin,y_lin]
         return newPoint
          
-      
+
+
+    def ordinateByX(self,x,y,z):
+    
+       
+       from operator import itemgetter
+       dict_value={}
+       for i in range (0,len(x)):
+           dict_value[i]=x[i]
+           mySort=sorted(dict_value.items(), key=itemgetter(1))
+
+       index_sorted2= [val[0]  for  val in mySort]
+       x_sorted2= numpy.array([val[1]  for  val in mySort])
+       #y_sorted2=numpy.array([0.]*len(x),float)
+       #z_sorted2=numpy.array([0.]*len(x),float)
+
+
+       y_sorted2=numpy.array( [y[i]  for i in index_sorted2])
+       z_sorted2=numpy.array( [z[i]  for i in index_sorted2])
+
+       #print(index_sorted2)
+       #print(x_sorted2)
+       #print(y_sorted2)
+       #print(z_sorted2)
+       
+       return x_sorted2,y_sorted2,z_sorted2
+
+    
   
     #def rotoTraslate (self, x,y,x0,y0,phi):
     def rotoTraslate(self, x,y):
@@ -952,4 +984,12 @@ class xpeSimo(object):
         xp = numpy.cos(phi)*dx + numpy.sin(phi)*dy
         yp = -numpy.sin(phi)*dx + numpy.cos(phi)*dy
         #aaa=[xp,yp]
+
+        #ordinare per x crescente
+        #xs,ys,zs=self.ordinateByX(xp,yp,z)
+        
+                
+        
         return xp,yp
+
+    
