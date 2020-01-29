@@ -1,4 +1,21 @@
 import lanciaRecon_hct
+import glob
+
+
+
+def get_files(dataDir,n):
+
+ f=glob.glob(dataDir+"/*_1118.lv1.fits")
+ #print(f)
+ #creo stringa con i primi n files
+ i=0
+ nomi_out=''
+ for name in f:
+     nomi_out+=" "+name
+     if i>(n-1): break
+     i+=1
+ return nomi_out
+
 
 
 
@@ -18,24 +35,34 @@ dmax=3.5
 weight_scale=0.05
 truncate_lsb=0
 logfile="recon.log"
-n_max=1e10
+n_max=1000000000
 first_ev=0
 
 
 base_dir='/data1/maldera/IXPE_work/rec_optimization/scanZeroThr/'
+dirs=['001361',  '001388',  '001416',  '001436',  '001461',  '001471']
+for dir in dirs:
+    dataDir='/data1/IXPE/data/misureDU_2/'+dir
+    print("ecco i files:")
+    filenames=get_files(dataDir,4)
+    print ("primi 4 files= ",filenames)
+ 
+    out_dir=base_dir+dir+'/'
 
-n_iter=1
-#inizio scan su zero_thr
-for zero_thr in range (5,40,2):
 
-    print ("zeroThr= ",zero_thr)
-    work_dir=base_dir+str(n_iter)
-    lanciaRecon_hct.submit_recon(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_offset,trig_minicluster_offset,suffix,min_track_hits,min_densy_points,dmin,dmax,weight_scale, truncate_lsb, logfile,n_max,first_ev,work_dir)
+    n_iter=1
+    #inizio scan su zero_thr
+    for zero_thr in range (5,40,2):
 
-    filename=work_dir+'/config_simo.txt'
-    myLogfile=open(filename,'w')  
-    myLogfile.write("zeroThreshold= "+str(zero_thr)+" moma1_thr= "+str(moma1_thr)+" moma2_thr= "+str(moma2_thr)+"  dmin= "+str(dmin)+" dmax= "+str(dmax)+" w_scale= "+str(weight_scale) )
-    n_iter=n_iter+1
+        print ("zeroThr= ",zero_thr)
+        work_dir=out_dir+str(n_iter)
+        
+        lanciaRecon_hct.submit_recon(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_offset,trig_minicluster_offset,suffix,min_track_hits,min_densy_points,dmin,dmax,weight_scale, truncate_lsb, logfile,n_max,first_ev,work_dir)
+
+        filename=work_dir+'/config_simo.txt'
+        myLogfile=open(filename,'w')  
+        myLogfile.write("zeroThreshold= "+str(zero_thr)+" moma1_thr= "+str(moma1_thr)+" moma2_thr= "+str(moma2_thr)+"  dmin= "+str(dmin)+" dmax= "+str(dmax)+" w_scale= "+str(weight_scale) )
+        n_iter=n_iter+1
 
 
 

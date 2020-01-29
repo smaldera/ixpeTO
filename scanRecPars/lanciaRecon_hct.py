@@ -5,9 +5,10 @@ import time
 import subprocess
 import time
 
-
 stringa1='#!/bin/bash \n \nFILE="/var/log/All_done.txt"\nwhile true \ndo  \n   if [ -f $FILE ]; then \n      echo "File $FILE exists... let\'s go!" \n'
 stringa2='      break  \n  \n   else  \n      echo "File $FILE does not exist...  waiting 30 secs" \n      sleep 30\n   fi  \ndone  \n'    
+
+
 
 
 
