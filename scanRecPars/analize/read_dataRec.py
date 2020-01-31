@@ -131,7 +131,7 @@ def plot_all(baseRec1,outdir):
     min_thr=x[baseRec1.min_index]
     max_thr=x[baseRec1.max_index]
     
-    
+    #print(x)
     
     print ('best_thr=',best_thr)
     print ('min_thr=',min_thr)
@@ -236,7 +236,7 @@ def plot_all(baseRec1,outdir):
     outfilePlot=out_dir+'scan_summary.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
-    plt.show()
+    #plt.show()
 
 
 
@@ -248,14 +248,47 @@ def plot_all(baseRec1,outdir):
 ################################################
 
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr/'
-dirs=['001333', '001361',  '001388',  '001416',  '001436',  '001461',  '001471']
+#dirs=['001333', '001361',  '001388',  '001416',  '001436',  '001461',  '001471']
+dict_energy={'001333':6.4, '001361':4.5,  '001388':2.98,  '001416':2.70,  '001436':2.29,  '001461':2.01,  '001471':3.69} # Energy in KeV
+dirs=['001461','001436', '001416', '001388','001471','001361', '001333']
+
+
+
 #dirs=['001333']
 
 
-#inizio scan su zero_thr
-for dir in dirs:
+#liste per plot finali:
+energy=[]
 
-    out_dir=base_dir+dir+'/'
+mod1=[]
+mod1_err=[]
+mod2=[]
+mod2_err=[]
+
+mod1std=[]
+mod1std_err=[]
+mod2std=[]
+mod2std_err=[]
+
+
+
+best_zero_thr=[]
+best_zero_thr_up=[]
+best_zero_thr_low=[]
+
+n_raw=[]
+
+
+resolution_opt=[]
+resolution_std=[]
+
+
+std_index=7
+
+#inizio scan su zero_thr
+for folder in dirs:
+
+    out_dir=base_dir+folder+'/'
     baseRec1=base_rec()
     
     for  i in range (1,19):
@@ -279,6 +312,91 @@ for dir in dirs:
     print ('best_phi=',baseRec1.best_phi)
         
 
-    plot_all(baseRec1,out_dir)
+    #plot_all(baseRec1,out_dir) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
+    #fill variables for final plots (vs energy)
+    energy.append(dict_energy[folder])
+    best_zero_thr.append (baseRec1.dict_rec['zero_thr'][baseRec1.best_index[0]] )
+    best_zero_thr_up.append (baseRec1.dict_rec['zero_thr'][baseRec1.max_index] )
+    best_zero_thr_low.append (baseRec1.dict_rec['zero_thr'][baseRec1.min_index] )
+    n_raw.append(baseRec1.dict_rec['n_raw'][baseRec1.best_index[0]])
+    mod1.append(baseRec1.dict_rec['modulation1'][baseRec1.best_index[0]])
+    mod1_err.append(baseRec1.dict_rec['modulation1_err'][baseRec1.best_index[0]])
+    mod2.append(baseRec1.dict_rec['modulation2'][baseRec1.best_index[0]])
+    mod2_err.append(baseRec1.dict_rec['modulation2_err'][baseRec1.best_index[0]])
+
+    mod1std.append(baseRec1.dict_rec['modulation1'][std_index])
+    mod1std_err.append(baseRec1.dict_rec['modulation1_err'][std_index])
+    mod2std.append(baseRec1.dict_rec['modulation2'][std_index])
+    mod2std_err.append(baseRec1.dict_rec['modulation2_err'][std_index])
+    resolution_opt.append(baseRec1.dict_rec['resolution2'][baseRec1.best_index[0]])
+    
+
+print("e=",energy)
+print("best_thr=",best_zero_thr)
+
+
+
+
+
+# final plots:
+plt.figure(figsize=(20,10))
+ax1=plt.subplot(221)
+
+# PLOT  mod_2 vs zero threshold
+#ax1=plt.subplot(231)
+plt.errorbar(energy,best_zero_thr, fmt='bo')
+#plt.errorbar(energy,best_zero_thr_low, fmt='ro--')
+#plt.errorbar(energy,best_zero_thr_up, fmt='ro--')
+
+ax1.fill_between(energy,best_zero_thr_low, best_zero_thr_up,color='gray',alpha=0.1, interpolate=True)
+plt.xlabel('energy [KeV]')
+plt.ylabel('best_threshold')
+
+#########3
+# n raw
+plt.subplot(222)                 
+plt.errorbar(energy,n_raw, fmt='bo--')
+plt.xlabel('energy [KeV]')
+plt.ylabel('n_raw')                
+
+
+#########3
+
+
+
+# modulazione
+plt.figure(2,figsize=(20,10))
+plt.subplot(221)                 
+plt.errorbar(energy,mod2,yerr=mod2_err, fmt='ro--',label='phi 2 opt')
+plt.errorbar(energy,mod2std,yerr=mod2std_err, fmt='bo--',label='phi 2 standard')
+plt.errorbar(energy,mod1,yerr=mod1_err, fmt='bo--',label='phi 1 opt ')
+plt.errorbar(energy,mod1std,yerr=mod1std_err, fmt='go--',label='phi 1 standard ' )
+
+plt.xlabel('energy [KeV]')
+plt.ylabel('modulation')
+plt.legend()
+
+#plt.subplot(222)
+#plt.errorbar(energy,mod1,yerr=mod1_err, fmt='bo--',label='phi 1 opt ')
+#plt.errorbar(energy,mod1std,yerr=mod1std_err, fmt='go--',label='phi 1 standard ' )
+#plt.xlabel('energy [KeV]')
+#plt.ylabel('modulation')
+#plt.legend()
+
+
+
+plt.subplot(223)
+plt.errorbar(energy, np.array(mod1)/np.array(mod1std),  fmt='bo--',label='phi1  ratio opt/std ')
+plt.errorbar(energy, np.array(mod2)/np.array(mod2std),  fmt='ro--',label='phi2  ratio opt/std ')
+plt.xlabel('energy [KeV]')
+plt.ylabel('ratio')
+plt.legend()
+
+
+
+
+
+                 
+plt.show()
