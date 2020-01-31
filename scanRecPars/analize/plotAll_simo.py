@@ -244,6 +244,9 @@ class plotAll_simo(ixpeDqmTask):
         chi2_2 = fit_model2.reduced_chisquare()
 
 
+        print("modulation2_err= ",modulation2_err)
+     
+        
         ##############################################
         # rifaccio istogramma pha con tagli finali per avere la risuluzione!!!
 
@@ -309,15 +312,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     opts = vars(args)
     opts['file_type'] = 'Lvl1a'
-    print ("infiles =",args)
+    #print ("infiles =",args)
 
   
     task = plotAll_simo(*args.infiles, **opts)
 
-    #task = plotAll_simo(infiles, **opts)
-    
-    
+        
     task.run(**opts)
 
     #if args.__dict__['show']:
-    #plt.show()
+    plt.show()
