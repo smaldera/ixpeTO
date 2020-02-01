@@ -88,6 +88,7 @@ def find_quantile(run, quantile, expr, cut):
     hist.plot(stat_box_position='upper right')
     plot_xmax = hist.quantile(0.99)
     plt.xlim(binning[0], plot_xmax)
+    plt.ylim(0,hist.max_val()*1.1) #!!!!!!!!    
     plt.axvline(q)
     return q
 
@@ -161,6 +162,7 @@ class plotAll_simo(ixpeDqmTask):
 
         ecut = peak_cut(gauss_model)
         print ("Ecut = ",ecut)
+        plt.savefig(kwargs.get('output_folder')+'PHA_spectrum1.png')
         
         ###################################3
         # mappa bary e mappa punto impatto
@@ -179,6 +181,7 @@ class plotAll_simo(ixpeDqmTask):
         
         self.add_plot('moments ratio', gauss_model, figure_name='moments ratio')
         min_mom_ratio = find_quantile(self.run_list, quantile, expr, cut2)
+        plt.savefig(kwargs.get('output_folder')+'dist_ratioLW.png')
         mom_ratio_cut = '%s > %.4f' % (expr, min_mom_ratio)
         cut_final=cut_logical_and(cut2,mom_ratio_cut)
 
@@ -196,7 +199,7 @@ class plotAll_simo(ixpeDqmTask):
         hist_map = ixpeHistogram2d(x_edges, y_edges,  xtitle='x [mm]', ytitle='y [mm]')
         hist_map.fill(x, y)
         self.add_plot('bary map', hist_map, figure_name='bary_map')
-
+        plt.savefig(kwargs.get('output_folder')+'bary_map.png')
         
         ###################################3
         # istogramma ph1
@@ -222,7 +225,7 @@ class plotAll_simo(ixpeDqmTask):
         modulation1 = fit_model1.parameter_value('Modulation')
         modulation1_err = fit_model1.parameter_error('Modulation')
         chi2_1 = fit_model1.reduced_chisquare()
-
+        plt.savefig(kwargs.get('output_folder')+'modulation_phi1.png')
         ###################################3
         # istogramma ph2
 
@@ -245,7 +248,7 @@ class plotAll_simo(ixpeDqmTask):
 
 
         print("modulation2_err= ",modulation2_err)
-     
+        plt.savefig(kwargs.get('output_folder')+'modulation_phi2.png')
         
         ##############################################
         # rifaccio istogramma pha con tagli finali per avere la risuluzione!!!
@@ -265,9 +268,13 @@ class plotAll_simo(ixpeDqmTask):
         nsigma = kwargs.get('nsigma')
         
         gauss_model2 = fit_gaussian_iterative(hist2, verbose=kwargs.get('verbose'), xmin=kwargs.get('fit_min'),  xmax=kwargs.get('fit_max'), num_sigma_left=nsigma,  num_sigma_right=nsigma) # n. iterazioni??
-        self.add_plot('pha_spectrum_fit2',gauss_model2  , figure_name='pha_spectrum2',    save=False,       display_stat_box=kwargs.get('display_stat_box', True),    position=kwargs.get('position', 'upper left'))
-        self.save_figure('pha_spectrum2', overwrite=overwrite,file_extensions=['png'])
+        self.add_plot('pha_spectrum_fit2',gauss_model2  , figure_name='pha_spectrum2',    save=True,       display_stat_box=kwargs.get('display_stat_box', True),    position=kwargs.get('position', 'upper left'))
+       
 
+        plt.savefig(kwargs.get('output_folder')+'PHA_spectrum2.png')  # non riesco a salvare i plot usando i metodi della classe...  cosi' va...
+
+
+        
         peak2 = gauss_model2.parameter_value('Peak')
         peak2_err = gauss_model2.parameter_error('Peak')
         resolution2 = gauss_model2.resolution()
@@ -321,4 +328,4 @@ if __name__ == '__main__':
     task.run(**opts)
 
     #if args.__dict__['show']:
-    plt.show()
+    #plt.show()
