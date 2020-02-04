@@ -15,16 +15,22 @@ mpl.rcParams['grid.linestyle'] = ":"
 mpl.rcParams['axes.grid'] = True
 
 
-#plt.rc('grid', linestyle=":", color='grey')
+
+# PARAMETERS:
+
+#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr/'
+#x_var='zero_thr'
+#std_index=7
+
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma1Thr/'
+x_var='moma1_thr'
+std_index=9
 
 
 
-base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr/'
+
 dict_energy={'001333':6.40, '001361':4.50,  '001388':2.98,  '001416':2.70,  '001436':2.29,  '001461':2.01,  '001471':3.69} # Energy in KeV
 dirs=['001461','001436', '001416', '001388','001471','001361', '001333']
-
-
-
 
 
 
@@ -98,8 +104,7 @@ class base_rec():
 
 
     def compute_indexes(self,maximum,mod,mod_err):          # mod e mod_err sonu numpy  array!
-
-        zero_th=np.array( self.zero_thr)
+        
         index=np.where(mod==maximum)[0]
         maximum_err=mod_err[index[0]]     
         index_interval=np.where( np.logical_and(mod<maximum+maximum_err, mod>maximum-maximum_err)  )    # DEVO USARE np.logical.and !!!!!
@@ -115,7 +120,6 @@ class base_rec():
         
     def find_maxMod_index(self):
 
-       # zero_th=np.array( self.zero_thr)
         mod2=np.array( self.modulation2)
         mod1=np.array( self.modulation1)
 
@@ -133,9 +137,7 @@ class base_rec():
             self.compute_indexes(max2,mod2,mod2_err)
             self.best_phi=2
             
-            
-                    
-        #return index_final,  min_index,max_index, max_mod, max_nodErr,best_phi   
+              
         return 0   
         
         
@@ -153,7 +155,9 @@ def plot_all(baseRec1,outdir,folder):
     # create plots
     ##################
     
-    x=baseRec1.dict_rec['zero_thr']
+    #x=baseRec1.dict_rec['zero_thr']
+    x=baseRec1.dict_rec[x_var]
+    
     best_thr=x[baseRec1.best_index[0]]
     min_thr=x[baseRec1.min_index]
     max_thr=x[baseRec1.max_index]
@@ -183,14 +187,23 @@ def plot_all(baseRec1,outdir,folder):
     #figAll_phi2.suptitle("mod. factor phi2 ", fontsize=16)
     ax_all=plt.subplot(121)
     ax_all.set_title("mod. factor phi2")
+    plt.xlabel(x_var)
     plt.errorbar(x,y,yerr=y_err, fmt='o--',label='E='+str(dict_energy[folder])+' KeV' )
-    plt.legend()
+    plt.legend( bbox_to_anchor=(1.1, 1.11) )
+
     ax_all2=plt.subplot(122)
     ax_all2.set_title("mod. factor phi1")
     plt.errorbar(x,y2,yerr=y2_err, fmt='o--',label='E='+str(dict_energy[folder])+' KeV' )
-    plt.legend()
+    plt.xlabel(x_var)
+    plt.legend(bbox_to_anchor=(1.1, 1.11))
+
+
+    outfilePlot=base_dir+'summary3.png'
+    print ("outFile png =",outfilePlot)
+    figAll_phi2.savefig(outfilePlot)
 
     
+    # plot singole energie
     
     fig01=plt.figure(figsize=(20,10))
     fig01.suptitle(title, fontsize=16)
@@ -199,7 +212,7 @@ def plot_all(baseRec1,outdir,folder):
     ax01=plt.subplot(231)
     ax01.set_title('modulation phi_2')
     plt.errorbar(x,y,yerr=y_err, fmt='bo--',label="modulation phi2")
-    plt.xlabel('zero_suppression_th')
+    plt.xlabel(x_var)
     plt.ylabel('modulation_2')
 
     plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
@@ -222,7 +235,7 @@ def plot_all(baseRec1,outdir,folder):
     if baseRec1.best_phi==1:
         ax02.add_patch(rect)
     plt.legend(loc='lower right')
-    plt.xlabel('zero_suppression_th')
+    plt.xlabel(x_var)
     plt.ylabel('modulation_phi1')
 
     ax03=plt.subplot(233)
@@ -235,7 +248,7 @@ def plot_all(baseRec1,outdir,folder):
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
     
     plt.legend()
-    plt.xlabel('zero_suppression_th')
+    plt.xlabel(x_var)
     plt.ylabel('Chi2')
 
 
@@ -247,14 +260,14 @@ def plot_all(baseRec1,outdir,folder):
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
     
-    plt.xlabel('zero_suppression_th')
+    plt.xlabel(x_var)
     plt.ylabel('PHA resolution FWHM')
     plt.legend()
  
     ax05=plt.subplot(235)
     ax05.set_title('ratio n_physical/n_raw')
     y=np.array(baseRec1.dict_rec['n_physical'])/np.array(baseRec1.dict_rec['n_raw'])
-    plt.xlabel('zero_suppression_th')
+    plt.xlabel(x_var)
     plt.ylabel('fraction')
     plt.errorbar(x, y,fmt='ro--',label="n_physical/n_raw")
     plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
@@ -272,7 +285,7 @@ def plot_all(baseRec1,outdir,folder):
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
-    plt.xlabel('zero_suppression_th')
+    plt.xlabel(x_var)
     plt.ylabel('fraction')
     plt.legend()
       
@@ -323,7 +336,7 @@ resolution_opt=[]
 resolution_std=[]
 
 
-std_index=7
+
 
 #inizio scan su zero_thr
 for folder in dirs:
@@ -357,9 +370,16 @@ for folder in dirs:
 
     #fill variables for final plots (vs energy)
     energy.append(dict_energy[folder])
-    best_zero_thr.append (baseRec1.dict_rec['zero_thr'][baseRec1.best_index[0]] )
-    best_zero_thr_up.append (baseRec1.dict_rec['zero_thr'][baseRec1.max_index] )
-    best_zero_thr_low.append (baseRec1.dict_rec['zero_thr'][baseRec1.min_index] )
+
+  #  best_zero_thr.append (baseRec1.dict_rec['zero_thr'][baseRec1.best_index[0]] )
+  #  best_zero_thr_up.append (baseRec1.dict_rec['zero_thr'][baseRec1.max_index] )
+  #  best_zero_thr_low.append (baseRec1.dict_rec['zero_thr'][baseRec1.min_index] )
+
+    best_zero_thr.append (baseRec1.dict_rec[x_var][baseRec1.best_index[0]] )
+    best_zero_thr_up.append (baseRec1.dict_rec[x_var][baseRec1.max_index] )
+    best_zero_thr_low.append (baseRec1.dict_rec[x_var][baseRec1.min_index] )
+
+    
     n_raw_opt.append(baseRec1.dict_rec['n_raw'][baseRec1.best_index[0]])
     n_ecut_opt.append(baseRec1.dict_rec['n_ecut'][baseRec1.best_index[0]])
     mod1.append(baseRec1.dict_rec['modulation1'][baseRec1.best_index[0]])
@@ -401,7 +421,7 @@ ax11.set_title('best zero supp threshod')
 plt.errorbar(energy,best_zero_thr, fmt='bo',label='best value')
 ax11.fill_between(energy,best_zero_thr_low, best_zero_thr_up,color='gray',alpha=0.1, interpolate=True,label=r'1$\sigma$ band')
 plt.xlabel('energy [KeV]')
-plt.ylabel('best_threshold')
+plt.ylabel('best '+x_var)
 plt.legend()
 #plt.rc('grid',axes=True,  linestyle=":", color='grey')
 #plt.grid(True,linestyle=':', color='grey')
@@ -413,13 +433,16 @@ plt.errorbar(energy,n_raw_opt, fmt='bo--')
 plt.xlabel('energy [KeV]')
 plt.ylabel('n_raw')                
 
+outfilePlot=base_dir+'summary1.png'
+print ("outFile png =",outfilePlot)
+plt.savefig(outfilePlot)
 
 #############
 #  FIG 2
 ##############
 
 fig2=plt.figure(figsize=(20,10))
-fig2.suptitle("zero_supp threshold scan", fontsize=16)
+fig2.suptitle(x_var+" scan", fontsize=16)
 fig2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
 
 # modulazione
@@ -460,7 +483,7 @@ plt.legend()
 #plots n. of events
 
 ax4=plt.subplot(233)
-ax4.set_title('Resolution')
+ax4.set_title('Event number')
 plt.errorbar(energy,  np.array(n_ecut_opt)/np.array(n_raw_opt),  fmt='bo--',label='n_ecut/n_raw opt ')
 plt.errorbar(energy, np.array(n_ecut_std)/np.array(n_raw_std),  fmt='ro--',label='n_ecut/n_raw  std ')
 plt.xlabel('energy [KeV]')
@@ -473,7 +496,9 @@ plt.xlabel('energy [KeV]')
 plt.ylabel('ratio')
 plt.legend()
 
-
+outfilePlot=base_dir+'summary2.png'
+print ("outFile png =",outfilePlot)
+plt.savefig(outfilePlot)
 
                  
 plt.show()
