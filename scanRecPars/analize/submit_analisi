@@ -1,0 +1,8 @@
+Universe   = vanilla
+getenv     =True
+Executable =job_script_analisi.sh
+Arguments  = 
+Log        = htc_analisi.log
+Output     = htc_analisi.out
+Error      = htc_analisi.error
+Queue

@@ -23,6 +23,8 @@ from __future__ import print_function, division
 
 __description__ = 'PHA spectrum'
 
+import matplotlib
+matplotlib.use('Agg')  # questo fa funzionare matplotlib senza interfaccia grafica (es su un server... )
 
 import numpy
 
@@ -146,11 +148,20 @@ class plotAll_simo(ixpeDqmTask):
         print ("n_ev rimasti = ",len(pha))
         self.add_plot('pha_spectrum', hist, figure_name='pha_spectrum',  stat_box_position=None, label=kwargs.get('label'),  save=False)
 
-        #if kwargs.get('fit'):
-           # if kwargs.get('fit_model') == 'gauss':
-        nsigma = kwargs.get('nsigma')
+
+        # cerco il bin center corrispondente al max dell'istogramma. Per fittare intorno al picco.
+        # il fit su tutto il range in alcuni casi non converge (es se ho un doppio picco )
+        index_max=numpy.where(hist.bin_weights==hist.max_val())[0][0]
+        x_max= hist.bin_centers[0][index_max]                    
+        deltaX=3.5*x_max*0.1
+        print("max index=",index_max," mac center = ",x_max, " detal = ",deltaX)
+        nsigma = 1.5
         
-        gauss_model = fit_gaussian_iterative(hist, verbose=kwargs.get('verbose'), xmin=kwargs.get('fit_min'),  xmax=kwargs.get('fit_max'), num_sigma_left=nsigma,  num_sigma_right=nsigma) # n. iterazioni??
+        
+        #gauss_model = fit_gaussian_iterative(hist, verbose=kwargs.get('verbose'), xmin=kwargs.get('fit_min'),  xmax=kwargs.get('fit_max'), num_sigma_left=nsigma,  num_sigma_right=nsigma, num_iterations=10) # n. iterazioni??
+        gauss_model = fit_gaussian_iterative(hist, verbose=kwargs.get('verbose'), xmin=x_max-deltaX,  xmax=x_max+deltaX, num_sigma_left=nsigma,  num_sigma_right=nsigma, num_iterations=2) # n. iterazioni??
+
+        
         self.add_plot('pha_spectrum_fit', gauss_model  , figure_name='pha_spectrum',    save=False,       display_stat_box=kwargs.get('display_stat_box', True),    position=kwargs.get('position', 'upper left'))
         self.save_figure('pha_spectrum', overwrite=overwrite)
 
@@ -169,7 +180,7 @@ class plotAll_simo(ixpeDqmTask):
         # mi serve un histo 2D... 
 
         track_size_cut='(TRK_SIZE > 0)'
-        cut2= cut_logical_and(cut_base,ecut,track_size_cut) # MANCA CUT SU QUANTILE!!! 
+        cut2= cut_logical_and(cut_base,ecut,track_size_cut)
 
 
         n_physical=self.run_list.num_events(cut_base)
@@ -230,8 +241,9 @@ class plotAll_simo(ixpeDqmTask):
         # istogramma ph2
 
         phi2= self.run_list.values('numpy.degrees(TRK_PHI2)', cut_final)
-        edge=180
-        nbins=360
+        #edge=180
+        #nbins=360
+        
         #ang_binning = numpy.linspace(-edge, edge, nbins + 1)
         hist_phi2 = ixpeHistogram1d(ang_binning, xtitle='deg')
         hist_phi2.fill(phi2)
@@ -319,12 +331,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     opts = vars(args)
     opts['file_type'] = 'Lvl1a'
-    #print ("infiles =",args)
-
-  
+      
     task = plotAll_simo(*args.infiles, **opts)
-
-        
     task.run(**opts)
 
     #if args.__dict__['show']:
