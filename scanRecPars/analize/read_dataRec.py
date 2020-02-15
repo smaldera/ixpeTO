@@ -9,29 +9,63 @@ import matplotlib as mpl
 
 
 
-
 mpl.rcParams['legend.loc'] = 'upper right'   # default position
 mpl.rcParams['grid.linestyle'] = ":"
 mpl.rcParams['axes.grid'] = True
 
 
-
 # PARAMETERS:
 
-#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr/'
-#x_var='zero_thr'
-#std_index=7
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr_v2/'
+x_var='zero_thr'
+std_index=9-1
+n_iters=19
+maximize='both'  # phi1, ph2, both
 
-base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma1Thr/'
-x_var='moma1_thr'
-std_index=9
+
+
+#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma1Thr/'
+#x_var='moma1_thr'
+#std_index=9-1
+#n_iters=20
+#maximize='both'  # phi1, ph2, both
+
+
+#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma2Thr/'
+#x_var='moma2_thr'
+#std_index=9-1
+#n_iters=20
+#maximize='phi2'  # phi1, ph2, both
+
+
+
+
+#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmin/'
+#x_var='dmin'
+#std_index=8-1
+#n_iters=17
+#maximize='phi2'  # phi1, ph2, both
+
+#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmax/'
+#x_var='dmax'
+#std_index=10-1
+#n_iters=21
+#maximize='phi2'  # phi1, ph2, both
+
+
+#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanWs/'
+#x_var='weight_scale'
+#std_index=5-1
+#n_iters=20
+#maximize='phi2'  # phi1, ph2, both
+
 
 
 
 
 dict_energy={'001333':6.40, '001361':4.50,  '001388':2.98,  '001416':2.70,  '001436':2.29,  '001461':2.01,  '001471':3.69} # Energy in KeV
 dirs=['001461','001436', '001416', '001388','001471','001361', '001333']
-
+#dirs=['001461']
 
 
 
@@ -107,7 +141,9 @@ class base_rec():
         
         index=np.where(mod==maximum)[0]
         maximum_err=mod_err[index[0]]     
-        index_interval=np.where( np.logical_and(mod<maximum+maximum_err, mod>maximum-maximum_err)  )    # DEVO USARE np.logical.and !!!!!
+        index_interval=np.where( np.logical_and(mod<maximum+maximum_err, mod>maximum-maximum_err)  )    # DEVO USARE np.logical.and e non and  !!!!!
+     
+        
         min_index=np.amin(index_interval)
         max_index=np.amax(index_interval)
 
@@ -126,17 +162,28 @@ class base_rec():
         max2=np.amax(mod2)
         max1=np.amax(mod1)
 
-
-        if (max1>=max2):
-            mod1_err=np.array( self.modulation1_err)
-            self.compute_indexes(max1,mod1,mod1_err)
-            self.best_phi=1
-
-        else:
+        if maximize=='phi2':
             mod2_err=np.array( self.modulation2_err)
             self.compute_indexes(max2,mod2,mod2_err)
             self.best_phi=2
+
+        if maximize=='phi1':
+                mod1_err=np.array( self.modulation1_err)
+                self.compute_indexes(max1,mod1,mod1_err)
+                self.best_phi=1
             
+        
+        if maximize=='both':
+            if (max1>=max2):
+                mod1_err=np.array( self.modulation1_err)
+                self.compute_indexes(max1,mod1,mod1_err)
+                self.best_phi=1
+
+            else:
+                mod2_err=np.array( self.modulation2_err)
+                self.compute_indexes(max2,mod2,mod2_err)
+                self.best_phi=2
+                  
               
         return 0   
         
@@ -155,13 +202,13 @@ def plot_all(baseRec1,outdir,folder):
     # create plots
     ##################
     
-    #x=baseRec1.dict_rec['zero_thr']
-    x=baseRec1.dict_rec[x_var]
     
+    x=baseRec1.dict_rec[x_var]
+        
     best_thr=x[baseRec1.best_index[0]]
     min_thr=x[baseRec1.min_index]
     max_thr=x[baseRec1.max_index]
-    
+    std_value=x[std_index]
     #print(x)
     
     print ('best_thr=',best_thr)
@@ -175,8 +222,8 @@ def plot_all(baseRec1,outdir,folder):
     y2=baseRec1.dict_rec['modulation1']
     y2_err=baseRec1.dict_rec['modulation1_err']
     
+        
     
- 
     rect=  patches.Rectangle(       (min_thr,baseRec1.max_mod- baseRec1.max_modErr),   max_thr-min_thr,     2.*baseRec1.max_modErr,    facecolor='grey', edgecolor='none',alpha=0.3 )
     #                                 (x,y)                                                    width           height
 
@@ -184,7 +231,6 @@ def plot_all(baseRec1,outdir,folder):
     # plot cumulativi...
     figAll_phi2=plt.figure(1,figsize=(20,10) )
     figAll_phi2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
-    #figAll_phi2.suptitle("mod. factor phi2 ", fontsize=16)
     ax_all=plt.subplot(121)
     ax_all.set_title("mod. factor phi2")
     plt.xlabel(x_var)
@@ -215,7 +261,7 @@ def plot_all(baseRec1,outdir,folder):
     plt.xlabel(x_var)
     plt.ylabel('modulation_2')
 
-    plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
+    plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
@@ -228,7 +274,7 @@ def plot_all(baseRec1,outdir,folder):
     ax02=plt.subplot(232)
     ax02.set_title('modulation phi_1')
     plt.errorbar(x,y2,yerr=y2_err, fmt='ro--',label="modulation phi1") # modulazione phi1
-    plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
+    plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
@@ -242,7 +288,7 @@ def plot_all(baseRec1,outdir,folder):
     ax03.set_title(r'modulation $\chi^2$')
     plt.plot(x, baseRec1.dict_rec['chi2_1'], 'ro--',label="chi2 phi1") # modulazione phi1
     plt.plot(x, baseRec1.dict_rec['chi2_2'], 'bo--',label="chi2 phi2") # modulazione phi1
-    plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
+    plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
@@ -255,7 +301,7 @@ def plot_all(baseRec1,outdir,folder):
     ax04=plt.subplot(234)
     ax04.set_title('resolution')
     plt.errorbar(x, baseRec1.dict_rec['resolution2'], yerr= baseRec1.dict_rec['resolution2_err'], fmt='ro--',label="chi2 phi1")
-    plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
+    plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
@@ -270,7 +316,7 @@ def plot_all(baseRec1,outdir,folder):
     plt.xlabel(x_var)
     plt.ylabel('fraction')
     plt.errorbar(x, y,fmt='ro--',label="n_physical/n_raw")
-    plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
+    plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
@@ -281,7 +327,7 @@ def plot_all(baseRec1,outdir,folder):
     y=np.array(baseRec1.dict_rec['n_ecut'])/np.array(baseRec1.dict_rec['n_physical'])
     plt.errorbar(x, y,fmt='ro--',label="n_ecut/n_physical")
     
-    plt.axvline(x=20,label='standard_value', linestyle='--',alpha=0.5)
+    plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
@@ -344,7 +390,7 @@ for folder in dirs:
     out_dir=base_dir+folder+'/'
     baseRec1=base_rec()
     
-    for  i in range (1,19):
+    for  i in range (1,n_iters+1):
         work_dir=out_dir+str(i)
         file_out=work_dir+'/prova_out.txt'
         file_cfg=work_dir+'/config_simo.txt'
@@ -357,24 +403,28 @@ for folder in dirs:
 
 
     baseRec1.find_maxMod_index()
-    print ('best_index=',baseRec1.best_index)
+    print ('best_index=',baseRec1.best_index[0])
     print ('min_index=',baseRec1.min_index)
     print ('max_index=',baseRec1.max_index)
     print ('max_mod=',baseRec1.max_mod)
     print ('max_modErr=',baseRec1.max_modErr)
     print ('best_phi=',baseRec1.best_phi)
-        
+    
+    print ('best x= ',baseRec1.dict_rec[x_var][baseRec1.best_index[0]], '  best mod2= ',baseRec1.dict_rec['modulation2'][baseRec1.best_index[0]])
+
+    print ('std x=', baseRec1.dict_rec[x_var][std_index],  '  std mod2= ',baseRec1.dict_rec['modulation2'][std_index])
+
+    print('\n x = ',baseRec1.dict_rec[x_var])
+    print('y = ', baseRec1.dict_rec['modulation2'])
+
+
+    
     title='energy= '+str(dict_energy[folder])+' KeV  (folder '+folder+')' 
     plot_all(baseRec1,out_dir,folder) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
     #fill variables for final plots (vs energy)
     energy.append(dict_energy[folder])
-
-  #  best_zero_thr.append (baseRec1.dict_rec['zero_thr'][baseRec1.best_index[0]] )
-  #  best_zero_thr_up.append (baseRec1.dict_rec['zero_thr'][baseRec1.max_index] )
-  #  best_zero_thr_low.append (baseRec1.dict_rec['zero_thr'][baseRec1.min_index] )
-
     best_zero_thr.append (baseRec1.dict_rec[x_var][baseRec1.best_index[0]] )
     best_zero_thr_up.append (baseRec1.dict_rec[x_var][baseRec1.max_index] )
     best_zero_thr_low.append (baseRec1.dict_rec[x_var][baseRec1.min_index] )
@@ -450,7 +500,7 @@ ax1=plt.subplot(231)
 ax1.set_title('modulation')
 plt.errorbar(energy,mod2,yerr=mod2_err, fmt='ro--',label='phi 2 opt')
 plt.errorbar(energy,mod2std,yerr=mod2std_err, fmt='bo--',label='phi 2 standard')
-plt.errorbar(energy,mod1,yerr=mod1_err, fmt='bo--',label='phi 1 opt ')
+plt.errorbar(energy,mod1,yerr=mod1_err, fmt='co--',label='phi 1 opt ')
 plt.errorbar(energy,mod1std,yerr=mod1std_err, fmt='go--',label='phi 1 standard ' )
 
 plt.xlabel('energy [KeV]')
