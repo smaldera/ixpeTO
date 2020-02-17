@@ -322,10 +322,17 @@ class plotAll_simo(ixpeDqmTask):
         print("out dir", kwargs.get('output_folder'))
         nomefileout= kwargs.get('output_folder')+'prova_out.txt'
         print("nomefile_out ",nomefileout )
-        miofile = open(nomefileout,'w')
-        miofile.write(str(peak2)+' '+str(peak2_err)+' '+str(resolution2)+' '+str(resolution2_err)+' '+str(phase1)+' '+str(phase1_err)+' '+str(modulation1)+' '+str(modulation1_err)+' '+str(chi2_1)+' '+str(phase2)+' '+str(phase2_err)+' '+str(modulation2)+' '+str(modulation2_err)+' '+str(chi2_2)+' '+str(n_raw)+' '+str(n_physical)+'  '+str(n_ecut)+'  '+str(n_final) ) 
-        
 
+        
+        out_string=str(peak2)+' '+str(peak2_err)+' '+str(resolution2)+' '+str(resolution2_err)+' '+str(phase1)+' '+str(phase1_err)+' '+str(modulation1)+' '+str(modulation1_err)+' '+str(chi2_1)+' '+str(phase2)+' '+str(phase2_err)+' '+str(modulation2)+' '+str(modulation2_err)+' '+str(chi2_2)+' '+str(n_raw)+' '+str(n_physical)+'  '+str(n_ecut)+'  '+str(n_final) 
+    
+        with open(nomefileout, 'w') as miofile:
+            miofile = open(nomefileout,'w')
+            miofile.write(out_string)
+            miofile.close() # !!!!! il file e' bufferizzato, e riempito solo alla chiusura (o chiamando file.flush). messo con with dovrebbe essere chiuso e scritto comunque quando esce dal loop
+
+       
+              
         
 if __name__ == '__main__':
     args = parser.parse_args()
