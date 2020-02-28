@@ -29,20 +29,20 @@ import subprocess
 
 
 # scan ZeroMoma12
-base_dir='/data1/maldera/IXPE_work/rec_optimization/scanZeroMoma12/'
-max_iter= 76+1
+#base_dir='/data1/maldera/IXPE_work/rec_optimization/scanZeroMoma12/'
+#max_iter= 138+1
 
 
 # scanRmin-Ws
-#base_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/'
-#max_iter= 528+1
+base_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/'
+max_iter= 132+1
 
 
 
 
 
 dirs=['001333','001361',  '001388',  '001416',  '001436',  '001461',  '001471']
-#dirs=['001333']
+#dirs=['001471']
 
 
 

@@ -3,6 +3,8 @@ import subprocess
 
 base_dir='/data1/maldera/IXPE_work/rec_optimization/scanZeroThr_v2/'
 max_iter=19+1
+#max_iter=1+1
+
 
 #scanMoma1Thr
 #base_dir='/data1/maldera/IXPE_work/rec_optimization/scanMoma1Thr/'
@@ -30,7 +32,13 @@ max_iter=19+1
 
 
 dirs=['001333','001361',  '001388',  '001416',  '001436',  '001461',  '001471']
-#dirs=['001333']
+#dirs=['001461']
+
+
+
+
+
+
 
 
 
@@ -42,8 +50,10 @@ for dirName in dirs:
 
     
     for  i in range (1,max_iter):
+    
+      
         work_dir=out_dir+str(i)
-        files_string=work_dir+'/*.lv1_recon.fits' 
+        files_string=work_dir+'/*.lv1_recon.fits'                
         cmd='python plotAll_simo.py '+files_string+' -o '+work_dir+'/'
         print('going to run: ',cmd)
         subprocess.call(cmd,shell=True)

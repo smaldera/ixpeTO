@@ -54,9 +54,9 @@ for dir in dirs:
     out_dir=base_dir+dir+'/'
 
 
-    n_iter=1
+    n_iter=77 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #inizio scan su zero_thr
-    for zero_thr  in range (14,30,2):
+    for zero_thr  in range (6,14,2):
       for moma1_thr  in range (zero_thr,39,2):
 
           moma2_thr=moma1_thr        

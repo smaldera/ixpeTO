@@ -40,7 +40,10 @@ first_ev=0
 
 
 base_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/'
-dirs=['001361',  '001388',  '001416',  '001436',  '001461',  '001471','001333']
+#dirs=['001361',  '001388',  '001416',  '001436',  '001461',  '001471','001333']
+dirs=['001361',  '001388']
+
+
 for dir in dirs:
     dataDir='/data1/IXPE/data/misureDU_2/'+dir
     print("ecco i files:")
