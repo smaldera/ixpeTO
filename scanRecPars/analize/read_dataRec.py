@@ -16,49 +16,55 @@ mpl.rcParams['axes.grid'] = True
 
 # PARAMETERS:
 
+"""
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr_v2/'
 x_var='zero_thr'
 std_index=9-1
 n_iters=19
 maximize='both'  # phi1, ph2, both
+"""
+
+"""
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma1Thr/'
+x_var='moma1_thr'
+std_index=9-1
+n_iters=20
+maximize='both'  # phi1, ph2, both
+"""
+
+"""
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma2Thr/'
+x_var='moma2_thr'
+std_index=9-1
+n_iters=20
+maximize='phi2'  # phi1, ph2, both
+"""
+
+
+"""
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmin/'
+x_var='dmin'
+std_index=8-1
+n_iters=17
+maximize='phi2'  # phi1, ph2, both
+"""
 
 
 
-#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma1Thr/'
-#x_var='moma1_thr'
-#std_index=9-1
-#n_iters=20
-#maximize='both'  # phi1, ph2, both
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmax/'
+x_var='dmax'
+std_index=10-1
+n_iters=21
+maximize='phi2'  # phi1, ph2, both
+"""
 
-
-#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma2Thr/'
-#x_var='moma2_thr'
-#std_index=9-1
-#n_iters=20
-#maximize='phi2'  # phi1, ph2, both
-
-
-
-
-#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmin/'
-#x_var='dmin'
-#std_index=8-1
-#n_iters=17
-#maximize='phi2'  # phi1, ph2, both
-
-#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmax/'
-#x_var='dmax'
-#std_index=10-1
-#n_iters=21
-#maximize='phi2'  # phi1, ph2, both
-
-
-#base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanWs/'
-#x_var='weight_scale'
-#std_index=5-1
-#n_iters=20
-#maximize='phi2'  # phi1, ph2, both
-
+"""
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanWs/'
+x_var='weight_scale'
+std_index=5-1
+n_iters=20
+maximize='phi2'  # phi1, ph2, both
+"""
 
 
 
@@ -368,9 +374,9 @@ mod2std_err=[]
 
 
 
-best_zero_thr=[]
-best_zero_thr_up=[]
-best_zero_thr_low=[]
+best_val=[]
+best_val_up=[]
+best_val_low=[]
 
 n_raw_opt=[]
 n_ecut_opt=[]
@@ -381,7 +387,12 @@ n_ecut_std=[]
 resolution_opt=[]
 resolution_std=[]
 
-
+std_val=-100
+n_final_std=[]
+n_final_opt=[]
+n_phys_std=[]
+n_phys_opt=[]
+ 
 
 
 #inizio scan su zero_thr
@@ -425,9 +436,9 @@ for folder in dirs:
 
     #fill variables for final plots (vs energy)
     energy.append(dict_energy[folder])
-    best_zero_thr.append (baseRec1.dict_rec[x_var][baseRec1.best_index[0]] )
-    best_zero_thr_up.append (baseRec1.dict_rec[x_var][baseRec1.max_index] )
-    best_zero_thr_low.append (baseRec1.dict_rec[x_var][baseRec1.min_index] )
+    best_val.append (baseRec1.dict_rec[x_var][baseRec1.best_index[0]] )
+    best_val_up.append (baseRec1.dict_rec[x_var][baseRec1.max_index] )
+    best_val_low.append (baseRec1.dict_rec[x_var][baseRec1.min_index] )
 
     
     n_raw_opt.append(baseRec1.dict_rec['n_raw'][baseRec1.best_index[0]])
@@ -437,8 +448,8 @@ for folder in dirs:
     mod2.append(baseRec1.dict_rec['modulation2'][baseRec1.best_index[0]])
     mod2_err.append(baseRec1.dict_rec['modulation2_err'][baseRec1.best_index[0]])
     resolution_opt.append(baseRec1.dict_rec['resolution2'][baseRec1.best_index[0]])
-
-    
+    n_final_opt.append(baseRec1.dict_rec['n_final'][baseRec1.best_index[0]])
+    n_phys_opt.append(baseRec1.dict_rec['n_physical'][baseRec1.best_index[0]])
 
     mod1std.append(baseRec1.dict_rec['modulation1'][std_index])
     mod1std_err.append(baseRec1.dict_rec['modulation1_err'][std_index])
@@ -447,10 +458,37 @@ for folder in dirs:
     resolution_std.append(baseRec1.dict_rec['resolution2'][std_index])
     n_raw_std.append(baseRec1.dict_rec['n_raw'][std_index])
     n_ecut_std.append(baseRec1.dict_rec['n_ecut'][std_index])
+    n_final_std.append(baseRec1.dict_rec['n_final'][std_index])
+    n_phys_std.append(baseRec1.dict_rec['n_physical'][std_index])
+    std_val=baseRec1.dict_rec[x_var][std_index]
 
+
+
+   
+
+    
 print("e=",energy)
-print("best_thr=",best_zero_thr)
+print("best_thr=",best_val)
+print('test string=',' '.join(map(str,energy)) )
 
+
+outFileName=base_dir+'outScan_'+x_var+'.txt'
+outFile=open(outFileName,'w')
+outFile.write( ' '.join(map(str,energy))+'\n'  )
+outFile.write( ' '.join(map(str,mod1)) +'\n' )
+outFile.write( ' '.join(map(str,mod1_err))+'\n'  )
+outFile.write( ' '.join(map(str,mod2))+'\n'  )
+outFile.write( ' '.join(map(str,mod2_err))+'\n'  )
+outFile.write( ' '.join(map(str,mod1std)) +'\n' )
+outFile.write( ' '.join(map(str,mod1std_err))+'\n'  )
+outFile.write( ' '.join(map(str,mod2std))+'\n'  )
+outFile.write( ' '.join(map(str,mod2std_err))+'\n'  )
+
+outFile.write( ' '.join(map(str,best_val))+'\n'  )
+outFile.write( ' '.join(map(str,best_val_up))+'\n'  )
+outFile.write( ' '.join(map(str,best_val_low))+'\n'  )
+
+outFile.close()
 
 
 
@@ -462,27 +500,42 @@ print("best_thr=",best_zero_thr)
 ##########
 
 fig1=plt.figure(figsize=(20,10))
-fig1.suptitle("zero_supp threshold scan", fontsize=16)
+fig1.suptitle(x_var+" scan", fontsize=16)
 fig1.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
-
-# PLOT  mod_2 vs zero threshold
-ax11=plt.subplot(211)
-ax11.set_title('best zero supp threshod')
-plt.errorbar(energy,best_zero_thr, fmt='bo',label='best value')
-ax11.fill_between(energy,best_zero_thr_low, best_zero_thr_up,color='gray',alpha=0.1, interpolate=True,label=r'1$\sigma$ band')
-plt.xlabel('energy [KeV]')
-plt.ylabel('best '+x_var)
-plt.legend()
-#plt.rc('grid',axes=True,  linestyle=":", color='grey')
-#plt.grid(True,linestyle=':', color='grey')
-
 # n raw
-ax12=plt.subplot(212)
-ax12.set_title('n events analized')
+ax11=plt.subplot(221)
+ax11.set_title('n events analized')
 plt.errorbar(energy,n_raw_opt, fmt='bo--')
 plt.xlabel('energy [KeV]')
 plt.ylabel('n_raw')                
 
+ax12=plt.subplot(222)
+ax12.set_title('n_ecut/n_raw')
+plt.errorbar(energy,  np.array(n_ecut_opt)/np.array(n_raw_opt),  fmt='bo--',label='n_ecut/n_raw opt ')
+plt.errorbar(energy, np.array(n_ecut_std)/np.array(n_raw_std),  fmt='ro--',label='n_ecut/n_raw  std ')
+plt.xlabel('energy [KeV]')
+plt.ylabel('ratio n. events')
+plt.legend()
+
+
+ax13=plt.subplot(223)
+ax13.set_title('n_final/n_physical')
+plt.errorbar(energy,  ( np.array(n_final_opt)/np.array(n_phys_opt))    ,  fmt='bo--',label='ratio final/physical opt ')
+plt.errorbar(energy,  ( np.array(n_final_std)/np.array(n_phys_std))    ,  fmt='ro--',label='ratio final/physical std')
+
+plt.xlabel('energy [KeV]')
+plt.ylabel('ratio')
+plt.legend()
+
+
+ax14=plt.subplot(224)
+plt.errorbar(energy,  ( np.array(n_ecut_opt)/np.array(n_raw_opt))/(np.array(n_ecut_std)/np.array(n_raw_std))    ,  fmt='bo--',label='event fraction  ratio opt/std ')
+plt.xlabel('energy [KeV]')
+plt.ylabel('ratio')
+plt.legend()
+
+
+    
 outfilePlot=base_dir+'summary1.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
@@ -507,9 +560,33 @@ plt.xlabel('energy [KeV]')
 plt.ylabel('modulation')
 plt.legend()
 
+
+#ratio modulation
+#creo numpy array dalle liste
+mod1_np=np.array(mod1)
+mod2_np=np.array(mod2)
+mod1Err_np=np.array(mod1_err)
+mod2Err_np=np.array(mod2_err)
+
+mod1std_np=np.array(mod1std)
+mod2std_np=np.array(mod2std)
+mod1stdErr_np=np.array(mod1std_err)
+mod2stdErr_np=np.array(mod2std_err)
+
+
+ratio1=mod1_np/mod1std_np
+ratio1Err=(  (1./mod1std_np**2)*(mod1Err_np**2)+((mod1_np/(mod1std_np**2))**2)*(mod1stdErr_np**2) )**0.5
+
+ratio2=mod2_np/mod2std_np
+ratio2Err=(  (1./mod2std_np**2)*(mod2Err_np**2)+((mod2_np/(mod2std_np**2))**2)*(mod2stdErr_np**2) )**0.5
+
+
+
 ax2=plt.subplot(234)
-plt.errorbar(energy, np.array(mod1)/np.array(mod1std),  fmt='bo--',label='phi1  ratio opt/std ')
-plt.errorbar(energy, np.array(mod2)/np.array(mod2std),  fmt='ro--',label='phi2  ratio opt/std ')
+#plt.errorbar(energy, np.array(mod1)/np.array(mod1std),  fmt='bo--',label='phi1  ratio opt/std ')
+#plt.errorbar(energy, np.array(mod2)/np.array(mod2std),  fmt='ro--',label='phi2  ratio opt/std ')
+plt.errorbar(energy, ratio1, yerr=ratio1Err,  fmt='bo--',label='phi1  ratio opt/std ')
+plt.errorbar(energy, ratio2, yerr=ratio2Err,  fmt='ro--',label='phi2  ratio opt/std ')
 plt.xlabel('energy [KeV]')
 plt.ylabel('ratio')
 plt.legend()
@@ -530,21 +607,18 @@ plt.xlabel('energy [KeV]')
 plt.ylabel('ratio')
 plt.legend()
 
-#plots n. of events
 
 ax4=plt.subplot(233)
-ax4.set_title('Event number')
-plt.errorbar(energy,  np.array(n_ecut_opt)/np.array(n_raw_opt),  fmt='bo--',label='n_ecut/n_raw opt ')
-plt.errorbar(energy, np.array(n_ecut_std)/np.array(n_raw_std),  fmt='ro--',label='n_ecut/n_raw  std ')
+ax4.set_title('best '+x_var)
+plt.errorbar(energy,best_val, fmt='bo',label='best value')
+ax4.fill_between(energy,best_val_low, best_val_up,color='gray',alpha=0.1, interpolate=True,label=r'1$\sigma$ band')
+ax4.axhline(y=std_val,label='standard_value', linestyle='--',alpha=0.5)
 plt.xlabel('energy [KeV]')
-plt.ylabel('ratio n. events')
+plt.ylabel('best '+x_var)
 plt.legend()
 
-plt.subplot(236)
-plt.errorbar(energy,  ( np.array(n_ecut_opt)/np.array(n_raw_opt))/(np.array(n_ecut_std)/np.array(n_raw_std))    ,  fmt='bo--',label='event fraction  ratio opt/std ')
-plt.xlabel('energy [KeV]')
-plt.ylabel('ratio')
-plt.legend()
+
+
 
 outfilePlot=base_dir+'summary2.png'
 print ("outFile png =",outfilePlot)
