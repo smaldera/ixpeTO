@@ -91,3 +91,19 @@ def submit_recon(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise
 
    print ("job sottomesso!")
 
+
+
+   
+def submit_sim(num_events, src_spectrum, src_energy, src_polarized,  src_theta, src_pos_x, src_pos_y, output_file, log_file,  random_seed,  src_pol_angle,  src_sigma,   src_pos_z, work_dir): 
+
+      
+   cmd_ixpesim= 'ixpesim  --num-events '+str(num_events)+' --src-spectrum '+src_spectrum+' --src-energy '+str(src_energy)+" --src-polarized "+str(src_polarized)+ ' --src-theta '+ str(src_theta)+'  --src-pos-x '+str(src_pos_x)+' --output-file '+ output_file+ ' --log-file  '+ log_file +' --random-seed '+str(random_seed) + ' --src-pol-angle '+str(src_pol_angle)+' --src-sigma '+str(src_sigma)+' --src-pos-z '+str(src_pos_z)+' \n' 
+
+
+   
+   crea_jobScript(cmd_ixpesim)
+   lancia_condorJob(work_dir)
+
+
+   print ("job ixpesim  sottomesso!")
+

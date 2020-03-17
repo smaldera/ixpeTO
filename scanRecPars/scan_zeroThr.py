@@ -22,9 +22,9 @@ def get_files(dataDir,n):
 #filenames="/data1/IXPE/data/misureDU_2/001333/ixpe2019100*_1118.lv1.fits"
 filenames="/data1/IXPE/data/misureDU_2/001333/*.1??_1203_001333_1118.lv1.fits"  # 4 FILES!!!
 output_folder='.'
-zero_thr=30
-moma1_thr=26
-moma2_thr=26
+zero_thr=20
+moma1_thr=36
+moma2_thr=36
 coer_noise_offset=3
 trig_minicluster_offset=2
 suffix='recon'
@@ -39,12 +39,15 @@ n_max=1000000000
 first_ev=0
 
 
-base_dir='/data1/maldera/IXPE_work/rec_optimization/scanZeroThr/'
-dirs=['001361',  '001388',  '001416',  '001436',  '001461',  '001471']
+base_dir='/data1/maldera/IXPE_work/rec_optimization/scanZeroThr_v2/'
+dirs=['001333','001361',  '001388',  '001416',  '001436',  '001461',  '001471']
 for dir in dirs:
     dataDir='/data1/IXPE/data/misureDU_2/'+dir
     print("ecco i files:")
     filenames=get_files(dataDir,4)
+    if dir=='001461' or dir=='001471':
+          n_files=16
+     
     print ("primi 4 files= ",filenames)
  
     out_dir=base_dir+dir+'/'
@@ -52,7 +55,7 @@ for dir in dirs:
 
     n_iter=1
     #inizio scan su zero_thr
-    for zero_thr in range (5,40,2):
+    for zero_thr in range (4,41,2):
 
         print ("zeroThr= ",zero_thr)
         work_dir=out_dir+str(n_iter)
