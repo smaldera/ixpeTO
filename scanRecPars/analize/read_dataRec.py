@@ -1,3 +1,10 @@
+# loop su scan ixperecon 1dim (variando un solo parametro)
+# produce i plot a energia fissa ( modulazione, risoluzione, chi2, etc al variare del parametro)
+# produce i plot riassuntivi finali (parametro ottimale, modulazione best, etc) vs energia
+# produce file riassuntivo di output
+
+
+
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,7 +57,7 @@ maximize='phi2'  # phi1, ph2, both
 """
 
 
-
+"""
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmax/'
 x_var='dmax'
 std_index=10-1
@@ -58,13 +65,13 @@ n_iters=21
 maximize='phi2'  # phi1, ph2, both
 """
 
-"""
+
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanWs/'
 x_var='weight_scale'
 std_index=5-1
 n_iters=20
 maximize='phi2'  # phi1, ph2, both
-"""
+
 
 
 
@@ -471,6 +478,8 @@ print("e=",energy)
 print("best_thr=",best_val)
 print('test string=',' '.join(map(str,energy)) )
 
+###############
+# write outFile.txt
 
 outFileName=base_dir+'outScan_'+x_var+'.txt'
 outFile=open(outFileName,'w')
