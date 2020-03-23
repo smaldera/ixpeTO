@@ -7,12 +7,12 @@ def eff(E):
    return 2.7**(-0.63*E--0.071) 
 
 
-N0=400
+N0=3300
 #N0=100.
 
 n_iter=0
 #energy=[2,3,4,5,6,7,8]
-energy=[7,8]       
+energy=[4]       
 
 angles=[-180]
 
@@ -34,7 +34,9 @@ src_pos_z=400
 #log_file='out_sim.log'
 
 
-for nSims in range (1,30):
+#for nSims in range (1,30):
+for nSims in range (1,28):
+      
 
    for ene in energy :
 
