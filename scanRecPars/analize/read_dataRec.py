@@ -19,9 +19,13 @@ import matplotlib as mpl
 mpl.rcParams['legend.loc'] = 'upper right'   # default position
 mpl.rcParams['grid.linestyle'] = ":"
 mpl.rcParams['axes.grid'] = True
+mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # PARAMETERS:
+
+first_iter=1
+
 
 """
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanZeroThr_v2/'
@@ -29,6 +33,8 @@ x_var='zero_thr'
 std_index=9-1
 n_iters=19
 maximize='both'  # phi1, ph2, both
+loc_ratios='lower right'  # posizione legenda plot rapporti
+loc_deltas='lower right'  #  "          "      "   differenze
 """
 
 """
@@ -37,6 +43,8 @@ x_var='moma1_thr'
 std_index=9-1
 n_iters=20
 maximize='both'  # phi1, ph2, both
+loc_ratios='upper right'  # posizione legenda plot rapporti
+loc_deltas='upper right'  #  "          "      "   differenze
 """
 
 """
@@ -45,6 +53,8 @@ x_var='moma2_thr'
 std_index=9-1
 n_iters=20
 maximize='phi2'  # phi1, ph2, both
+loc_ratios='upper right'  # posizione legenda plot rapporti
+loc_deltas='upper right'  #  "          "      "   differenze
 """
 
 
@@ -54,30 +64,39 @@ x_var='dmin'
 std_index=8-1
 n_iters=17
 maximize='phi2'  # phi1, ph2, both
+loc_ratios='lower left'  # posizione legenda plot rapporti
+loc_deltas='lower left'  #  "          "      "   differenze
 """
-
 
 """
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmax/'
 x_var='dmax'
-std_index=10-1
+std_index=10-1-1
 n_iters=21
 maximize='phi2'  # phi1, ph2, both
+loc_ratios='lower right'  # posizione legenda plot rapporti
+loc_deltas='lower right'  #  "          "      "   differenze
 """
+
 
 
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanWs/'
 x_var='weight_scale'
-std_index=5-1
+std_index=5-1-1 # il scondo -1 perche' escludo il primo punto
 n_iters=20
 maximize='phi2'  # phi1, ph2, both
-
+loc_ratios='lower right'  # posizione legenda plot rapporti
+loc_deltas='lower right'  #  "          "      "   differenze
+first_iter=2  # escludo il primo punto!!
 
 
 
 
 dict_energy={'001333':6.40, '001361':4.50,  '001388':2.98,  '001416':2.70,  '001436':2.29,  '001461':2.01,  '001471':3.69} # Energy in KeV
 dirs=['001461','001436', '001416', '001388','001471','001361', '001333']
+#dirs=['001461','001436', '001416', '001388']
+
+
 #dirs=['001461']
 
 
@@ -242,27 +261,114 @@ def plot_all(baseRec1,outdir,folder):
 
     ###
     # plot cumulativi...
-    figAll_phi2=plt.figure(1,figsize=(20,10) )
+    figAll_phi2=plt.figure(1,figsize=(10,7) )
     figAll_phi2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
-    ax_all=plt.subplot(121)
+    ax_all=plt.subplot(111)
     ax_all.set_title("mod. factor phi2")
     plt.xlabel(x_var)
-    plt.errorbar(x,y,yerr=y_err, fmt='o--',label='E='+str(dict_energy[folder])+' KeV' )
-    plt.legend( bbox_to_anchor=(1.1, 1.11) )
+    plt.errorbar(x,y,yerr=y_err, fmt='o--',label='E='+str(dict_energy[folder])+' KeV - phi2 ' )
+    #plt.legend( bbox_to_anchor=(1.1, 1.11) )
 
-    ax_all2=plt.subplot(122)
-    ax_all2.set_title("mod. factor phi1")
-    plt.errorbar(x,y2,yerr=y2_err, fmt='o--',label='E='+str(dict_energy[folder])+' KeV' )
-    plt.xlabel(x_var)
+    #ax_all2=plt.subplot(122)
+    #ax_all2.set_title("mod. factor phi1")
+
+    plt.errorbar(x,y2,yerr=y2_err, fmt='*--',label='E='+str(dict_energy[folder])+' KeV - phi1' )
+
+
+    #plt.xlabel(x_var)
     plt.legend(bbox_to_anchor=(1.1, 1.11))
 
 
-    outfilePlot=base_dir+'summary3.png'
+    outfilePlot=base_dir+'summary3_short2.png'
     print ("outFile png =",outfilePlot)
     figAll_phi2.savefig(outfilePlot)
 
+
+
+    mod1_np=np.array(y)
+    mod1Err_np=np.array(y_err)
+    nom_mod=mod1_np[std_index]
+    nom_mod_err= mod1Err_np[std_index]  
+
+    mod2_np=np.array(y2)
+    mod2Err_np=np.array(y2_err)
+    nom_mod2=mod2_np[std_index]
+    nom_mod2_err= mod2Err_np[std_index]
+    energyLabel='E='+str(dict_energy[folder])+' KeV'
+
+    # plot cumulativo (all E), con mod relativa ai valori nominali  
+
+    figAll_rel=plt.figure(2,figsize=(10,7) )
+    figAll_rel.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
+    ax_all=plt.subplot(111)
+    ax_all.set_title("mod. factor phi2 / mod factor phi2 [standard_parameters] ")
+    plt.xlabel(x_var)
+
+    ratio=mod1_np/nom_mod
+    ratioErr=(  (1./nom_mod**2)*(mod1Err_np**2)+((mod1_np/(nom_mod**2))**2)*(nom_mod_err**2) )**0.5
+    #plt.errorbar(x,ratio,yerr=ratioErr, fmt='o--',label='E='+folder+' KeV' )
+    plt.errorbar(x,ratio, fmt='o--', label=energyLabel)
+    plt.legend(loc=loc_ratios)
+    outfilePlot=base_dir+'summary_ratios.png'
+    print ("outFile png =",outfilePlot)
+    figAll_rel.savefig(outfilePlot)
+
+     
+ # plot cumulativo (all E), con mod relativa ai valori nominali  PHI1
+
+    figAll_rel2=plt.figure(3,figsize=(10,7) )
+    figAll_rel2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
+    ax_all2=plt.subplot(111)
+    ax_all2.set_title("mod. factor phi1 / mod factor phi1 [standard_parameters] ")
+    plt.xlabel(x_var)
+
+    ratio2=mod2_np/nom_mod2
+    #ratioErr=(  (1./nom_mod**2)*(mod1Err_np**2)+((mod1_np/(nom_mod**2))**2)*(nom_mod_err**2) )**0.5
+    #plt.errorbar(x,ratio,yerr=ratioErr, fmt='o--',label='E='+folder+' KeV' )
+    plt.errorbar(x,ratio2, fmt='o--',label=energyLabel)
+    plt.legend(loc=loc_ratios)
+   
+    outfilePlot=base_dir+'summary_ratios_phi1.png'
+    print ("outFile png =",outfilePlot)
+    figAll_rel2.savefig(outfilePlot)
+
+    ###########################
+    # plot tutte le energie con delta mod - phi2
+
+    figAll_delta=plt.figure(4,figsize=(10,7) )
+    figAll_delta.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
+    ax_all3=plt.subplot(111)
+    ax_all3.set_title("mod. factor phi2 - mod factor phi2 [standard_parameters] ")
+    plt.xlabel(x_var)
+
+    delta=mod1_np-nom_mod
+    plt.errorbar(x,delta, fmt='o--',label= energyLabel)
+    plt.legend(loc=loc_deltas)
+   
+    outfilePlot=base_dir+'summary_deltas.png'
+    print ("outFile png =",outfilePlot)
+    figAll_delta.savefig(outfilePlot)
+
+
+    ######################3
+    # plot tutte le energie con delta mod - phi1
+
+    figAll_delta2=plt.figure(5,figsize=(10,7) )
+    figAll_delta2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
+    ax_all4=plt.subplot(111)
+    ax_all4.set_title("mod. factor phi1 - mod factor phi1 [standard_parameters] - phi1 ")
+    plt.xlabel(x_var)
+    delta2=mod2_np-nom_mod2
+    plt.errorbar(x,delta2, fmt='o--',label=energyLabel )
+    plt.legend(loc=loc_deltas)
+    outfilePlot=base_dir+'summary_deltas_phi1.png'
+    print ("outFile png =",outfilePlot)
+    figAll_delta2.savefig(outfilePlot)
+
     
+    ###########################################
     # plot singole energie
+    ###########################################
     
     fig01=plt.figure(figsize=(20,10))
     fig01.suptitle(title, fontsize=16)
@@ -351,7 +457,7 @@ def plot_all(baseRec1,outdir,folder):
 
 
     
-    outfilePlot=out_dir+'scan_summary.png'
+    outfilePlot=out_dir+'scan_summary_short2.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
     #plt.show()
@@ -408,7 +514,8 @@ for folder in dirs:
     out_dir=base_dir+folder+'/'
     baseRec1=base_rec()
     
-    for  i in range (1,n_iters+1):
+    for  i in range (first_iter,n_iters+1): #!!!!!!!!!!!!!!!!!!!!!!1
+            
         work_dir=out_dir+str(i)
         file_out=work_dir+'/prova_out.txt'
         file_cfg=work_dir+'/config_simo.txt'
@@ -545,7 +652,7 @@ plt.legend()
 
 
     
-outfilePlot=base_dir+'summary1.png'
+outfilePlot=base_dir+'summary1_short2.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 
@@ -629,7 +736,7 @@ plt.legend()
 
 
 
-outfilePlot=base_dir+'summary2.png'
+outfilePlot=base_dir+'summary2_short2.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 
