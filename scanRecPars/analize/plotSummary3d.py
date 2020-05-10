@@ -295,7 +295,7 @@ def plot_ClusteringThr(data1Dmin,data2wsDmin, data3d, base_dir):
 
 ##########################
 
-def plot_Modulation(data1Dmin,data2wsDmin, data3d, base_dir):
+def plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
 
     # PLOT modulation factor
 
@@ -329,7 +329,7 @@ def plot_Modulation(data1Dmin,data2wsDmin, data3d, base_dir):
     plt.savefig(outfilePlot)
 
 ########################
-def plot_Phase(data1Dmin,data2wsDmin, data3d, base_dir):
+def plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
    
 
    # fare con dataset indipendente!!!!!!!!!!!!!!!!!!!!!! TO DO
@@ -362,7 +362,7 @@ def plot_Phase(data1Dmin,data2wsDmin, data3d, base_dir):
     plt.savefig(outfilePlot)
 
 
-def creaRootFiles(data1Dmin,data2wsDmin, data3d, base_dir):
+def creaRootFiles(data1Dmin,data2wsDmin, data3d,dataBest, base_dir):
     
     # crea root TGraph per paratmetri ottimali
     import ROOT
@@ -401,18 +401,128 @@ def creaRootFiles(data1Dmin,data2wsDmin, data3d, base_dir):
     gMoma_3d.SetMarkerColor(2)
     gMoma_3d.Draw("ap")
 
+
+
+
+   # plot in funzione di PHA
+
+    #Dmin vs PHA
+    gDmin_3dPHA=ROOT.TGraph(len(dataBest.pha),array('f', dataBest.pha.tolist()),array('f', data3d.best_var1.tolist()) )
+    gDmin_3dPHA.SetName('gDmin_3dPHA')
+    gDmin_3dPHA.SetTitle('best Dmin_3d vs PHA')
+    gDmin_3dPHA.SetMarkerStyle(20)
+    gDmin_3dPHA.SetMarkerColor(2)
+    gDmin_3dPHA.Draw("ap")
+
+
+    # plot wsPHA vs PHA
+    gWs_3dPHA=ROOT.TGraph(len(dataBest.pha),array('f', dataBest.pha.tolist()),array('f', data3d.best_var2.tolist()) )
+    gWs_3dPHA.SetName('gWs_3dPHA')
+    gWs_3dPHA.SetTitle('best Ws_3d vs PHA')
+    gWs_3dPHA.SetMarkerStyle(20)
+    gWs_3dPHA.SetMarkerColor(2)
+    gWs_3dPHA.Draw("ap")
+
+    # plot moma1 vs PHA
+    gMoma_3dPHA=ROOT.TGraph(len(dataBest.pha),array('f', dataBest.pha.tolist()),array('f', data3d.best_var3.tolist()) )
+    gMoma_3dPHA.SetName('gMoma_3dPHA')
+    gMoma_3dPHA.SetTitle('best Moma1,2_3d vs PHA')
+    gMoma_3dPHA.SetMarkerStyle(20)
+    gMoma_3dPHA.SetMarkerColor(2)
+    
     outRootFile=ROOT.TFile('/home/maldera/IXPE/rec_optimization/bestParames_3d_vs_E.root','recreate')
     gDmin_3d.Write()
     gDmin_3dAsymErr.Write()
 
     gWs_3d.Write()
     gMoma_3d.Write()
+    gDmin_3dPHA.Write()
+    gWs_3dPHA.Write()
+    gMoma_3dPHA.Write()
     outRootFile.Close()
 
 
 
-    
 
+def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
+    
+    plt.figure()
+
+    x=dataBest.pha
+    xPara=np.linspace(6000,20000,100)
+
+    plt.grid(True,linestyle=':', color='grey') 
+    #moma12 
+    ax=plt.subplot(221)
+    ax.set_title('moma1,2')
+    plt.errorbar(x,data3d.best_var3, fmt='go',label='3d scan')
+    ax.fill_between(x,data3d.best_var3_low, data3d.best_var3_up,color='green',alpha=0.1, interpolate=True)
+    #parametrizzazione:
+    p0= 36
+    p1=20
+    p2=10339.5
+    p3=250
+
+    y3=  (p0-p1)/(np.exp( (xPara-p2)/p3)+1) +p1 
+
+    plt.plot(xPara,y3, label='parametrization')
+
+
+
+
+
+    #Dmin 
+    ax=plt.subplot(222)
+    ax.set_title('Dmin')
+    plt.errorbar(x,data3d.best_var1, fmt='go',label='3d scan')
+    ax.fill_between(x,data3d.best_var1_low, data3d.best_var1_up,color='green',alpha=0.1, interpolate=True)
+
+    p0=1.5406
+    p1=8107.25
+    p2=250
+    p3=11972.5
+    p4=770.5
+    p5=0.787144
+
+    y=(p0*(1./(  np.exp(  -(xPara-p1)/p2) +1. )    )   +0.2) * (  (1.-p5)/(np.exp( (xPara-p3)/p4)+1) +p5  )
+
+
+    plt.plot(xPara,y, label='parametrization')
+
+ 
+
+    
+    #Ws 
+    ax=plt.subplot(223)
+    ax.set_title('Ws')
+    plt.errorbar(x,data3d.best_var2, fmt='go',label='3d scan')
+    ax.fill_between(x,data3d.best_var2_low, data3d.best_var2_up,color='green',alpha=0.1, interpolate=True)
+
+    p0=0.352
+    p1=0.03
+    p2=8551
+    p3=813
+    p4=0.31
+    p5=7200
+    p6=380
+    
+    y= ((p0-p1)/(np.exp( (xPara-p2)/p3)+1) +p1  ) *  (( ( 1-p4) / ( np.exp( -(xPara-p5)/p6) +1. ))+p4)
+
+    plt.plot(xPara,y, label='parametrization')
+ 
+
+
+    
+    
+    #ratio vs E
+    ax=plt.subplot(224)
+    ax.set_title('PHA/Energy vs E ')
+    plt.errorbar(data3d.energy, dataBest.pha/dataBest.energy , fmt='go',label='')
+   
+
+
+    
+    
     
 
 ######################
@@ -479,16 +589,18 @@ print("E=",data3d.energy)
 
 #plot_ClusteringThr(data1Dmin,data2wsDmin, data3d, base_dir)
 
-plot_Modulation(data1Dmin,data2wsDmin, data3d, base_dir)
 
 
-plot_Phase(data1Dmin,data2wsDmin, data3d, base_dir)
-
-creaRootFiles(data1Dmin,data2wsDmin, data3d, base_dir)
+#plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
 
 
+#plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
+
+creaRootFiles(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
 
 
+
+plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
 
 
 
