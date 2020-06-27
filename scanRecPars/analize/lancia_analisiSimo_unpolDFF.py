@@ -6,8 +6,9 @@
 import subprocess
 
 #Rmin
-#base_dir='/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scanDmin/'
-#max_iter=17+1                                                
+base_dir='/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scanDmin/'
+max_iter=17+1
+#max_iter=2                                                
 
 
 
@@ -20,20 +21,17 @@ import subprocess
 #max_iter=20+1 
 
 ##exponential weight
-base_dir='/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scan_ws/'
-max_iter=21
+#base_dir='/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scan_ws/'
+#max_iter=21
+
+# soglia clustering  
+#base_dir='/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scanZeroThr/'
+#max_iter=19+1
 
 
-
-
-energy_dirs=['2.70']
-eps_dir={'2.70':['000686','000691']}   # dir angolo1 e angolo2
-
-#dirs=['001333','001361',  '001388',  '001416',  '001436',  '001461',  '001471']
-#dirs=['001461']
-
-
-
+#energy_dirs=['2.04','2.29', '2.70', '2.98', '3.69', '5.89']
+energy_dirs=['5.89']
+eps_dir={'2.04':['000647','000658']  ,'2.29':['000669','000677'], '2.70':['000686','000691'], '2.98':['000704', '000726'], '3.69':['000733','000740'], '5.89':['000744','000752']}   # dir angolo1 e angolo2
 
 
 

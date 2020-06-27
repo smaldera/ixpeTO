@@ -41,9 +41,14 @@ n_max=200000
 
 first_ev=0
 
-#energy_dirs=['2.29', '2.70']
-energy_dirs=['2.29'] 
-eps_dir={ '2.29':['000669','000677'], '2.70':['000686','000691']}   # dir angolo1 e angolo2                                                                                    
+
+
+#energy_dirs=['2.04','2.29', '2.70', '2.98', '3.69', '5.89']
+energy_dirs=['5.89']
+eps_dir={'2.04':['000647','000658']  ,'2.29':['000669','000677'], '2.70':['000686','000691'], '2.98':['000704', '000726'], '3.69':['000733','000740'], '5.89':['000744','000752']}   # dir angolo1 e angolo2
+
+
+ 
 
 
 for energy in energy_dirs:
@@ -54,7 +59,7 @@ for energy in energy_dirs:
    for dir in dirs:
        dataDir='/data1/IXPE/data/misureDU_2/Unpol_DFF/'+energy+'/'+dir
        print("ecco i files:")
-       n_files=5
+       n_files=3
     
 
        filenames=get_files(dataDir,n_files)
@@ -66,7 +71,7 @@ for energy in energy_dirs:
        n_iter=1
        
        for dmin in np.arange (0.1,3.5,0.2):
-
+                        
            print ("dmin= ",dmin)
            work_dir=out_dir+str(n_iter)
         
