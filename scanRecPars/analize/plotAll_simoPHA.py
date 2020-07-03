@@ -21,12 +21,15 @@
 from __future__ import print_function, division
 
 
-__description__ = 'PHA spectrum'
+__description__ = 'analyze runs'
 
 import matplotlib
 #matplotlib.use('Agg')  # questo fa funzionare matplotlib senza interfaccia grafica (es su un server... )
 
 import numpy
+
+import subprocess
+
 
 from gpdswpy.binning import ixpeHistogram1d,ixpeHistogram2d
 from gpdswpy.logging_ import logger
@@ -72,7 +75,7 @@ parser.add_cut_options()
 
 
 ### PARAMETRI....
-cut_sigma=3
+
 cut_base='((abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
 ecut='(TRK_PI > 3700) && (TRK_PI<30000)'
 track_size_cut='(TRK_SIZE > 0)'
@@ -84,52 +87,55 @@ pha_max =50000
 pha_bins =200 
 
 
-def find_quantile(run, quantile, expr, cut):
+
+
+def find_bins(run,  expr, cut):
     """
     """
     vals = run.values(expr, cut)
-    deltabin = 0.01
+    deltabin = 0.0001
     # _nbinsqt = int(((max(vals) - min(vals)) / deltabin) + 1)
     _nbinsqt =int(((30 - min(vals)) / deltabin) + 1)
     
 
-    nbinsqt = min([_nbinsqt, 50000])
+    nbinsqt = min([_nbinsqt, 5000000])
     logger.info('M2L/M2T histo n. bins %s' % nbinsqt)
-    #binning = numpy.linspace(min(vals), max(vals), nbinsqt)
-    binning = numpy.linspace(0, 2, 10)
+    binning = numpy.linspace(min(vals), max(vals), nbinsqt)
+    #binning = numpy.linspace(0, 2, 10)
    
      
     #hist = ixpeHistogram1d(binning, vals, xtitle=expr)
-    hist = ixpeHistogram1d(binning, numpy.log10(vals), xtitle=expr)
+    hist = ixpeHistogram1d(binning, vals, xtitle=expr)
 
-     
-#    q = hist.quantile(1. - quantile)
-    hist.plot(stat_box_position='upper right')
-    plt.yscale('log')
-
+    cdf=hist.cdf()
     
-    #plot_xmax = hist.quantile(0.99)
-    #plt.xlim(binning[0], plot_xmax)
-    plt.ylim(0,hist.max_val()*1.1) #!!!!!!!!    
-    #plt.ylim(0,30) #!!!!!!!!
-    #plt.yscale('log')
-    
-    # plt.axvline(q)
-   # return q
+    print("type of cdf=",type(cdf))
+
+    my_bins=[0]
+    N=200000
+    k=1
+    for x in binning:
+       # print ("cdf(",x," )=",cdf(x)* hist.weights_sum)
+        n=cdf(x)* hist.weights_sum
+        if n>N*k:
+            print ("k=",k,"x=",x," n=",n)
+            my_bins.append(x)
+            k+=1
+
+    print ("my_bins=",my_bins)       
 
 
 
-def peak_cut(model):
-    """
-    """
-    peak = model.parameter_value('Peak')
-    sigma = model.parameter_value('Sigma')
-    #num_cut_sigma = kwargs.get('cut_sigma')
-    num_cut_sigma = cut_sigma
-    
-    plt.axvline(peak - num_cut_sigma * sigma, label='selection region')
-    plt.axvline(peak + num_cut_sigma * sigma)
-    return energy_cut(peak, sigma, nsigma=num_cut_sigma)
+
+    hist2 = ixpeHistogram1d(numpy.array(my_bins), vals, xtitle=expr)
+    hist2.plot(stat_box_position='upper right')
+    plt.ylim(0,hist2.max_val()*1.1) #!!!!!!!!    
+
+
+    for x in my_bins: 
+       plt.axvline(x)
+
+    return my_bins
 
 
 
@@ -146,17 +152,32 @@ class plotAll_simo(ixpeDqmTask):
         """
 
 
-        #qua ci metto il loop sui bin di L/W
+        #loop sui bin di L/W
 
-        binning = numpy.linspace(0, 2, 10)
-
+        #binning = numpy.linspace(0, 2, 10)
+        cut_base2=cut_logical_and(cut_base, ecut, track_size_cut )
+        expr = 'TRK_M2L/TRK_M2T'
+        #self.add_plot('moments ratioALL', hist, figure_name='moments ratioALL')
+        my_bins=find_bins(self.run_list, expr, cut_base2)
+        plt.savefig(kwargs.get('output_folder')+'/dist_ratioLW_ALL.png')
+                                             
         cut_LW=''
-        for i in range(0,len(binning)-4):
-            cut_LW="( (  (TRK_M2L/TRK_M2T)>"+str(10**(binning[i]))+") && ( (TRK_M2L/TRK_M2T)<"+str(10**(binning[i+1]))+"))"
+        #for i in range(0,len(binning)-4):
+        for i in range(0,len(my_bins)-1):
+                     
+            #cut_LW="( (  (TRK_M2L/TRK_M2T)>"+str(10**(binning[i]))+") && ( (TRK_M2L/TRK_M2T)<"+str(10**(binning[i+1]))+"))"
+            cut_LW="( (  (TRK_M2L/TRK_M2T)>"+str(my_bins[i])+") && ( (TRK_M2L/TRK_M2T)<"+str(my_bins[i+1])+"))"
+
+             
             print("cut_LW=",cut_LW)
         
-        
-        
+            outFolder=kwargs.get('output_folder')+'/LWbin_'+str(i)+'/'
+
+            #creo outFolder:
+            cmd='mkdir -p '+outFolder
+            print ("going to run: ",cmd)
+            subprocess.call(cmd,shell=True)
+              
         
             pha_expr ='TRK_PHA' #        kwargs.get('pha_expr')
             pha_binning = numpy.linspace(pha_min, pha_max, pha_bins)
@@ -169,12 +190,13 @@ class plotAll_simo(ixpeDqmTask):
             print ("base_cut=",cut_base)
             print ("cut_LW=",cut_LW)
          
-            cut_base2= cut_logical_and(cut_base,cut_LW, ecut, track_size_cut )
-            logger.info('Full selection cut (for pha_spectrum) : %s' % cut_base2)
-       
+            cut= cut_logical_and(cut_base2,cut_LW )
+            print ("cut_final = ",cut)
+
+            
         
             logger.info('Filling the histograms...')
-            pha = self.run_list.values(pha_expr, cut_base2) #!!!! qua fa il lavoro!!! 
+            pha = self.run_list.values(pha_expr, cut) #!!!! qua fa il lavoro!!! 
             hist.fill(pha)                            
             print ("n_ev rimasti = ",len(pha))
             self.add_plot('pha_spectrum_'+str(i), hist, figure_name='pha_spectrum_'+str(i),  stat_box_position=None, label=kwargs.get('label'),  save=False)
@@ -183,34 +205,34 @@ class plotAll_simo(ixpeDqmTask):
    
             self.save_figure('pha_spectrum_'+str(i), overwrite=True)
             
-            plt.savefig(kwargs.get('output_folder')+'PHA_spectrum1_'+str(i)+'.png')
-        
+            plt.savefig(outFolder+'PHA_spectrum1_'+str(i)+'.png')
+
+            pha_mean=hist.mean[0]
+            pha_rms=hist.rms[0]
+
+            ##################################
+            # plot dist L/W dopo i tagli:
+            
+            nBinsLW =int(((30 - 1) / 0.01) + 1)                        
+            LW_binning=numpy.linspace(1, 30, nBinsLW)            
+            histLW = ixpeHistogram1d(LW_binning, xtitle="L/W")
+            LW = self.run_list.values("TRK_M2L/TRK_M2T", cut) #!!!! qua fa il lavoro!!!
+            histLW.fill(LW)
+            self.add_plot('LW_'+str(i), histLW, figure_name='LW_'+str(i), stat_box_position='upper right',  save=False)
+            self.save_figure('LW_'+str(i), overwrite=True)
+            plt.savefig(outFolder+'LW_'+str(i)+'.png')
+            LW_mean=histLW.mean[0]
+            LW_rms=histLW.rms[0]
+            print("mean LW=",histLW.mean[0], "rms=",histLW.rms[0])                        
+            
+            
+
+
             ###################################3
-            # mappa bary e mappa punto impatto
-            # mi serve un histo 2D... 
-
-            # track_size_cut='(TRK_SIZE > 0)'
-            cut2= cut_base2
-
-
-            n_physical=self.run_list.num_events(cut_base2)
-            n_ecut=self.run_list.num_events(cut2)
-        
-            ecut_efficiency = n_ecut/n_physical
-            quantile = min(0.8/ecut_efficiency, 1.)
-            expr = 'TRK_M2L/TRK_M2T'
-        
-            self.add_plot('moments ratio', hist, figure_name='moments ratio')
-            min_mom_ratio = find_quantile(self.run_list, quantile, expr, cut2)
-            plt.savefig(kwargs.get('output_folder')+'dist_ratioLW_'+str(i)+'.png')
-           
-            cut_final=cut2
-
-        
-            print ("cut_final = ",cut_final)
-       
-            x = self.run_list.values('TRK_BARX', cut_final)
-            y = self.run_list.values('TRK_BARY', cut_final)
+            # mappa bary
+                  
+            x = self.run_list.values('TRK_BARX', cut)
+            y = self.run_list.values('TRK_BARY', cut)
             x_min=-8
             x_max=8
             y_min=-8
@@ -221,15 +243,18 @@ class plotAll_simo(ixpeDqmTask):
             hist_map = ixpeHistogram2d(x_edges, y_edges,  xtitle='x [mm]', ytitle='y [mm]')
             hist_map.fill(x, y)
             self.add_plot('bary map_'+str(i), hist_map, figure_name='bary_map_'+str(i))
-            plt.savefig(kwargs.get('output_folder')+'bary_map_'+str(i)+'.png')
+            plt.savefig(outFolder+'bary_map_'+str(i)+'.png')
         
             ###################################3
             # istogramma ph1
 
-            phi1= self.run_list.values('numpy.degrees(TRK_PHI1)', cut_final)
+            phi1= self.run_list.values('numpy.degrees(TRK_PHI1)', cut)
         
             edge=180
-            nbins=360
+            #nbins=360
+            nbins=180
+
+            
             ang_binning = numpy.linspace(-edge, edge, nbins + 1)
             #print ("ang_bnins = ",ang_binning)
         
@@ -247,11 +272,11 @@ class plotAll_simo(ixpeDqmTask):
             modulation1 = fit_model1.parameter_value('Modulation')
             modulation1_err = fit_model1.parameter_error('Modulation')
             chi2_1 = fit_model1.reduced_chisquare()
-            plt.savefig(kwargs.get('output_folder')+'modulation_phi1_'+str(i)+'.png')
+            plt.savefig(outFolder+'modulation_phi1_'+str(i)+'.png')
             ###################################3
             # istogramma ph2
 
-            phi2= self.run_list.values('numpy.degrees(TRK_PHI2)', cut_final)
+            phi2= self.run_list.values('numpy.degrees(TRK_PHI2)', cut)
             #edge=180
             #nbins=360
         
@@ -271,78 +296,33 @@ class plotAll_simo(ixpeDqmTask):
 
 
             print("modulation2_err= ",modulation2_err)
-            plt.savefig(kwargs.get('output_folder')+'modulation_phi2_'+str(i)+'.png')
-        
-            ##############################################
-            # rifaccio istogramma pha con tagli finali per avere la risuluzione!!!
-
-            pha_binning = numpy.linspace(pha_min, pha_max, pha_bins + 1)
-            
-            hist = ixpeHistogram1d(pha_binning, xtitle=pha_title)
-            #if (pha_expr == 'TRK_PI'):
-            pha_title = 'PHA [ ADC counts]'
-            hist2 = ixpeHistogram1d(pha_binning, xtitle=pha_title)
-            pha2 = self.run_list.values(pha_expr, cut_final) #!!!! qua fa il lavoro!!! 
-            hist2.fill(pha2)                            
-            self.add_plot('pha_spectrum2_'+str(i), hist2, figure_name='pha_spectrum2',  stat_box_position=None, label=kwargs.get('label'),  save=False)
-
-            #if kwargs.get('fit'):
-            # if kwargs.get('fit_model') == 'gauss':
-            nsigma = kwargs.get('nsigma')
-        
-            gauss_model2 = fit_gaussian_iterative(hist2, verbose=kwargs.get('verbose'), xmin=kwargs.get('fit_min'),  xmax=kwargs.get('fit_max'), num_sigma_left=nsigma,  num_sigma_right=nsigma) # n. iterazioni??
-            
-            self.add_plot('pha_spectrum_fit2_'+str(2),gauss_model2  , figure_name='pha_spectrum2',    save=True,       display_stat_box=kwargs.get('display_stat_box', True),    position=kwargs.get('position', 'upper left'))
-       
-
-            plt.savefig(kwargs.get('output_folder')+'PHA_spectrum2_'+str(i)+'.png')  # non riesco a salvare i plot usando i metodi della classe...  cosi' va...
-
-
-        
-            peak2 = gauss_model2.parameter_value('Peak')
-            peak2_err = gauss_model2.parameter_error('Peak')
-            resolution2 = gauss_model2.resolution()
-            resolution2_err = gauss_model2.resolution_error()
-            print("peak2 = ",peak2," +- ",peak2_err," res2 fwhm =",resolution2," +- ",resolution2_err)
-
-
-        
-
-        
-
+            plt.savefig(outFolder+'modulation_phi2_'+str(i)+'.png')
 
             ################################################
             # count events:
-            n_raw=self.run_list.num_events()
-            n_physical=self.run_list.num_events(cut_base2)
-            n_ecut=self.run_list.num_events(cut2)
-            n_final=self.run_list.num_events(cut_final)
-        
+            n_raw=self.run_list.num_events(cut_LW)
+            n_final=self.run_list.num_events(cut)
             print ("n. raw events= ",n_raw)
-            print ("n. physical events (bary + livetime+ NUM_CLU ) = ", n_physical)
-            print ("n. ecut (physical+pha_spectrum+_tkr_size) ",n_ecut )
-            print ("n. final (physical+pha_spectrum+_tkr_size+axis ratio) ",n_final )
-        
-            print("eff_ecut= n_ecut/physical",float(n_ecut)/float(n_physical))
-        
-            print("eff= final/physical",float(n_final)/float(n_physical))
+            print ("n. final",n_final )
+            
         
 
 
             #scrivi outfile
 
-            print("out dir", kwargs.get('output_folder'))
-            nomefileout= kwargs.get('output_folder')+'prova_out.txt'
-            print("nomefile_out ",nomefileout )
             
-            """
-            out_string=str(peak2)+' '+str(peak2_err)+' '+str(resolution2)+' '+str(resolution2_err)+' '+str(phase1)+' '+str(phase1_err)+' '+str(modulation1)+' '+str(modulation1_err)+' '+str(chi2_1)+' '+str(phase2)+' '+str(phase2_err)+' '+str(modulation2)+' '+str(modulation2_err)+' '+str(chi2_2)+' '+str(n_raw)+' '+str(n_physical)+'  '+str(n_ecut)+'  '+str(n_final) 
+            nomefileout= outFolder+'prova_outLW.txt'
+            print("nomefile_out= ",nomefileout )
+            
+            
+            out_string=str(pha_mean)+' '+str(pha_rms)+' '+str(phase1)+' '+str(phase1_err)+' '+str(modulation1)+' '+str(modulation1_err)+' '+str(chi2_1)+' '+str(phase2)+' '+str(phase2_err)+' '+str(modulation2)+' '+str(modulation2_err)+' '+str(chi2_2)+' '+str(n_final)+' '+str(n_raw)+' '+str(my_bins[i])+' '+str(my_bins[i+1])+' '+str(LW_mean)+' '+str(LW_rms)
+            
     
             with open(nomefileout, 'w') as miofile:
                 miofile = open(nomefileout,'w')
                 miofile.write(out_string)
                 miofile.close() # !!!!! il file e' bufferizzato, e riempito solo alla chiusura (o chiamando file.flush). messo con with dovrebbe essere chiuso e scritto comunque quando esce dal loop
-            """
+            
        
               
         
