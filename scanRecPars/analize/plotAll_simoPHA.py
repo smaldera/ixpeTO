@@ -24,7 +24,7 @@ from __future__ import print_function, division
 __description__ = 'analyze runs'
 
 import matplotlib
-#matplotlib.use('Agg')  # questo fa funzionare matplotlib senza interfaccia grafica (es su un server... )
+matplotlib.use('Agg')  # questo fa funzionare matplotlib senza interfaccia grafica (es su un server... ) !!!!!!!! OKKIO!!!!
 
 import numpy
 
