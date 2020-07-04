@@ -38,7 +38,7 @@ first_iter=1
 
 
 
-base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/unpolDFF/bestPara/'
+base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/unpolDFF/bestPara_phaParametrization/'
 x_var='weight_scale'
 std_index=0
 #n_iters=20
@@ -304,17 +304,9 @@ for folder in energy_dirs:
     print ('max_modErr=',baseRec1.max_modErr)
     print ('best_phi=',baseRec1.best_phi)
     
-    print ('best x= ',baseRec1.dict_rec[x_var][baseRec1.best_index[0]], '  best mod2= ',baseRec1.dict_rec['modulation2'][baseRec1.best_index[0]])
-
-    print ('std x=', baseRec1.dict_rec[x_var][std_index],  '  std mod2= ',baseRec1.dict_rec['modulation2'][std_index])
-
-    print('\n x = ',baseRec1.dict_rec[x_var])
-    print('y = ', baseRec1.dict_rec['modulation2'])
-
 
     
     title='energy= '+folder+' KeV' 
-   # plot_all(baseRec1,out_dir,folder) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
     #fill variables for final plots (vs energy)
@@ -351,12 +343,12 @@ for folder in energy_dirs:
     
 print("e=",energy)
 print("best_thr=",best_val)
-print('test string=',' '.join(map(str,energy)) )
+
 
 ###############
 # write outFile.txt
 
-outFileName=base_dir+'outBestPara.txt'
+outFileName=base_dir+'outBestPara_ixpereconParametrization.txt'
 outFile=open(outFileName,'w')
 outFile.write( ' '.join(map(str,energy))+'\n'  )
 outFile.write( ' '.join(map(str,mod1)) +'\n' )

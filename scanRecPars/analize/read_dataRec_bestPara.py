@@ -25,22 +25,17 @@ mpl.rcParams['axes.grid'] = True
 
 # PARAMETERS:
 
-first_iter=1
-
-
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/'
 
-#x_var='weight_scale'
-#std_index=5-1-1 # il scondo -1 perche' escludo il primo punto
-#n_iters=20
-#maximize='phi2'  # phi1, ph2, both
-#loc_ratios='lower right'  # posizione legenda plot rapporti
-#loc_deltas='lower right'  #  "          "      "   differenze
-#first_iter=2  # escludo il primo punto!!
-params_sets=['best3d','std']
+
+#params_sets=['best3d','std']
+#params_sets=['para','std']
+params_sets=['ixperecon_para','std']
+
+
 index_best3d=0
 std_index=1   # da ricavare dalla lista!!!
-
+outFileName='outBestParams_'+params_sets[0]+'_v2.txt' # aggiunto pha
 
 
 dict_energy={'001333':6.40, '001361':4.50,  '001388':2.98,  '001416':2.70,  '001436':2.29,  '001461':2.01,  '001471':3.69} # Energy in KeV
@@ -218,7 +213,7 @@ n_final_opt=[]
 n_phys_std=[]
 n_phys_opt=[]
  
-
+pha_std=[]
 
 
 ############################################33
@@ -294,7 +289,7 @@ for folder in dirs:
     n_final_std.append(baseRec1.dict_rec['n_final'][std_index])
     n_phys_std.append(baseRec1.dict_rec['n_physical'][std_index])
 
-    
+    pha_std.append(baseRec1.dict_rec['peak2'][std_index])
 
 
 
@@ -308,7 +303,9 @@ print('test string=',' '.join(map(str,energy)) )
 ###############
 # write outFile.txt
 
-outFileName=base_dir+'outBestParams.txt'
+#outFileName=base_dir+'outBestParams.txt'
+outFileName=base_dir+outFileName #'outBestParams_v2.txt' # aggiunto pha
+                   
 outFile=open(outFileName,'w')
 outFile.write( ' '.join(map(str,energy))+'\n'  )
 outFile.write( ' '.join(map(str,mod1)) +'\n' )
@@ -329,7 +326,11 @@ outFile.write( ' '.join(map(str,phase1std_err))+'\n'  )
 outFile.write( ' '.join(map(str,phase2std))+'\n'  )
 outFile.write( ' '.join(map(str,phase2std_err))+'\n') 
 
+outFile.write( ' '.join(map(str, pha_std))+'\n') 
 
+
+
+                   
 outFile.close()
 
 

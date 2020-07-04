@@ -3,6 +3,7 @@
 # produce i plot riassuntivi finali (parametro ottimale, modulazione best, etc) vs energia
 # produce file riassuntivo di output
 
+# add plot  fase
 
 
 from __future__ import print_function, division
@@ -16,10 +17,10 @@ import matplotlib as mpl
 
 
 
-mpl.rcParams['legend.loc'] = 'upper right'   # default position
+#mpl.rcParams['legend.loc'] = 'upper right'   # default position
 mpl.rcParams['grid.linestyle'] = ":"
 mpl.rcParams['axes.grid'] = True
-mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
+#mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # PARAMETERS:
@@ -32,7 +33,7 @@ base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimi
 x_var='zero_thr'
 std_index=9-1
 n_iters=19
-maximize='both'  # phi1, ph2, both
+maximize='phi2'  # phi1, ph2, both
 loc_ratios='lower right'  # posizione legenda plot rapporti
 loc_deltas='lower right'  #  "          "      "   differenze
 """
@@ -42,12 +43,13 @@ base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimi
 x_var='moma1_thr'
 std_index=9-1
 n_iters=20
-maximize='both'  # phi1, ph2, both
+maximize='phi2'  # phi1, ph2, both
 loc_ratios='upper right'  # posizione legenda plot rapporti
 loc_deltas='upper right'  #  "          "      "   differenze
 """
 
 """
+
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma2Thr/'
 x_var='moma2_thr'
 std_index=9-1
@@ -58,7 +60,7 @@ loc_deltas='upper right'  #  "          "      "   differenze
 """
 
 
-"""
+
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmin/'
 x_var='dmin'
 std_index=8-1
@@ -66,7 +68,7 @@ n_iters=17
 maximize='phi2'  # phi1, ph2, both
 loc_ratios='lower left'  # posizione legenda plot rapporti
 loc_deltas='lower left'  #  "          "      "   differenze
-"""
+
 
 """
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanRmax/'
@@ -79,7 +81,7 @@ loc_deltas='lower right'  #  "          "      "   differenze
 """
 
 
-
+"""
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanWs/'
 x_var='weight_scale'
 std_index=5-1-1 # il scondo -1 perche' escludo il primo punto
@@ -88,17 +90,16 @@ maximize='phi2'  # phi1, ph2, both
 loc_ratios='lower right'  # posizione legenda plot rapporti
 loc_deltas='lower right'  #  "          "      "   differenze
 first_iter=2  # escludo il primo punto!!
-
+"""
 
 
 
 dict_energy={'001333':6.40, '001361':4.50,  '001388':2.98,  '001416':2.70,  '001436':2.29,  '001461':2.01,  '001471':3.69} # Energy in KeV
+
+
+
 dirs=['001461','001436', '001416', '001388','001471','001361', '001333']
-#dirs=['001461','001436', '001416', '001388']
-
-
-#dirs=['001461']
-
+#dirs=['001333']
 
 
 class base_rec():
@@ -369,41 +370,54 @@ def plot_all(baseRec1,outdir,folder):
     ###########################################
     # plot singole energie
     ###########################################
+    # update 29.4.2020 -> accorpo plots modulazione, aggiungo plot fase, tolgo plot rapporti risoluzine e n.eventi
+
     
-    fig01=plt.figure(figsize=(20,10))
-    fig01.suptitle(title, fontsize=16)
-    fig01.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
+    fig01=plt.figure(figsize=(10,7))
+    fig01.suptitle(title, fontsize=14)
+    fig01.subplots_adjust(left=0.09, right=0.9, top=0.91, bottom=0.06,hspace=0.350)
     # PLOT  mod_2 vs zero threshold
-    ax01=plt.subplot(231)
-    ax01.set_title('modulation phi_2')
+    ax01=plt.subplot(311)
+    ax01.set_title('modulation')
     plt.errorbar(x,y,yerr=y_err, fmt='bo--',label="modulation phi2")
-    plt.xlabel(x_var)
-    plt.ylabel('modulation_2')
+    plt.xlabel(x_var,x=0.9)
+    plt.ylabel('modulation')
 
     plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
 
-    if baseRec1.best_phi==2:
-        ax01.add_patch(rect)
-    plt.legend(loc='lower right')
-
-    # PLOT  mod_1 vs zero threshold
-    ax02=plt.subplot(232)
-    ax02.set_title('modulation phi_1')
+    ax01.add_patch(rect)
     plt.errorbar(x,y2,yerr=y2_err, fmt='ro--',label="modulation phi1") # modulazione phi1
+
+    ax01.set_ylim(   (min(y)-y_err[0]) - ((min(y)-y_err[0]))* 0.02, (max(y)+y_err[0])+ (max(y)+y_err[0])*0.02  )
+
+    
+    plt.legend(ncol=2)
+  
+    #plt.xlabel(x_var)
+    #plt.ylabel('modulation_phi1')
+
+    # plot phase...
+    ax02=plt.subplot(312)
+    ax02.set_title('phase')
+    plt.errorbar(x, baseRec1.dict_rec['phase1']  ,yerr=baseRec1.dict_rec['phase1_err'] , fmt='ro--',label="phase phi1") # modulazione phi1
+    plt.errorbar(x, baseRec1.dict_rec['phase2']  ,yerr=baseRec1.dict_rec['phase2_err'] , fmt='bo--',label="phase phi2") # modulazione phi1
+  
     plt.axvline(x=std_value,label='standard_value', linestyle='--',alpha=0.5)
     plt.axvline(x=best_thr,label='best value', linestyle='--',color='red',alpha=0.5 )
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
-    if baseRec1.best_phi==1:
-        ax02.add_patch(rect)
-    plt.legend(loc='lower right')
-    plt.xlabel(x_var)
-    plt.ylabel('modulation_phi1')
+    plt.legend(ncol=2)
+    plt.xlabel(x_var,x=0.9)
+    plt.ylabel('phase [deg]')
+    
 
-    ax03=plt.subplot(233)
+    
+
+    # plot chi2
+    ax03=plt.subplot(313)
     ax03.set_title(r'modulation $\chi^2$')
     plt.plot(x, baseRec1.dict_rec['chi2_1'], 'ro--',label="chi2 phi1") # modulazione phi1
     plt.plot(x, baseRec1.dict_rec['chi2_2'], 'bo--',label="chi2 phi2") # modulazione phi1
@@ -412,11 +426,11 @@ def plot_all(baseRec1,outdir,folder):
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
     
-    plt.legend()
-    plt.xlabel(x_var)
+    plt.legend(ncol=2)
+    plt.xlabel(x_var,x=0.9)
     plt.ylabel('Chi2')
 
-
+    """
     ax04=plt.subplot(234)
     ax04.set_title('resolution')
     plt.errorbar(x, baseRec1.dict_rec['resolution2'], yerr= baseRec1.dict_rec['resolution2_err'], fmt='ro--',label="chi2 phi1")
@@ -453,11 +467,11 @@ def plot_all(baseRec1,outdir,folder):
     plt.xlabel(x_var)
     plt.ylabel('fraction')
     plt.legend()
-      
+    """  
 
 
     
-    outfilePlot=out_dir+'scan_summary_short2.png'
+    outfilePlot=out_dir+'scan_summary_new.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
     #plt.show()
@@ -486,6 +500,16 @@ mod2std=[]
 mod2std_err=[]
 
 
+phase1=[]
+phase1_err=[]
+phase2=[]
+phase2_err=[]
+
+phase1std=[]
+phase1std_err=[]
+phase2std=[]
+phase2std_err=[]
+
 
 best_val=[]
 best_val_up=[]
@@ -506,6 +530,8 @@ n_final_opt=[]
 n_phys_std=[]
 n_phys_opt=[]
  
+
+
 
 
 #inizio scan su zero_thr
@@ -561,14 +587,30 @@ for folder in dirs:
     mod1_err.append(baseRec1.dict_rec['modulation1_err'][baseRec1.best_index[0]])
     mod2.append(baseRec1.dict_rec['modulation2'][baseRec1.best_index[0]])
     mod2_err.append(baseRec1.dict_rec['modulation2_err'][baseRec1.best_index[0]])
+    phase1.append(baseRec1.dict_rec['phase1'][baseRec1.best_index[0]])
+    phase1_err.append(baseRec1.dict_rec['phase1_err'][baseRec1.best_index[0]])
+    phase2.append(baseRec1.dict_rec['phase2'][baseRec1.best_index[0]])
+    phase2_err.append(baseRec1.dict_rec['phase2_err'][baseRec1.best_index[0]])
+    
+
+
     resolution_opt.append(baseRec1.dict_rec['resolution2'][baseRec1.best_index[0]])
     n_final_opt.append(baseRec1.dict_rec['n_final'][baseRec1.best_index[0]])
     n_phys_opt.append(baseRec1.dict_rec['n_physical'][baseRec1.best_index[0]])
 
+    
+
+    
     mod1std.append(baseRec1.dict_rec['modulation1'][std_index])
     mod1std_err.append(baseRec1.dict_rec['modulation1_err'][std_index])
     mod2std.append(baseRec1.dict_rec['modulation2'][std_index])
     mod2std_err.append(baseRec1.dict_rec['modulation2_err'][std_index])
+
+    phase1std.append(baseRec1.dict_rec['phase1'][std_index])
+    phase1std_err.append(baseRec1.dict_rec['phase1_err'][std_index])
+    phase2std.append(baseRec1.dict_rec['phase2'][std_index])
+    phase2std_err.append(baseRec1.dict_rec['phase2_err'][std_index])
+    
     resolution_std.append(baseRec1.dict_rec['resolution2'][std_index])
     n_raw_std.append(baseRec1.dict_rec['n_raw'][std_index])
     n_ecut_std.append(baseRec1.dict_rec['n_ecut'][std_index])
@@ -588,7 +630,7 @@ print('test string=',' '.join(map(str,energy)) )
 ###############
 # write outFile.txt
 
-outFileName=base_dir+'outScan_'+x_var+'.txt'
+outFileName=base_dir+'outScan_'+x_var+'_v2.txt'
 outFile=open(outFileName,'w')
 outFile.write( ' '.join(map(str,energy))+'\n'  )
 outFile.write( ' '.join(map(str,mod1)) +'\n' )
@@ -599,6 +641,16 @@ outFile.write( ' '.join(map(str,mod1std)) +'\n' )
 outFile.write( ' '.join(map(str,mod1std_err))+'\n'  )
 outFile.write( ' '.join(map(str,mod2std))+'\n'  )
 outFile.write( ' '.join(map(str,mod2std_err))+'\n'  )
+
+outFile.write( ' '.join(map(str,phase1)) +'\n' )   # aggiunte informazioni phase!!
+outFile.write( ' '.join(map(str,phase1_err))+'\n'  )
+outFile.write( ' '.join(map(str,phase2))+'\n'  )
+outFile.write( ' '.join(map(str,phase2_err))+'\n'  )
+outFile.write( ' '.join(map(str,phase1std)) +'\n' )
+outFile.write( ' '.join(map(str,phase1std_err))+'\n'  )
+outFile.write( ' '.join(map(str,phase2std))+'\n'  )
+outFile.write( ' '.join(map(str,phase2std_err))+'\n') 
+
 
 outFile.write( ' '.join(map(str,best_val))+'\n'  )
 outFile.write( ' '.join(map(str,best_val_up))+'\n'  )
@@ -674,7 +726,7 @@ plt.errorbar(energy,mod1std,yerr=mod1std_err, fmt='go--',label='phi 1 standard '
 
 plt.xlabel('energy [KeV]')
 plt.ylabel('modulation')
-plt.legend()
+plt.legend(loc='upper left')
 
 
 #ratio modulation
@@ -689,6 +741,15 @@ mod2std_np=np.array(mod2std)
 mod1stdErr_np=np.array(mod1std_err)
 mod2stdErr_np=np.array(mod2std_err)
 
+
+phase1_np=np.array(phase1)
+phase2_np=np.array(phase2)
+phase1Err_np=np.array(phase1_err)
+phase2Err_np=np.array(phase2_err)
+phase1std_np=np.array(phase1std)
+phase2std_np=np.array(phase2std)
+phase1stdErr_np=np.array(phase1std_err)
+phase2stdErr_np=np.array(phase2std_err)
 
 ratio1=mod1_np/mod1std_np
 ratio1Err=(  (1./mod1std_np**2)*(mod1Err_np**2)+((mod1_np/(mod1std_np**2))**2)*(mod1stdErr_np**2) )**0.5
@@ -732,6 +793,26 @@ ax4.axhline(y=std_val,label='standard_value', linestyle='--',alpha=0.5)
 plt.xlabel('energy [KeV]')
 plt.ylabel('best '+x_var)
 plt.legend()
+
+
+
+# plot Delta phase
+
+ax5=plt.subplot(236) #pippo
+ax5.set_title('phase difference '+x_var)
+
+deltaPhase1=phase1_np-phase1std_np
+deltaPhase2=phase2_np-phase2std_np
+
+plt.errorbar(energy,deltaPhase1, fmt='ro',label='delta phase 1')
+plt.errorbar(energy,deltaPhase2, fmt='bo',label='delta phase 2')
+
+
+plt.xlabel('energy [KeV]')
+plt.ylabel('phase_opt - phase_std')
+plt.legend()
+
+
 
 
 

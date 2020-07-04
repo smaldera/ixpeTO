@@ -12,6 +12,8 @@ import matplotlib.patches as patches
 import matplotlib as mpl
 
 
+from readSummaryData import *
+
 
 #import plotSummary.plotData1d
 
@@ -58,7 +60,6 @@ loc_deltas='upper right'
 """
 
 
-"""
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scanMoma2/'
 x_var='moma2_thr'
 std_index=9-1
@@ -67,7 +68,7 @@ maximize='phi2'  # phi1, ph2, both
 summaryFile='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/scanMoma2Thr/outScan_moma2_thr.txt'
 loc_ratios='upper right'
 loc_deltas='upper right'
-"""
+
 
 
 """
@@ -82,7 +83,7 @@ loc_deltas='lower left'
 """
 
 
-
+"""
 base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/unpolDFF/scan_ws/'
 x_var='weight_scale'
 std_index=5-1-1
@@ -92,13 +93,11 @@ summaryFile='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_opt
 loc_ratios='upper right'
 loc_deltas='lower right'
 first_iter=2
-
+"""
 
 
 
 energy_dirs=['2.04','2.29', '2.70', '2.98', '3.69', '5.89']
-#energy_dirs=['2.04','2.29', '2.70', '2.98']
-
 #energy_dirs=['5.89']
 eps_dir={'2.04':['000647','000658']  ,'2.29':['000669','000677'], '2.70':['000686','000691'], '2.98':['000704', '000726'], '3.69':['000733','000740'], '5.89':['000744','000752']}   # dir angolo1 e angolo2
 
@@ -106,60 +105,39 @@ eps_dir={'2.04':['000647','000658']  ,'2.29':['000669','000677'], '2.70':['00068
 
 
 
-class plotData1d:
+
+def computeDeltaSpuria(filename, currentEnergy, base_rec):
+
+    
+
+   
+
+    #cerco best parameter da scan sui polarizzati
+       
+    bestParPol=readSummaryData_1d(filename).find_bestParameter(currentEnergy)
 
 
-   def __init__(self,fileName): 
-       self.fileName=fileName
+    par_array=base_rec.dict_rec[x_var]
+    #print('computeDeltaSpuria:bestParPol =',bestParPol)
+    print ("computeDeltaSpuria: par_array = ",par_array)
+    
 
-       self.readFile()
+    try:
+         indexBestPol=np.where(np.logical_and ( par_array<=(bestParPol+0.0001), par_array >=(bestParPol-0.0001) ) )[0][0]   # cosi' annulla effetto piccole differenze numeriche 
+         print("computeDeltaSpuria: indice trovato :",indexBestPol,"  value =  ",par_array[indexBestPol], "valore originale  =",bestParPol )
+    except:
+         print("computeDeltaSpuria: indice  *NON* trovato    ")
+         return (-1,-1, -1,-1,-1)
 
+    
+ 
+    mod_phi1_bestPol=base_rec.dict_rec['modulation1'][indexBestPol]
+    mod_phi2_bestPol=base_rec.dict_rec['modulation2'][indexBestPol]
+    mod_phi1_bestPolErr=base_rec.dict_rec['modulation1_err'][indexBestPol]
+    mod_phi2_bestPolErr=base_rec.dict_rec['modulation2_err'][indexBestPol]
 
-   def readFile(self):   
-       infile=open(self.fileName,'r')
-       npArrayList=[]
-
-       for line in infile:
-           #print(line[:-1])
-           splittedLine=line[:-1].split(" ")
-           #floatList=list(map(float, splittedLine))
-           #print ("flaotList = " ,floatList )
-           #floatList2=[float(i) for i in splittedLine ]
-           #print ("float2=",floatList2 )
-
-           npArrayList.append(np.array(splittedLine,dtype=np.float32))
-           #print ("npArray=",npArray )
-
-
-       self.energy=npArrayList[0]
-       self.mod1=npArrayList[1]
-       self.mod1_err=npArrayList[2]
-       self.mod2=npArrayList[3]
-       self.mod2_err=npArrayList[4]
-       self.mod1std=npArrayList[5]
-       self.mod1std_err=npArrayList[6]
-       self.mod2std=npArrayList[7]
-       self.mod2std_err=npArrayList[8]
-       self.best_val=npArrayList[9]
-       self.best_val_up=npArrayList[10]
-       self.best_val_low=npArrayList[11]
-
-
-       print ("energy =",self.energy)
-       print ("best_val_low=",self.best_val_low)
-       print ("best_val=",self.best_val)
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    return (mod_phi1_bestPol,mod_phi2_bestPol, mod_phi1_bestPolErr,mod_phi2_bestPolErr,bestParPol)
 
 
 
@@ -459,7 +437,6 @@ def plot_all(baseRec1,outdir,folder):
     #ratioErr=(  (1./nom_mod**2)*(mod1Err_np**2)+((mod1_np/(nom_mod**2))**2)*(nom_mod_err**2) )**0.5
     #plt.errorbar(x,ratio,yerr=ratioErr, fmt='o--',label='E='+folder+' KeV' )
     plt.errorbar(x,delta, fmt='o--',label='E='+folder+' KeV' )
-    #plt.legend( bbox_to_anchor=(1.1, 1.11) )
     plt.legend(loc=loc_deltas)
    
     outfilePlot=base_dir+'summary_deltas.png'
@@ -474,17 +451,11 @@ def plot_all(baseRec1,outdir,folder):
     ax_all4=plt.subplot(111)
     ax_all4.set_title("mod. factor phi1 - mod factor phi1 [standard_parameters] - phi1 ")
     plt.xlabel(x_var)
-
-    #mod2_np=np.array(y2)
-    #mod2Err_np=np.array(y2_err)
-    #nom_mod2=mod2_np[std_index]
-    #nom_mod2_err= mod2Err_np[std_index]
-
+    
     delta2=mod2_np-nom_mod2
     #ratioErr=(  (1./nom_mod**2)*(mod1Err_np**2)+((mod1_np/(nom_mod**2))**2)*(nom_mod_err**2) )**0.5
     #plt.errorbar(x,ratio,yerr=ratioErr, fmt='o--',label='E='+folder+' KeV' )
     plt.errorbar(x,delta2, fmt='o--',label='E='+folder+' KeV' )
-    #plt.legend( bbox_to_anchor=(1.1, 1.11) )
     plt.legend(loc=loc_deltas)
    
     outfilePlot=base_dir+'summary_deltas_phi1.png'
@@ -497,14 +468,10 @@ def plot_all(baseRec1,outdir,folder):
     ###########################
     # plot singole energie
 
-    ### prendo punto da summary
-    summaryData1d=plotData1d(summaryFile)
-    index_summary=1e6
-    try:
-       index_summary=np.where(  np.logical_and( summaryData1d.energy<(float(folder)+0.05),  summaryData1d.energy >(float(folder)-0.05) ) )[0][0]
-    except:
-       print ("print energia non trovata nello scan ploarizzato")
     
+    bestParPol=readSummaryData_1d(summaryFile).find_bestParameter(float(folder))
+    print ("BEST VAL plolarized=",bestParPol)
+           
     fig01=plt.figure(figsize=(10,7))
     fig01.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
     fig01.suptitle('scan '+x_var, fontsize=16)
@@ -520,13 +487,13 @@ def plot_all(baseRec1,outdir,folder):
     plt.ylabel('modulation')
 
     plt.axvline(x=std_value,label='standard_value', linestyle='--')
-    if (index_summary<1000):
-       plt.axvline(x=summaryData1d.best_val[index_summary],label='best_value (data) ', linestyle='--', color='red')
+    if (bestParPol<1000):
+       plt.axvline(x=bestParPol,label='best_value (data) ', linestyle='--', color='red')
 
     plt.legend(loc='upper right')
     outfile=out_dir+'mod_both.png'
     print ("outFile png =",outfile)
-    plt.savefig(outfile)
+    fig01.savefig(outfile)
 
 
 
@@ -571,8 +538,8 @@ def plot_all(baseRec1,outdir,folder):
     plt.axvline(x=min_thr, linestyle=':',color='grey',alpha=0.5,label='band' )
     plt.axvline(x=max_thr, linestyle=':',color='grey',alpha=0.5 )
 
-    if (index_summary<1000):
-       plt.axvline(x=summaryData1d.best_val[index_summary],label='best_value (data) ', linestyle='--',alpha=0.9, color='red')
+    if (bestParPol<1000):
+       plt.axvline(x=bestParPol,label='best_value (data) ', linestyle='--',alpha=0.9, color='red')
     if baseRec1.best_phi==2:
         ax07.add_patch(rect)
     plt.legend(loc='lower right')
@@ -590,8 +557,8 @@ def plot_all(baseRec1,outdir,folder):
     plt.legend(loc='lower right')
     plt.xlabel(x_var)
     plt.ylabel('modulation_phi1')
-    if (index_summary<1000):
-       plt.axvline(x=summaryData1d.best_val[index_summary],label='best_value (data) ', linestyle='--',alpha=0.5)
+    if (bestParPol<1000):
+       plt.axvline(x=bestParPol,label='best_value (data) ', linestyle='--',alpha=0.5)
   
     # plot chi2  
     ax03=plt.subplot(233)
@@ -651,7 +618,9 @@ def plot_all(baseRec1,outdir,folder):
     
     outfilePlot=out_dir+'scan_summary.png'
     print ("outFile png =",outfilePlot)
-    plt.savefig(outfilePlot)
+#    plt.savefig(outfilePlot)
+    fig03.savefig(outfilePlot)
+
     #plt.show()
 
 
@@ -698,6 +667,13 @@ n_final_opt=[]
 n_phys_std=[]
 n_phys_opt=[]
  
+
+mod_phi1_bestPol_list=[]   # valori al bestParPol
+mod_phi2_bestPol_list=[]
+mod_phi1_bestPolErr_list=[]
+mod_phi2_bestPolErr_list=[]
+bestParPol_list=[]
+
 
 
 #inizio scan 
@@ -771,6 +747,15 @@ for folder in energy_dirs:
 
 
 
+    ##### # modulazione spuria al paramtero ottimale per run polarizzati...
+    mod_phi1_bestPol,mod_phi2_bestPol, mod_phi1_bestPolErr,mod_phi2_bestPolErr,bestParPol=computeDeltaSpuria(summaryFile,float(folder),baseRec1)
+    mod_phi1_bestPol_list.append(mod_phi1_bestPol)
+    mod_phi2_bestPol_list.append(mod_phi2_bestPol)
+    mod_phi1_bestPolErr_list.append(mod_phi1_bestPolErr)
+    mod_phi2_bestPolErr_list.append(mod_phi2_bestPolErr)
+    bestParPol_list.append(bestParPol)
+
+    
    
 
     
@@ -796,6 +781,16 @@ outFile.write( ' '.join(map(str,mod2std_err))+'\n'  )
 outFile.write( ' '.join(map(str,best_val))+'\n'  )
 outFile.write( ' '.join(map(str,best_val_up))+'\n'  )
 outFile.write( ' '.join(map(str,best_val_low))+'\n'  )
+
+# modulazione spuria al paramtero ottimale per run polarizzati!
+outFile.write( ' '.join(map(str, mod_phi1_bestPol_list))+'\n'  )
+outFile.write( ' '.join(map(str, mod_phi2_bestPol_list))+'\n'  )
+outFile.write( ' '.join(map(str, mod_phi1_bestPolErr_list))+'\n'  )
+outFile.write( ' '.join(map(str, mod_phi2_bestPolErr_list))+'\n'  )
+outFile.write( ' '.join(map(str, bestParPol_list ))+'\n'  )
+
+
+
 
 outFile.close()
 

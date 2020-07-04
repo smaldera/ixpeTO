@@ -37,7 +37,7 @@ class fitDistrib:
    def  Fit2Gaussiane_convp (self,h1,convp):
 
        G0 = ROOT.TF1 ("G0","gaus",-1,1)
-       h1.Fit("G0","MEWWR")
+       h1.Fit("G0","MEWWRN")
        mean0=G0.GetParameter(1)
        sigma0=G0.GetParameter(2)
        maxH = h1.GetBinCenter( h1.GetMaximumBin())
@@ -49,14 +49,14 @@ class fitDistrib:
        G2.SetParameter(1,maxH )
        G2.SetParameter(2, sigma0 )
        G2.SetParLimits(1, mean0-sigma0/2., mean0+sigma0/2.)
-       h1.Fit("G2","MERww")
+       h1.Fit("G2","MERwwNq")
          
 
        G1 = ROOT.TF1 ("G1","gaus",convp-0.05,convp+0.05)
        G1.SetParameter(0,3.33294e+02 )
        G1.SetParameter(1, convp )
        G1.SetParameter(2, 5.30043e-02  )       
-       h1.Fit("G1","MERww")
+       h1.Fit("G1","MERwwNq")
 
        
        #input("continue2?")
@@ -82,9 +82,9 @@ class fitDistrib:
        #Gsum.SetParLimits(4,  G2.GetParameter(1)-G2.GetParameter(1)*0.5,  G2.GetParameter(1)+ G2.GetParameter(1)*0.5)
        #Gsum.SetParLimits(5,  G2.GetParameter(2)-G2.GetParameter(2)*0.5,  G2.GetParameter(2)+ G2.GetParameter(2)*0.5)
        
-       #h1.Fit("Gsum","LMERww")
-       h1.Fit("Gsum","MERW")
-       Gsum.Draw("samel")
+       #h1.Fit("Gsum","LMERwwN")
+       h1.Fit("Gsum","MERWNq")
+       #Gsum.Draw("samel")
 
        if (Gsum.GetNDF()>0):
            redChi2=Gsum.GetChisquare()/Gsum.GetNDF()
@@ -109,16 +109,16 @@ class fitDistrib:
         convp=self.myPeakFind(h)
         G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
         G0.SetParameter(1,max)
-        h.Fit("G0","LMERww")
+        h.Fit("G0","LMERwwN")
         mean0=G0.GetParameter(1)
         sigma0=G0.GetParameter(2)
-        G0.Draw("samel")
+        #G0.Draw("samel")
         
                 
         G1=ROOT.TF1 ("G1","gaus",convp-0.1,convp+0.1)
         G1.SetLineColor(4)
-        h.Fit("G1","LMERww")
-        G1.Draw("samel")
+        h.Fit("G1","LMERwwN")
+        #G1.Draw("samel")
         mean1=G1.GetParameter(1)
         sigma1=G1.GetParameter(2)
                 
@@ -126,7 +126,7 @@ class fitDistrib:
         f1.SetParameters(500,88,mean0,0.01)
         
         f1.SetParLimits(2, mean0-sigma0/2., mean0+sigma0)
-        h.Fit("f1","LMERww")
+        h.Fit("f1","LMERwwN")
        
         fsum=ROOT.TF1("fsum","gaus(0)+ (  ( ([3]*x-[4])*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  )))*(  ( ( ([3]*x-[4])*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  )))) >0  )  )",convp-0.2,max+0.2)
         fsum.SetParameter(0, G1.GetParameter(0))
@@ -145,7 +145,7 @@ class fitDistrib:
         
         fsum.SetLineColor(2)
         fsum.SetLineWidth(4)
-        h.Fit("fsum","LMERww")
+        h.Fit("fsum","LMERwwN")
 
         return fsum
 
@@ -163,19 +163,19 @@ class fitDistrib:
 
 
         G0 = ROOT.TF1 ("G0","gaus",max-0.1,max+0.1)
-        h.Fit("G0","LMER")
+        h.Fit("G0","LMERN")
         G0.SetParameter(1,max)
         mean0=G0.GetParameter(1)
         sigma0=G0.GetParameter(2)
-        G0.Draw("samel")
+        #G0.Draw("samel")
 
         
         
         #OK !!
         G1=ROOT.TF1 ("G1","gaus",convp-0.1,convp+0.1)
         G1.SetLineColor(4)
-        h.Fit("G1","LMER")
-        G1.Draw("samel")
+        h.Fit("G1","LMERN")
+        #G1.Draw("samel")
         mean1=G1.GetParameter(1)
         sigma1=G1.GetParameter(2)
 
@@ -184,9 +184,9 @@ class fitDistrib:
 
         f1.SetParLimits(2, max-sigma0/2., max+sigma0)
         #f1.FixParameter(2, mean0)
-        h.Fit("f1","LMER")
+        h.Fit("f1","LMERN")
         f1.SetLineColor(3)
-        f1.Draw("samel")
+        #f1.Draw("samel")
         
         fsum=ROOT.TF1("fsum","gaus(0)+ (  ( exp([3]+[4]*x)*(1-exp(-x/[7]) )*(1./  (1+exp( (x-[5])/[6])  ))))",convp-0.2,max+0.2)
 
@@ -211,7 +211,7 @@ class fitDistrib:
         
         fsum.SetLineColor(2)
         fsum.SetLineWidth(4)
-        h.Fit("fsum","LMER")
+        h.Fit("fsum","LMERN")
 
         #if (fsum.GetNDF()>0):
         #    self.redChi2=fsum.GetChisquare()/fsum.GetNDF()
@@ -226,7 +226,7 @@ class fitDistrib:
 
        print("fit con doppia gaussiana")
        G0 = ROOT.TF1 ("G0","gaus",-1,1)
-       h1.Fit("G0","MEWWR")
+       h1.Fit("G0","MEWWRN")
        mean0=G0.GetParameter(1)
        sigma0=G0.GetParameter(2)
        maxH = h1.GetBinCenter( h1.GetMaximumBin())
@@ -240,7 +240,7 @@ class fitDistrib:
        G2.SetParLimits(1, mean0-sigma0/2., mean0+sigma0/2.)
        #G2.FixParameter(1)
        #G2.FixParameter(2)
-       h1.Fit("G2","MERww")
+       h1.Fit("G2","MERwwN")
          
 
        
@@ -248,7 +248,7 @@ class fitDistrib:
        G1.SetParameter(0,3.33294e+02 )
        G1.SetParameter(1, convp )
        G1.SetParameter(2, 5.30043e-02  )       
-       h1.Fit("G1","MERww")
+       h1.Fit("G1","MERwwN")
        
        
        Gsum=ROOT.TF1("Gsum","gaus(0)+gaus(3)",-0.4,0.4)
@@ -270,8 +270,8 @@ class fitDistrib:
        #Gsum.SetParLimits(5,  G2.GetParameter(2)-G2.GetParameter(2)*0.5,  G2.GetParameter(2)+ G2.GetParameter(2)*0.5)
        
        
-       h1.Fit("Gsum","LMERww")
-       Gsum.Draw("samel")
+       h1.Fit("Gsum","LMERwwN")
+       #Gsum.Draw("samel")
        if (Gsum.GetNDF()>0):
            redChi2=Gsum.GetChisquare()/Gsum.GetNDF()
            print("redChi2= ",redChi2)
@@ -295,10 +295,10 @@ class fitDistrib:
         G0 = ROOT.TF1 ("G0","gaus",maxH-0.5,+maxH+0.5)
         
         G0.SetParameter(1,maxH)
-        h.Fit("G0","LMERWW")
+        h.Fit("G0","LMERWWN")
         mean0=G0.GetParameter(1)
         sigma0=G0.GetParameter(2)
-        G0.Draw("samel")
+        #G0.Draw("samel")
         G1=ROOT.TF1 ("G1","(exp([0]+[1]*x))*(1./  (1+exp( (x-[2])/[3])  ))",convp-0.10,convp+0.05)
         G1.SetLineColor(4)
         G1.SetParameter(0, 16 )
@@ -308,20 +308,20 @@ class fitDistrib:
         G1.SetParameter(3, 0.5 )
         G1.SetParLimits(2, convp-0.03,convp+0.03 ) 
       
-        h.Fit("G1","LMERw")
-        G1.Draw("samel")
+        h.Fit("G1","LMERwN")
+        #G1.Draw("samel")
         mean1=G1.GetParameter(1)
         sigma1=G1.GetParameter(2)
-        G1.Draw("samel")
+        #G1.Draw("samel")
         
         
         f1= ROOT.TF1 ("f1","  (exp([0]+[1]*x) )*(1./  (1+exp( (x-[2])/[3])  ))", -0.5, 0.5  )
         f1.SetParameters(2.3,4, maxH-0.01,0.01)
         
       
-        h.Fit("f1","LMRWW")
+        h.Fit("f1","LMRWWN")
         f1.SetLineColor(3)
-        f1.Draw("samel")
+        #f1.Draw("samel")
 
         fsum=ROOT.TF1("fsum","  (exp([0]+[1]*x))*(1./  (1+exp( (x-[2])/[3])  ))   + (  ( exp([4]+[5]*x)*(1-exp(-x/[8]) )*(1./  (1+exp( (x-[6])/[7])  ))))",-0.4,0.4)
       
@@ -346,7 +346,7 @@ class fitDistrib:
 
 
 
-        h.Fit("fsum","LMERWW")
+        h.Fit("fsum","LMERWWN")
         if (fsum.GetNDF()>0):
            redChi2=fsum.GetChisquare()/fsum.GetNDF()
            print("redChi2= ",redChi2)
@@ -368,7 +368,7 @@ class fitDistrib:
 
         G0 = ROOT.TF1 ("G0","gaus",maxH-0.5,+maxH+0.5)
         G0.SetParameter(1,maxH)
-        h.Fit("G0","LMERWW")
+        h.Fit("G0","LMERWWN")
         mean0=G0.GetParameter(1)
         sigma0=G0.GetParameter(2)
         #G0.Draw("samel")
@@ -380,8 +380,8 @@ class fitDistrib:
         G1.SetParameter(3, 0.5 )
         G1.SetParLimits(2, convp-0.03,convp+0.03 ) 
      
-        h.Fit("G1","LMERw")
-        G1.Draw("samel")
+        h.Fit("G1","LMERwN")
+        #G1.Draw("samel")
         mean1=G1.GetParameter(1)
         sigma1=G1.GetParameter(2)
         #G1.Draw("samel")
@@ -390,7 +390,7 @@ class fitDistrib:
         f1= ROOT.TF1 ("f1","  (exp([0]+[1]*x) )*(1./  (1+exp( (x-[2])/[3])  ))", -0.5, 0.5  )
         f1.SetParameters(2.3,4, maxH-0.01,0.01)
 
-        h.Fit("f1","LMRWW")
+        h.Fit("f1","LMRWWN")
         #f1.SetLineColor(3)
         #f1.Draw("samel")
         
@@ -416,7 +416,7 @@ class fitDistrib:
         #fsum.SetParLimits(5,  f1.GetParameter(2)-f1.GetParameter(2)*0.9,  f1.GetParameter(2)+ f1.GetParameter(2)*0.9)
         
         
-        h.Fit("fsum","LMERWW")
+        h.Fit("fsum","LMERWWN")
         if (fsum.GetNDF()>0):
            redChi2=fsum.GetChisquare()/fsum.GetNDF()
            print("redChi2= ",redChi2)
@@ -438,7 +438,7 @@ class fitDistrib:
 
         G0 = ROOT.TF1 ("G0","gaus",maxH-0.5,+maxH+0.5)
         G0.SetParameter(1,maxH)
-        h.Fit("G0","LMERWW")
+        h.Fit("G0","LMERWWN")
         mean0=G0.GetParameter(1)
         sigma0=G0.GetParameter(2)
         #G0.Draw("samel")
@@ -453,14 +453,14 @@ class fitDistrib:
         G1.SetParameter(3, 0.5 )
         G1.SetParLimits(2, convp-0.03,convp+0.03 ) 
        
-        h.Fit("G1","LMERw")
+        h.Fit("G1","LMERwN")
         mean1=G1.GetParameter(1)
         sigma1=G1.GetParameter(2)
         #G1.Draw("samel")
         
         f1= ROOT.TF1 ("f1","  (exp([0]+[1]*x) )*(1./  (1+exp( (x-[2])/[3])  ))", -0.5, 0.5  )
         f1.SetParameters(2.3,4, maxH-0.01,0.01)
-        h.Fit("f1","LMRWW")
+        h.Fit("f1","LMRWWN")
         #f1.SetLineColor(3)
         #f1.Draw("samel")
 
@@ -477,7 +477,7 @@ class fitDistrib:
         fsum.SetParameter(7, 0.1)
         
         #fsum.SetLineWidth(4)
-        h.Fit("fsum","LMERWW")
+        h.Fit("fsum","LMERWWN")
         if (fsum.GetNDF()>0):
            redChi2=fsum.GetChisquare()/fsum.GetNDF()
            print("redChi2= ",redChi2)

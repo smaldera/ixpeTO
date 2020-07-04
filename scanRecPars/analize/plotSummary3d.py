@@ -1,10 +1,14 @@
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib as mpl
 
 
 from readSummaryData import *
+
+mpl.rcParams['grid.linestyle'] = ":"
+mpl.rcParams['axes.grid'] = True
+mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # spostare da qualche parte....
@@ -30,6 +34,17 @@ def unique_everseen(seq, key=None):
 
 
 
+def unisci_phi(energy, phi1,phi2):   # tutti np.array
+
+    final=np.zeros(len(energy))
+    
+    for i in range (0,len(energy)):
+        if energy[i]<3:
+            final[i]=phi1[i]
+        else:    
+            final[i]=phi2[i]
+            
+    return final        
 
 
 
@@ -41,22 +56,25 @@ def plot_Dmin(data1Dmin,data2wsDmin, data3d, base_dir):
     eMC = np.array( [2.01, 2.29, 2.70, 2.98, 3.69, 4.00, 4.50, 5.00, 6.00, 6.40, 7.00, 8.00])## energy keV
     dminMC = np.array([0.3, 0.3, 0.7, 0.7, 1.7, 2.0, 2.1, 2.1, 1.9, 1.9, 1.8, 1.7])## dmin best
 
-    plt.figure(1)                     
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.14, right=0.97, top=0.9, bottom=0.09,hspace=0.250)
     ax1=plt.subplot(111)
     ax1.set_title('best dmin')
 
     #scan 1d
-    plt.errorbar(data1Dmin.energy,data1Dmin.best_val, fmt='bo',label='best dmin')
+    plt.errorbar(data1Dmin.energy,data1Dmin.best_val, fmt='bo',label='1D scan')
     ax1.fill_between(data1Dmin.energy,data1Dmin.best_val_low, data1Dmin.best_val_up,color='gray',alpha=0.1, interpolate=True)
 
+    
+    ax1.axhline(y=1.5,label='standard_value', linestyle='--',alpha=0.5)
+
     #scan 2d
-    #ax1.axhline(y=1.5,label='standard_value', linestyle='--',alpha=0.5)
     #plt.errorbar(data2wsDmin.energy,data2wsDmin.best_var1, fmt='ro',label='best dmin 2d scan')
     #ax1.fill_between(data2wsDmin.energy,data2wsDmin.best_var1_low, data2wsDmin.best_var1_up,color='red',alpha=0.1, interpolate=True)
 
     #scan3s=d
-    plt.errorbar(data3d.energy,data3d.best_var1, fmt='go',label='3d scan')
-    ax1.fill_between(data3d.energy,data3d.best_var1_low, data3d.best_var1_up,color='green',alpha=0.1, interpolate=True)
+    plt.errorbar(data3d.energy,data3d.best_var1, fmt='ro',label='3D scan')
+    ax1.fill_between(data3d.energy,data3d.best_var1_low, data3d.best_var1_up,color='red',alpha=0.2, interpolate=True)
 
 
 
@@ -76,7 +94,7 @@ def plot_Dmin(data1Dmin,data2wsDmin, data3d, base_dir):
     y=(p0*(1./(  np.exp(  -(x-p1)/p2) +1. )    )   +0.2) * (  (1.-p5)/(np.exp( (x-p3)/p4)+1) +p5  )
 
 
-    plt.plot(x,y, label='parametrization')
+   # plt.plot(x,y, label='parametrization')
 
     plt.xlim(1,7)
     plt.xlabel('energy [KeV]')
@@ -84,7 +102,7 @@ def plot_Dmin(data1Dmin,data2wsDmin, data3d, base_dir):
     plt.legend(loc='lower right')
     #reorderLegend(ax1,['best dmin',r'1$\sigma$ band' ,'best dmin 2d scan', r'1$\sigma$ band 2d scan',  'best dmin MC', 'standard_value' ])
     #reorderLegend(ax1,['best dmin','best dmin 2d scan','3d scan' , 'best dmin MC', 'standard_value' ])
-
+   # reorderLegend(ax1,['1D scan', '3D scan','standard_value'])
     outfilePlot=base_dir+'Dmin_scanSummary.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
@@ -102,10 +120,12 @@ def  plot_Ws(data1Dmin,data2wsDmin, data3d, base_dir):
     wsMC = np.array([0.16, 0.20, 0.14, 0.19, 0.14, 0.04, 0.03, 0.03])#ws best -> weight scale
 
 
-    plt.figure(2)                     
+    
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.14, right=0.97, top=0.9, bottom=0.09,hspace=0.250)
     ax2=plt.subplot(111)
     ax2.set_title('best weight scale')
-    plt.errorbar(data1ws.energy,data1ws.best_val, fmt='bo',label='best ws')
+    plt.errorbar(data1ws.energy,data1ws.best_val, fmt='bo',label='1D scan')
     #ax2.fill_between(data1ws.energy,data1ws.best_val_low, data1ws.best_val_up,color='gray',alpha=0.1, interpolate=True,label=r'1$\sigma$ band')
     ax2.fill_between(data1ws.energy,data1ws.best_val_low, data1ws.best_val_up,color='gray',alpha=0.1, interpolate=True)
 
@@ -117,8 +137,8 @@ def  plot_Ws(data1Dmin,data2wsDmin, data3d, base_dir):
     #ax2.fill_between(data2wsDmin.energy,data2wsDmin.best_var2_low, data2wsDmin.best_var2_up,color='red',alpha=0.1, interpolate=True   )
 
     #scan3d
-    plt.errorbar(data3d.energy,data3d.best_var2, fmt='go',label='3d scan')
-    ax2.fill_between(data3d.energy,data3d.best_var2_low, data3d.best_var2_up,color='green',alpha=0.1, interpolate=True)
+    plt.errorbar(data3d.energy,data3d.best_var2, fmt='ro',label='3D scan')
+    ax2.fill_between(data3d.energy,data3d.best_var2_low, data3d.best_var2_up,color='red',alpha=0.2, interpolate=True)
 
     #plot MC old
     #plt.plot(eMC_ws,wsMC,'ko',mfc='none',markersize=10, label='best ws MC')
@@ -135,7 +155,7 @@ def  plot_Ws(data1Dmin,data2wsDmin, data3d, base_dir):
 
     y2=( p0*(1.-p1)/(np.exp( (x-p2)/p3)+1) +p1  )  *  (( ( 1-p4) / ( np.exp( -(x-p5)/p6) +1. ))+p4)  
     
-    plt.plot(x,y2, label='parametrization')
+   # plt.plot(x,y2, label='parametrization')
 
     plt.xlim(1,7)
     plt.xlabel('energy [KeV]')
@@ -143,7 +163,7 @@ def  plot_Ws(data1Dmin,data2wsDmin, data3d, base_dir):
     plt.legend()
     
     #reorderLegend(ax2,['best ws','best ws 2d scan', '3d scan',  'best ws MC', 'standard_value' ])
-
+    reorderLegend(ax2,['1D scan', '3D scan','standard_value'])
     outfilePlot=base_dir+'ws_scanSummary.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
@@ -191,10 +211,12 @@ def plot_Moma1(data1Dmin,data2wsDmin, data3d, base_dir):
     # dati scan MC(s.castellano)
     moma1MC =np.array( [22,28,34,32,22,20,20])#moma1 best (energie tue senza aggiunte)
 
-    plt.figure(5)                     
+   
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.14, right=0.97, top=0.9, bottom=0.09,hspace=0.250)
     ax5=plt.subplot(111)
     ax5.set_title('best moma1')
-    plt.errorbar(data1Moma1.energy,data1Moma1.best_val, fmt='bo',label='best Moma1')
+    plt.errorbar(data1Moma1.energy,data1Moma1.best_val, fmt='bo',label='1D scan')
     ax5.fill_between(data1Moma1.energy,data1Moma1.best_val_low, data1Moma1.best_val_up,color='gray',alpha=0.1, interpolate=True)
     ax5.axhline(y=36,label='standard_value', linestyle='--',alpha=0.5)
 
@@ -206,8 +228,8 @@ def plot_Moma1(data1Dmin,data2wsDmin, data3d, base_dir):
 
 
     #scan 3d
-    plt.errorbar(data3d.energy,data3d.best_var3, fmt='go',label='3d scan')
-    ax5.fill_between(data3d.energy,data3d.best_var3_low, data3d.best_var3_up,color='green',alpha=0.1, interpolate=True)
+    plt.errorbar(data3d.energy,data3d.best_var3, fmt='ro',label='3D scan')
+    ax5.fill_between(data3d.energy,data3d.best_var3_low, data3d.best_var3_up,color='red',alpha=0.2, interpolate=True)
 
 
     # parametrizzazione
@@ -219,14 +241,14 @@ def plot_Moma1(data1Dmin,data2wsDmin, data3d, base_dir):
 
     y3=  (p0-p1)/(np.exp( (x-p2)/p3)+1) +p1 
 
-    plt.plot(x,y3, label='parametrization')
+ #   plt.plot(x,y3, label='parametrization')
 
     
     plt.xlim(1,7)
     plt.xlabel('energy [KeV]')
     plt.ylabel('best moma1')
     plt.legend()
-    reorderLegend(ax5,['best Moma1', 'best moma1(2) 2D scan','3d scan', 'standard_value','parametrization' ])
+    reorderLegend(ax5,['1D scan', '3D scan','standard_value'])
 
 
     outfilePlot=base_dir+'moma1_scanSummary.png'
@@ -299,26 +321,30 @@ def plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
 
     # PLOT modulation factor
 
-    plt.figure(3)
+   
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.093, right=0.97, top=0.90, bottom=0.09,hspace=0.34,wspace=0.255)
     ax3=plt.subplot(111)
+    
     plt.grid(True,linestyle=':', color='grey') 
 
     ax3.set_title('modPhi2best/ max(modPhi1std,modPhi2std)')
-    plt.errorbar(data1ws.energy,data1ws.mod2/(np.maximum(data1ws.mod2std,data1ws.mod1std)), fmt='bo',label='scan ws')
-    plt.errorbar(data1Dmin.energy,data1Dmin.mod2/(np.maximum(data1Dmin.mod2std,data1Dmin.mod1std)), fmt='ro',label='scan dmin')
-    plt.errorbar(data2wsDmin.energy,data2wsDmin.mod2/(np.maximum(data2wsDmin.mod2std,data2wsDmin.mod1std)), fmt='ko',label='scan dmin-ws')
+    plt.errorbar(data1ws.energy,data1ws.mod2/(np.maximum(data1ws.mod2std,data1ws.mod1std)), fmt='bo-',label='scan ws')
+    plt.errorbar(data1Dmin.energy,data1Dmin.mod2/(np.maximum(data1Dmin.mod2std,data1Dmin.mod1std)), fmt='ro-',label='scan dmin')
+  #  plt.errorbar(data2wsDmin.energy,data2wsDmin.mod2/(np.maximum(data2wsDmin.mod2std,data2wsDmin.mod1std)), fmt='ko',label='scan dmin-ws')
 
-    #plt.errorbar(data1ZeroThr.energy, (np.maximum(data1ZeroThr.mod2, data1ZeroThr.mod1 ))/(np.maximum(data1ZeroThr.mod2std,data1ZeroThr.mod1std)), fmt='go',label='scan clustering thr (max mo1d mod2)')
-    #plt.errorbar(data1Moma1.energy,(np.maximum(data1Moma1.mod2,data1Moma1.mod1  ))/(np.maximum(data1Moma1.mod2std,data1Moma1.mod1std)), fmt='bs',label='scan moma1 thr  (max mod1 mod2)')
-    #plt.errorbar(data1Moma2.energy,data1Moma2.mod2/(np.maximum(data1Moma2.mod2std,data1Moma2.mod1std)), fmt='rs',label='scan moma2 thr')
-    #plt.errorbar(data1Dmax.energy,data1Dmax.mod2/(np.maximum(data1Dmax.mod2std,data1Dmax.mod1std)), fmt='r*',label='scan dmax')
+    #plt.errorbar(data1ZeroThr.energy, (np.maximum(data1ZeroThr.mod2, data1ZeroThr.mod1 ))/(np.maximum(data1ZeroThr.mod2std,data1ZeroThr.mod1std)), fmt='go-',label='scan clustering thr (max mo1d mod2)')
+    plt.errorbar(data1Moma1.energy,(np.maximum(data1Moma1.mod2,data1Moma1.mod1  ))/(np.maximum(data1Moma1.mod2std,data1Moma1.mod1std)), fmt='mo-',label='scan moma1 thr')
+    
+    plt.errorbar(data1Moma2.energy,data1Moma2.mod2/(np.maximum(data1Moma2.mod2std,data1Moma2.mod1std)), fmt='ko-',label='scan moma2 thr')
+    plt.errorbar(data1Dmax.energy,data1Dmax.mod2/(np.maximum(data1Dmax.mod2std,data1Dmax.mod1std)), fmt='go-',label='scan dmax')
 
     #plt.errorbar(data2zeroMoma.energy,(np.maximum(data2zeroMoma.mod2,data2zeroMoma.mod1 ))/(np.maximum(data2zeroMoma.mod2std,data2zeroMoma.mod1std)), fmt='kP',label='scan zero-moma12  (max mod1 mod2)  ')
 
 
-    plt.errorbar(data3d.energy,data3d.mod2/np.maximum(data3d.mod2std,data3d.mod1std), fmt='mo',label='scan 3D Dmin-Ws - moma1,2  ')
+    #plt.errorbar(data3d.energy,data3d.mod2/np.maximum(data3d.mod2std,data3d.mod1std), fmt='mo',label='scan 3D Dmin-Ws - moma1,2  ')
 
-    plt.errorbar(dataBest.energy,dataBest.mod2/np.maximum(dataBest.mod2std,dataBest.mod1std), fmt='mP--',label='scan Dmin-Ws - moma1,2 - NEW DATA  ')
+  #  plt.errorbar(dataBest.energy,dataBest.mod2/np.maximum(dataBest.mod2std,dataBest.mod1std), fmt='mP--',label='scan Dmin-Ws - moma1,2 - NEW DATA  ')
     #plt.errorbar(dataBest.energy,dataBest.mod1/np.maximum(dataBest.mod2std,dataBest.mod1std), fmt='m*--',label='scan Dmin-Ws - moma1,2 - PHI1   NEW DATA  ')
 
     plt.xlabel('energy [KeV]')
@@ -328,14 +354,70 @@ def plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
 
+###################################33
+
+
+def plot_ModulationAll(data1Dmin,data2wsDmin, data3d, dataBest, dataBest_para, dataBest_reconPara,   base_dir):
+
+     
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.093, right=0.97, top=0.90, bottom=0.09,hspace=0.34,wspace=0.255)
+    ax=plt.subplot(111)
+    plt.grid(True,linestyle=':', color='grey') 
+    ax.set_title('mod Phi2 best/ (mod. std - phi1@E<3KeV, phi2@E>3KeV)')
+
+    mod_stdAll=unisci_phi(dataBest.energy,dataBest.mod1std,dataBest.mod2std)
+
+    mod_stdAll_scan=unisci_phi(data3d.energy,data3d.mod1std,data3d.mod2std)
+ 
+    
+    
+    plt.errorbar(data3d.energy,data3d.mod2/ mod_stdAll_scan, fmt='ko',label='scan 3D- exact values -  same data as scan', alpha=0.5)
+ 
+    plt.errorbar(dataBest.energy,dataBest.mod2/ mod_stdAll, fmt='bo',label='scan 3D - exact values  ')
+    #plt.errorbar(dataBest_para.energy,dataBest_para.mod2/ mod_stdAll, fmt='bo',label='scan 3D - Etrue parametrization  ')
+    
+    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2/ mod_stdAll, fmt='ro--',label='scan 3D - PHA parametrization  ')
+    
+    plt.xlabel('energy [KeV]')
+    plt.ylabel('mod Phi2_best/ mod. std')
+
+    plt.legend()
+    outfilePlot=base_dir+'modComparisonAll.png'
+    print ("outFile png =",outfilePlot)
+    plt.savefig(outfilePlot)               
+
+    ###################
+    # plot phi1-phi2
+  
+    fig=plt.figure(figsize=(10,8))
+    fig.subplots_adjust(left=0.085, right=0.97, top=0.95, bottom=0.09,hspace=0.34,wspace=0.255)
+    ax=plt.subplot(111)
+    plt.grid(True,linestyle=':', color='grey') 
+    ax.set_title('modulation factor')
+
+    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2/dataBest_reconPara.mod2std, fmt='ro--',label='phi2 best/ phi2 std  ')
+    
+    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2/dataBest_reconPara.mod1std, fmt='bo--',label='phi2 best/ phi1 std  ')
+
+    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2std/dataBest_reconPara.mod1std, fmt='go--',label='phi2 std/ phi1 std  ')
+    plt.xlabel('energy [KeV]')
+    plt.legend()
+    outfilePlot=base_dir+'modComparisonPhi1_Phi2.png'
+    print ("outFile png =",outfilePlot)
+    plt.savefig(outfilePlot)               
+
+    
+    
 ########################
-def plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
+def plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest,dataBest_reconPara ,  base_dir):
    
 
    # fare con dataset indipendente!!!!!!!!!!!!!!!!!!!!!! TO DO
     
     # plot phase best-std
-    plt.figure(8)
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.093, right=0.97, top=0.90, bottom=0.09,hspace=0.34,wspace=0.255)
     ax8=plt.subplot(111)
     plt.grid(True,linestyle=':', color='grey') 
 
@@ -350,13 +432,35 @@ def plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
 
     #plt.errorbar(data3d.energy,delta2,yerr=delta2_err, fmt='bo',label='delta phase2')
     #plt.errorbar(data3d.energy, delta1,yerr=delta1_err, fmt='ro',label='delta phase1')
-    plt.errorbar(data3d.energy,data3d.phase2std ,yerr=data3d.phase2std_err, fmt='ro',label='phase2 std')
-    plt.errorbar(data3d.energy,data3d.phase2 ,yerr=data3d.phase2_err, fmt='bo',label='phase2 best')
+
+    phase_std=unisci_phi(dataBest_reconPara.energy,dataBest_reconPara.phase1std,dataBest_reconPara.phase2std)
+    phase_std_err=unisci_phi(dataBest_reconPara.energy,dataBest_reconPara.phase1std_err,dataBest_reconPara.phase2std_err)
+    
+    
+    plt.errorbar(dataBest_reconPara.energy,  phase_std  ,yerr=phase_std_err, fmt='ro',label='std')
+
+    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.phase2 ,yerr=dataBest_reconPara.phase2_err, fmt='bo',label='PHA parametrization')
 
 
     plt.xlabel('energy [KeV]')
     plt.ylabel('phase [deg]')
     plt.legend()
+
+    outfilePlot=base_dir+'Phase.png'
+    print ("outFile png =",outfilePlot)
+    plt.savefig(outfilePlot)
+
+
+    fig=plt.figure(figsize=(10,7))
+    fig.subplots_adjust(left=0.093, right=0.97, top=0.90, bottom=0.09,hspace=0.34,wspace=0.255)
+    ax9=plt.subplot(111)
+    plt.grid(True,linestyle=':', color='grey') 
+    ax9.set_title('phase best - phase std')
+
+    plt.errorbar(dataBest_reconPara.energy, dataBest_reconPara.phase2- phase_std,   fmt='ro')
+
+
+    
     outfilePlot=base_dir+'deltaPhase.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
@@ -445,8 +549,11 @@ def creaRootFiles(data1Dmin,data2wsDmin, data3d,dataBest, base_dir):
 
 
 def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
+    mpl.rcParams['font.size']=14  #!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     
-    plt.figure()
+    fig=plt.figure(figsize=(10,8))
+    fig.subplots_adjust(left=0.085, right=0.97, top=0.95, bottom=0.09,hspace=0.34,wspace=0.255)
 
     x=dataBest.pha
     xPara=np.linspace(6000,20000,100)
@@ -454,9 +561,10 @@ def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
     plt.grid(True,linestyle=':', color='grey') 
     #moma12 
     ax=plt.subplot(221)
-    ax.set_title('moma1,2')
-    plt.errorbar(x,data3d.best_var3, fmt='go',label='3d scan')
-    ax.fill_between(x,data3d.best_var3_low, data3d.best_var3_up,color='green',alpha=0.1, interpolate=True)
+    ax.set_title('moma1,2 threshold')
+    plt.errorbar(x,data3d.best_var3, fmt='ro',label='3d scan')
+    ax.fill_between(x,data3d.best_var3_low, data3d.best_var3_up,color='red',alpha=0.1, interpolate=True)
+    ax.axhline(y=36,label='standard_value', linestyle='--',alpha=0.5)
     #parametrizzazione:
     p0= 36
     p1=20
@@ -466,7 +574,9 @@ def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
     y3=  (p0-p1)/(np.exp( (xPara-p2)/p3)+1) +p1 
 
     plt.plot(xPara,y3, label='parametrization')
-
+    plt.xlabel('pha',x=0.9)
+    plt.ylabel('moma threshold')
+    plt.legend(loc='upper right')
 
 
 
@@ -474,8 +584,10 @@ def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
     #Dmin 
     ax=plt.subplot(222)
     ax.set_title('Dmin')
-    plt.errorbar(x,data3d.best_var1, fmt='go',label='3d scan')
-    ax.fill_between(x,data3d.best_var1_low, data3d.best_var1_up,color='green',alpha=0.1, interpolate=True)
+    
+    ax.axhline(y=1.5,label='standard_value', linestyle='--',alpha=0.5)
+    plt.errorbar(x,data3d.best_var1, fmt='ro',label='3d scan')
+    ax.fill_between(x,data3d.best_var1_low, data3d.best_var1_up,color='red',alpha=0.1, interpolate=True)
 
     p0=1.5406
     p1=8107.25
@@ -488,15 +600,21 @@ def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
 
 
     plt.plot(xPara,y, label='parametrization')
+   
+    plt.xlabel('pha',x=0.9)
+    plt.ylabel('Dmin')
+    plt.legend()
 
  
 
     
     #Ws 
     ax=plt.subplot(223)
-    ax.set_title('Ws')
-    plt.errorbar(x,data3d.best_var2, fmt='go',label='3d scan')
-    ax.fill_between(x,data3d.best_var2_low, data3d.best_var2_up,color='green',alpha=0.1, interpolate=True)
+    ax.set_title('Weight scale')
+    plt.errorbar(x,data3d.best_var2, fmt='ro',label='3d scan')
+    ax.fill_between(x,data3d.best_var2_low, data3d.best_var2_up,color='red',alpha=0.1, interpolate=True)
+
+    ax.axhline(y=0.05,label='standard_value', linestyle='--',alpha=0.5)
 
     p0=0.352
     p1=0.03
@@ -509,18 +627,22 @@ def plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest,  base_dir):
     y= ((p0-p1)/(np.exp( (xPara-p2)/p3)+1) +p1  ) *  (( ( 1-p4) / ( np.exp( -(xPara-p5)/p6) +1. ))+p4)
 
     plt.plot(xPara,y, label='parametrization')
- 
+    plt.xlabel('pha',x=0.9)
+    plt.ylabel('ws')
+    plt.legend()
 
-
+    
     
     
     #ratio vs E
-    ax=plt.subplot(224)
-    ax.set_title('PHA/Energy vs E ')
-    plt.errorbar(data3d.energy, dataBest.pha/dataBest.energy , fmt='go',label='')
+   # ax=plt.subplot(224)
+    #ax.set_title('PHA/Energy vs E ')
+    #plt.errorbar(data3d.energy, dataBest.pha/dataBest.energy , fmt='go',label='')
    
 
-
+    outfilePlot=base_dir+'pha_parametrization.png'
+    print ("outFile png =",outfilePlot)
+    plt.savefig(outfilePlot)
     
     
     
@@ -553,7 +675,8 @@ data3d=readData3d('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/r
 # data set indipendente!!
 dataBest=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_v2.txt', version=2)
 
-
+dataBest_para=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_para_v2.txt', version=2)
+dataBest_reconPara=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixperecon_para_v2.txt', version=2)
 
 
 ######################
@@ -591,19 +714,19 @@ print("E=",data3d.energy)
 
 
 
-#plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
+plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
 
 
-#plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
+#plot_Phase(data1Dmin,data2wsDmin, data3d, dataBest,dataBest_reconPara, base_dir)
 
-creaRootFiles(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
-
-
-
-plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
+#creaRootFiles(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
 
 
 
+#plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
+
+
+#plot_ModulationAll(data1Dmin,data2wsDmin, data3d, dataBest, dataBest_para, dataBest_reconPara,   base_dir)
 
 
 plt.show()
