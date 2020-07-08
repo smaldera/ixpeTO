@@ -229,7 +229,10 @@ def plot_all(baseRec1,outdir,LWfolder):
 
     #title='energy= '+str(dict_energy[folder])+' KeV  (folder '+folder+')' 
     title=LWfolder 
-  
+
+
+    print("out_dir=",outdir)
+    
     ##################
     # create plots
     ##################
@@ -272,145 +275,67 @@ def plot_all(baseRec1,outdir,LWfolder):
     #hist2d_res.fill(x, y,weights=baseRec1.dict_rec['resolution2'])
     #hist2d_nev.fill(x, y,weights=nphys/nraw)
 
-    
-    
-    #sample=(x,y)
-    #data = np.vstack(sample).T
-    #print ("DATA=",data.shape[0], "LEN wheights = ",len(z))
-
    
+
     #fig=plt.figure(figsize=(20,10))
     fig=plt.figure(figsize=(18,12))
-    
     fig.suptitle(title, fontsize=16)
-    fig.subplots_adjust(left=0.04,right=0.96, top=0.92, bottom=0.05,hspace=0.250,wspace=0.28)
+    fig.subplots_adjust(left=0.05,right=0.95, top=0.92, bottom=0.05,hspace=0.250,wspace=0.28)
 
 
     # PLOT mod phi2
-    ax = fig.add_subplot(331)
-  
+    ax = fig.add_subplot(221)
     hist2d_mod2.plot(cmin=1e-10)
-    # tentativo di scrivere il  valore del bin... bisogna capire come prendere i valori dall'ixpe2dhisto
-    #for i in range(len(y_edges)-1):
-    #    for j in range(len(x_edges)-1):
-    #        ax.text(x_edges[j]+0.5,y_edges[i]+0.5, hist2d_mod2[i,j], color="w", ha="center", va="center", fontweight="bold")
-
-    
-    if baseRec1.best_phi==2:
-        ax.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='best values')
-        ax.plot(x[std_index], y[std_index], marker='o', markersize=10, color='c', label='std values')
-       
-        rect3=  patches.Rectangle(       (baseRec1.min_x, baseRec1.min_y),   baseRec1.max_x-baseRec1.min_x,    baseRec1.max_y-baseRec1.min_y  ,    facecolor='grey', edgecolor='none',alpha=0.1 )
-        #                                 (x,y)                                                    width                                height
-        ax.add_patch(rect3)
+    ax.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='best values')
+    ax.plot(x[std_index], y[std_index], marker='o', markersize=10, color='c', label='std values')
+     
+    rect3=  patches.Rectangle(       (baseRec1.min_x, baseRec1.min_y),   baseRec1.max_x-baseRec1.min_x,    baseRec1.max_y-baseRec1.min_y  ,    facecolor='grey', edgecolor='none',alpha=0.1 )
+    #                                 (x,y)                                                    width                                height
+    ax.add_patch(rect3)
     #plt.legend(loc='lower right')
     plt.legend(loc='upper left')
    
     
-    # PLOT  mod_2 vs zero threshold
-    ax2=plt.subplot(332)
+    # PLOT  mod_2 vs dmin
+    ax2=plt.subplot(223)
     ax2.set_title('modulation phi_2')
 
     cmap = cm.autumn
     plt.errorbar(x,z,yerr=z_err,fmt='bo',label="modulation phi2")
-    if baseRec1.best_phi==2:
-        ax2.errorbar(x[baseRec1.best_index],z[baseRec1.best_index],yerr=z_err[baseRec1.best_index],marker='o', markersize=10, color='m', label='best_values')
-        ax2.plot(x[std_index], z[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)      
-        ax2.set_xlim(min(x)-var1_padding,max(x)+var2_padding)
-        #plt.colorbar()
-        ax2.add_patch(rect)
+    ax2.errorbar(x[baseRec1.best_index],z[baseRec1.best_index],yerr=z_err[baseRec1.best_index],marker='o', markersize=10, color='m', label='best_values')
+    ax2.plot(x[std_index], z[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)      
+    ax2.set_xlim(min(x)-var1_padding,max(x)+var2_padding)
+    ax2.add_patch(rect)
 
     plt.xlabel(var1)
     plt.ylabel('modulation_2')
     plt.legend(loc='lower right')
  
-     # PLOT  mod_2 vs zero threshold
-    ax3=plt.subplot(333)
+     # PLOT  mod_2 vs ws
+    ax3=plt.subplot(224)
     ax3.set_title('modulation phi_2')
     plt.errorbar(y,z,yerr=z_err, fmt='bo',label="modulation phi2")
     plt.xlabel(var2)
     plt.ylabel('modulation_2')
-    if baseRec1.best_phi==2:
-        ax3.errorbar(y[baseRec1.best_index],z[baseRec1.best_index],yerr=z_err[baseRec1.best_index],marker='o', markersize=10, color='m', label='max mod1')
-        ax3.plot(y[std_index], z[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10 )
-        ax3.set_xlim(min(y)-var2_padding,max(y)+var2_padding)   
-        ax3.add_patch(rect2)
+    
+    ax3.errorbar(y[baseRec1.best_index],z[baseRec1.best_index],yerr=z_err[baseRec1.best_index],marker='o', markersize=10, color='m', label='max mod2')
+    ax3.plot(y[std_index], z[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10 )
+    ax3.set_xlim(min(y)-var2_padding,max(y)+var2_padding)   
+    ax3.add_patch(rect2)
     plt.legend(loc='lower right')   
-    #####
-    # PLOT mod 1
-
-    ax4 = fig.add_subplot(334)
-    hist2d_mod1.plot(cmin=1e-10)
-    if baseRec1.best_phi==1:
-        
-        ax4.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='max mod1')
-        ax4.plot(x[std_index], y[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)
-       
-        rect3=  patches.Rectangle(       (baseRec1.min_x, baseRec1.min_y),   baseRec1.max_x-baseRec1.min_x,    baseRec1.max_y-baseRec1.min_y  ,    facecolor='grey', edgecolor='none',alpha=0.1 )
-        #                                 (x,y)                                                    width                                height
-        ax4.add_patch(rect3)
-    plt.legend(loc='lower right')   
-    # PLOT  mod_2 vs zero threshold
-    ax5=plt.subplot(335)
- #   ax5.set_title('modulation phi_2')
-    cmap = cm.autumn
-    plt.errorbar(x,z1,yerr=z1_err,fmt='bo',label="modulation phi2")
-    if baseRec1.best_phi==1:
-        ax5.errorbar(x[baseRec1.best_index],z1[baseRec1.best_index],yerr=z1_err[baseRec1.best_index],marker='o', markersize=10, color='m', label='max mod1')
-        ax5.plot(x[std_index], z1[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10 )
-        ax5.set_xlim(min(x)-var1_padding,max(x)+var1_padding)
-        #plt.colorbar()
-        ax5.add_patch(rect)
-
-    plt.xlabel(var1)
-    plt.ylabel('modulation_2')
-    plt.legend(loc='lower right')
-     # PLOT  mod_2 vs zero threshold
-    ax6=plt.subplot(336)
-    #ax6.set_title('modulation phi_2')
-    plt.errorbar(y,z1,yerr=z1_err, fmt='bo',label="modulation phi1")
-    plt.xlabel(var2)
-    plt.ylabel('modulation_2')
-    if baseRec1.best_phi==1:
-        ax6.errorbar(y[baseRec1.best_index],z1[baseRec1.best_index],yerr=z1_err[baseRec1.best_index],marker='o', markersize=10, color='m', label='max mod1')
-        ax6.plot(y[std_index], z1[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)
-       
-        ax6.set_xlim(min(y)-var2_padding,max(y)+var2_padding)
-        ax6.add_patch(rect2)
-    plt.legend(loc='lower right')    
-   # riga 3
+   
+   
    # PLOT  chi2
-    ax7=plt.subplot(337)
+    ax7=plt.subplot(222)
     plt.ylabel('modulation_2')
-    if baseRec1.best_phi==1:
-         hist2d_chi2mod1.plot(cmin=1e-10,cmax=10)
-         
-         #ax7.set_title('chi2  phi_1')
-           
-    if baseRec1.best_phi==2:
-         hist2d_chi2mod2.plot(cmin=1e-10,cmax=10)
-         #ax7.set_title('chi2  phi_2')
-    ax7.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='max mod1')
+    hist2d_chi2mod2.plot(cmin=1e-10,cmax=10)
+    ax7.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='max mod2')
     ax7.plot(x[std_index], y[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)
     plt.legend(loc='lower right')   
+    
 
-    ## PLOT  resolution
-    #ax8=plt.subplot(338)    
-    #plt.ylabel('resolution FWHM')
-    #hist2d_res.plot(cmin=1e-10)
-    #ax8.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='max mod1')
-    #ax8.plot(x[std_index], y[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)
-    #plt.legend(loc='lower right')    
-     
-   # PLOT  n events
-#    ax9=plt.subplot(339)    
-#    plt.ylabel('n_raw/n_physical')
-#    hist2d_nev.plot(cmin=1e-10)
-#    ax9.plot(x[baseRec1.best_index], y[baseRec1.best_index], marker='o', markersize=10, color='m', label='max mod1')
-#    ax9.plot(x[std_index], y[std_index], marker='o', markersize=10, color='c', label='std values', zorder=10)
-#    plt.legend(loc='lower right')          
-    #outfilePlot=out_dir+'scan_summary.png'
 
+   
     outfilePlot=outdir+'scan_summary.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)
@@ -456,35 +381,40 @@ def plot_all(baseRec1,outdir,LWfolder):
         plt.axvline(x=std_value2,label='standard_value', linestyle='--',alpha=0.5)
         plt.plot(y[baseRec1.best_index], z[baseRec1.best_index], marker='o', markersize=10,mfc='none', color='k', label='best values',zorder=10)
     plt.legend( bbox_to_anchor=(leg_x, leg_y ) )
-   
+
+
+    
     ax_all3=plt.subplot(223)
-    ax_all3.set_title("mod. factor phi1 vs "+var1)
+    ax_all3.set_title("phase phi2  vs "+var1)
     plt.xlabel(var1)
-    plt.errorbar(x,z1,yerr=z1_err, fmt='o',label=LW_folder )
-    plt.plot(x[baseRec1.best_index], z1[baseRec1.best_index], marker='o',mfc='none', markersize=10, color='k',zorder=10)
+    plt.errorbar(x,  baseRec1.phase2   ,yerr= baseRec1.phase2_err, fmt='o',label=LW_folder )
+    plt.plot(x[baseRec1.best_index],  baseRec1.phase2 [baseRec1.best_index], marker='o',mfc='none', markersize=10, color='k',zorder=10)
     if n_iter_folders==1:
           plt.axvline(x=std_value1,label='standard_value', linestyle='--',alpha=0.5)
-          plt.plot(x[baseRec1.best_index], z1[baseRec1.best_index], marker='o', markersize=10,mfc='none',   color='k', label='best values',zorder=10)
+          plt.plot(x[baseRec1.best_index],  baseRec1.phase2[baseRec1.best_index], marker='o', markersize=10,mfc='none',   color='k', label='best values',zorder=10)
     
     plt.legend( bbox_to_anchor=(leg_x, leg_y ) )
+    
+    
 
+    
     ax_all4=plt.subplot(224)
-    ax_all4.set_title("mod. factor phi1 vs "+var2)
-    plt.errorbar(y,z1,yerr=z1_err, fmt='o',label=LW_folder )
+    ax_all4.set_title("phase  phi2 vs "+var2)
+    plt.errorbar(y,  baseRec1.phase2  ,yerr= baseRec1.phase2_err, fmt='o',label=LW_folder )
     plt.xlabel(var2)
-    plt.plot(y[baseRec1.best_index], z1[baseRec1.best_index], marker='o',mfc='none',  markersize=10, color='k', zorder=10)
+    plt.plot(y[baseRec1.best_index], baseRec1.phase2[baseRec1.best_index], marker='o',mfc='none',  markersize=10, color='k', zorder=10)
     if n_iter_folders==1:
         plt.axvline(x=std_value2,label='standard_value', linestyle='--',alpha=0.5)
-        plt.plot(y[baseRec1.best_index], z1[baseRec1.best_index], marker='o',mfc='none', markersize=10, color='k', label='best values',zorder=10)
+        plt.plot(y[baseRec1.best_index], baseRec1.phase2[baseRec1.best_index], marker='o',mfc='none', markersize=10, color='k', label='best values',zorder=10)
     
     plt.legend( bbox_to_anchor=(leg_x, leg_y ) )
    # plt.show()
-
+    
 
    
 
     
-    outfilePlot=base_dir+'summary3.png'
+    outfilePlot=base_dir+'/summary3.png'
     print ("outFile png =",outfilePlot)
     figAll_phi2.savefig(outfilePlot)
 
@@ -638,7 +568,10 @@ for LW_index in range (0,LW_bins):
 # write outFile.txt
 
 
-outFileName=base_dir+'outScan_'+var1+'-'+var2+'.txt'
+outFileName=base_dir+'/outScanLW_'+var1+'-'+var2+'.txt'
+
+print("writing outFile:",outFileName)
+
 outFile=open(outFileName,'w')
 outFile.write( ' '.join(map(str,energy))+'\n'  )
 outFile.write( ' '.join(map(str,mod1)) +'\n' )
@@ -712,7 +645,7 @@ plt.legend()
 
 
 
-outfilePlot=base_dir+'summary1.png'
+outfilePlot=base_dir+'/summary1.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 
@@ -729,20 +662,20 @@ fig2.suptitle(var1+" - "+var2+" scan", fontsize=16)
 fig2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
 
 # modulazione
-ax1=plt.subplot(231)
+ax1=plt.subplot(221)
 ax1.set_title('modulation')
 plt.errorbar(energy,mod2,yerr=mod2_err, fmt='ro--',label='phi 2 opt')
 plt.errorbar(energy,mod2std,yerr=mod2std_err, fmt='bo--',label='phi 2 standard')
-plt.errorbar(energy,mod1,yerr=mod1_err, fmt='co--',label='phi 1 opt ')
+#plt.errorbar(energy,mod1,yerr=mod1_err, fmt='co--',label='phi 1 opt ')
 plt.errorbar(energy,mod1std,yerr=mod1std_err, fmt='go--',label='phi 1 standard ' )
 
-plt.xlabel('energy [KeV]')
+plt.xlabel('L/W')
 plt.ylabel('modulation')
 plt.legend(loc='upper left')
 
 
 # rapporti modulazione
-ax2=plt.subplot(234)
+ax2=plt.subplot(223)
 
 #creo numpy array dalle liste
 mod1_np=np.array(mod1)
@@ -756,16 +689,18 @@ mod1stdErr_np=np.array(mod1std_err)
 mod2stdErr_np=np.array(mod2std_err)
 
 
-ratio1=mod1_np/mod1std_np
+ratio1=mod2_np/mod1std_np
 ratio1Err=(  (1./mod1std_np**2)*(mod1Err_np**2)+((mod1_np/(mod1std_np**2))**2)*(mod1stdErr_np**2) )**0.5
 
 ratio2=mod2_np/mod2std_np
 ratio2Err=(  (1./mod2std_np**2)*(mod2Err_np**2)+((mod2_np/(mod2std_np**2))**2)*(mod2stdErr_np**2) )**0.5
 
 
-plt.errorbar(energy, ratio1, yerr=ratio1Err,  fmt='bo--',label='phi1  ratio opt/std ')
-plt.errorbar(energy, ratio2, yerr=ratio2Err,  fmt='ro--',label='phi2  ratio opt/std ')
-plt.xlabel('energy [KeV]')
+plt.errorbar(energy, ratio1,  fmt='bo--',label='mod. phi2_best / phi1_std ')
+plt.errorbar(energy, ratio2,  fmt='ro--',label='mod. phi2_best / phi2_std ')
+
+
+plt.xlabel('L/W')
 plt.ylabel('ratio')
 plt.legend()
 
@@ -785,32 +720,32 @@ plt.legend()
 #plt.ylabel('ratio')
 #plt.legend()
 
-ax4=plt.subplot(233)
+ax4=plt.subplot(222)
 #best var1
 ax4.set_title('best '+var1)
 plt.errorbar(energy,best_var1, fmt='bo',label='best value')
 ax4.fill_between(energy,best_var1_low, best_var1_up,color='gray',alpha=0.1, interpolate=True,label=r'1$\sigma$ band')
 ax4.axhline(y=std_val1,label='standard_value', linestyle='--',alpha=0.5)
-plt.xlabel('energy [KeV]')
+plt.xlabel('L/W')
 plt.ylabel('best '+var1)
 plt.legend()
 #plt.rc('grid',axes=True,  linestyle=":", color='grey')
 #plt.grid(True,linestyle=':', color='grey')
 
 # best var2
-ax5=plt.subplot(236)
+ax5=plt.subplot(224)
 ax5.set_title('best '+var2)
 #plt.errorbar(energy,n_raw_opt, fmt='bo--')
 plt.errorbar(energy,best_var2, fmt='bo',label='best value')
 ax5.fill_between(energy,best_var2_low, best_var2_up,color='gray',alpha=0.1, interpolate=True,label=r'1$\sigma$ band')
 ax5.axhline(y=std_val2,label='standard_value', linestyle='--',alpha=0.5)
-plt.xlabel('energy [KeV]')
+plt.xlabel('L/W')
 plt.ylabel('best '+var2)
 plt.legend()
 
 
 
-outfilePlot=base_dir+'summary2.png'
+outfilePlot=base_dir+'/summary2.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 

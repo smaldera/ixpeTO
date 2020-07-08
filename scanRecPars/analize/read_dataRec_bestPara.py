@@ -29,12 +29,12 @@ base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimi
 
 
 #params_sets=['best3d','std']
-#params_sets=['para','std']
-params_sets=['ixperecon_para','std']
+#params_sets=['ixperecon_para','std']
+params_sets=['ixpereconPara_LW','std']
 
 
 index_best3d=0
-std_index=1   # da ricavare dalla lista!!!
+std_index=1   # da ricavare dalla lista  params_sets (leggo i files out in successione)  !!!
 outFileName='outBestParams_'+params_sets[0]+'_v2.txt' # aggiunto pha
 
 
@@ -409,10 +409,12 @@ phase2std_np=np.array(phase2std)
 phase1stdErr_np=np.array(phase1std_err)
 phase2stdErr_np=np.array(phase2std_err)
 
-ratio1=mod1_np/mod1std_np
+ratio1=mod2_np/mod2std_np
 ratio1Err=(  (1./mod1std_np**2)*(mod1Err_np**2)+((mod1_np/(mod1std_np**2))**2)*(mod1stdErr_np**2) )**0.5
 
-ratio2=mod2_np/mod2std_np
+#ratio2=mod2_np/mod2std_np
+ratio2=mod2_np/mod1std_np
+
 ratio2Err=(  (1./mod2std_np**2)*(mod2Err_np**2)+((mod2_np/(mod2std_np**2))**2)*(mod2stdErr_np**2) )**0.5
 
 
@@ -426,8 +428,14 @@ ax1.set_title('modulation')
 #plt.errorbar(energy, np.array(mod1)/np.array(mod1std),  fmt='bo--',label='phi1  ratio opt/std ')
 #plt.errorbar(energy, np.array(mod2)/np.array(mod2std),  fmt='ro--',label='phi2  ratio opt/std ')
 
-plt.errorbar(energy, ratio1, yerr=ratio1Err,  fmt='bo--',label='phi1  ratio best_3d/std ')
-plt.errorbar(energy, ratio2, yerr=ratio2Err,  fmt='ro--',label='phi2  ratio best_3d/std ')
+#plt.errorbar(energy, ratio1, yerr=ratio1Err,  fmt='bo--',label='phi1  ratio best_3d/std ')
+#plt.errorbar(energy, ratio2, yerr=ratio2Err,  fmt='ro--',label='phi2  ratio best_3d/std ')
+
+
+plt.errorbar(energy, ratio1,  fmt='bo--',label='mod phi2 LW/phi2_std   ')
+plt.errorbar(energy, ratio2,  fmt='ro--',label='mod  phi2_LW / phi1_std ')
+
+
 plt.xlabel('energy [KeV]')
 plt.ylabel('ratio')
 plt.legend()
