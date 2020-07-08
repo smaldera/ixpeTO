@@ -9,7 +9,8 @@ import subprocess
 
 base_dir='/data1/maldera/IXPE_work/rec_optimization/bestParams/'
 #iters=['best3d','std','para','ixperecon_para']
-iters=['para','ixperecon_para']
+iters=['ixpereconPara_LW']
+
                
 dirs=['001333','001361',  '001388',  '001416',  '001436',  '001461',  '001471']
 
