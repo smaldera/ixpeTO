@@ -80,7 +80,7 @@ def plot_Dmin(dataLW, base_dir):
    # ax1.fill_between(data3d.energy,data3d.best_var1_low, data3d.best_var1_up,color='red',alpha=0.2, interpolate=True)
 
     #scan in bin di LW
-    plt.errorbar(dataLW.energy,dataLW.best_var1, fmt='ro',label='scan Dmin-ws vs L/W')
+    plt.errorbar(dataLW.energy,dataLW.best_var1, fmt='ro',label='scan Dmin-ws')
     ax1.fill_between(dataLW.energy,dataLW.best_var1_low, dataLW.best_var1_up,color='red',alpha=0.2, interpolate=True)
 
 
@@ -88,7 +88,7 @@ def plot_Dmin(dataLW, base_dir):
    
 
     # parametrizzazione
-    x=np.linspace(0,8,1000)
+    x=np.linspace(0,10,1000)
     p0=2.4
     p1=1.15
     p2=0.03
@@ -97,10 +97,21 @@ def plot_Dmin(dataLW, base_dir):
     p5=0.5
     
     y=(p0*(1./(  np.exp(  -(x-p1)/p2) +1. )    ) ) * (  (1.-p5)/(np.exp( (x-p3)/p4)+1) +p5  )
-    plt.plot(x,y, label='parametrization')
+    plt.plot(x,y, '--',  label='old parametrization',alpha=0.7)
 
-    plt.xlim(1,7)
-    plt.xlabel('L/W')
+    # new parametization (piatta a bassi L/W)
+    
+    p0=1.8
+    p1=2.2
+    p2=0.11
+    p3=1.33
+
+    y2=( ((p0-p3) /(np.exp( (x-p1)/p2)+1)) +p3  )
+    plt.plot(x,y2, label='new parametrization')
+
+    
+    plt.xlim(1,10.5)
+    plt.xlabel('elongation (M2L/M2T)')
     plt.ylabel('best dmin')
     plt.legend(loc='lower right')
     #reorderLegend(ax1,['best dmin',r'1$\sigma$ band' ,'best dmin 2d scan', r'1$\sigma$ band 2d scan',  'best dmin MC', 'standard_value' ])
@@ -131,24 +142,52 @@ def  plot_Ws( dataLW, base_dir):
 
 
    #scan2d LW
-    plt.errorbar(dataLW.energy,dataLW.best_var2, fmt='ro',label='scan Rmin-ws vs L/W' )
+    plt.errorbar(dataLW.energy,dataLW.best_var2, fmt='ro',label='scan Rmin-ws' )
     ax2.fill_between(dataLW.energy,dataLW.best_var2_low, dataLW.best_var2_up,color='red',alpha=0.2, interpolate=True)
 
     #plt.plot(eMC_ws,wsMC,'ko',mfc='none',markersize=10, label='best ws MC')
    # parametrizzazione
-    x=np.linspace(0,8,1000)
+    x=np.linspace(0,10,1000)
     
     p0=0.341213
     p1=1.21184
     p2=0.0824731
     p3=0.03
-    
     y=p0*np.exp(-0.5*( ((x-p1)/p2) + np.exp( (p1-x)/p2)    )   )+p3
-    
-    plt.plot(x,y, label='parametrization')
+    plt.plot(x,y, label='parametrization OLD')
 
+
+    # new parametization (piatta a bassi L/W)
+    
+    p0=0.1
+    p1=1.57
+    p2=0.1
+    p3=0.03
+
+    y2=( ((p0-p3) /(np.exp( (x-p1)/p2)+1)) +p3  )
+    plt.plot(x,y2, label='new parametrization (1)')
+
+    p3=0.028
+    p4= 0.006 
+    p5= 4.7
+    p6= 0.512
+
+    
+    y3=( ((p0-p3) /(np.exp( (x-p1)/p2)+1)) +p3  ) +  ( ((p4) /(np.exp( -(x-p5)/p6)+1))  )
+    plt.plot(x,y3, label='new parametrization (2)')
+
+
+    
+
+    
+
+    
+
+
+
+    
    # plt.xlim(1,7)
-    plt.xlabel('L/W')
+    plt.xlabel('elongation (M2L/M2T)')
     plt.ylabel('best ws')
     plt.legend()
     
