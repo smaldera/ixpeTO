@@ -40,8 +40,8 @@ first_ev=0
 
 
 base_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/'
-#dirs=['001361',  '001388',  '001416',  '001436',  '001461',  '001471','001333']
-dirs=['001361',  '001388']
+dirs=['001361',  '001388',  '001416',  '001436',  '001461',  '001471','001333']
+#dirs=['001361',  '001388']
 
 
 for dir in dirs:
@@ -57,11 +57,14 @@ for dir in dirs:
     out_dir=base_dir+dir+'/'
 
 
-    n_iter=1
+    n_iter=187
     #inizio scan su zero_thr
-    for dmin  in np.arange(0.1,2.3,0.2):
-      for weight_scale  in np.arange(0.01,0.25,0.02):
-
+    #for dmin  in np.arange(1.1,1.5,0.2):
+    for dmin  in [1.6, 1.8,2.0]: # scan fine     
+      for weight_scale  in np.arange(0.03,0.25,0.02):
+        #for weight_scale  in [0.029,0.031]:
+        
+       
           moma2_thr=moma1_thr        
           print (n_iter," dmin = ",dmin, " weight_scale =",weight_scale)
           work_dir=out_dir+str(n_iter)

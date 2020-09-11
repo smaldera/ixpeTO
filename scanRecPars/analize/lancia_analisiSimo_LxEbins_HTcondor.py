@@ -8,7 +8,10 @@ import subprocess
 
 # scanRmin-Ws
 base_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/'
-max_iter= 219+1
+max_iter= 132+1
+
+
+
 
 
 #dirs=['001333','001361',  '001388',  '001416',  '001436',  '001461',  '001471']
@@ -63,19 +66,20 @@ def lancia_jobHtc(work_dir, cmd_string):
 
 
 
+n_iter=1
 #inizio scan su zero_thr
 #for dirName in dirs:
 
 #out_dir=base_dir+dirName+'/'
     
-for  i in range (187,max_iter):
+for  i in range (1,max_iter):
 #for  i in range (1,2):
 
                 
 
         #work_dir=out_dir+str(i)
 
-        out_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/LWbins/rec_'+str(i)+'/'
+        out_dir='/data1/maldera/IXPE_work/rec_optimization/scanRmin-Ws/LxEbins/rec_'+str(i)+'/'
         work_dir=out_dir
         run_command('mkdir -p '+work_dir)
         
@@ -90,11 +94,12 @@ for  i in range (187,max_iter):
 
         print ("file_string = ",files_string)
         
-        cmd_string='      python /home/users/maldera/IXPE/ixpeTO/scanRecPars/analize/plotAll_simoPHA.py '+files_string+' -o '+out_dir
+        cmd_string='      python /home/users/maldera/IXPE/ixpeTO/scanRecPars/analize/plotAll_simoLenghtXelongation.py '+files_string+' -o '+out_dir
 
         print ("cmd=",cmd_string)
         
         lancia_jobHtc(work_dir, cmd_string)        
                 
+        #n_iter=n_iter+1
 
         

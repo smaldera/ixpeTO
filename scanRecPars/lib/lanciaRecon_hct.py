@@ -23,6 +23,61 @@ def crea_cmd(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_off
    return mystring
 
 
+def crea_cmd_new(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_offset,trig_minicluster_offset,suffix,min_track_hits,min_densy_points,dmin,dmax,weight_scale, truncate_lsb, logfile,n_max,first_ev):
+
+
+   # standard para
+#      mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.5 --dmin-expo-idx 1.6    --dmin-expo-delta 0.2   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  1.5    --weight-scale-expo-delta -0.01   --weight-scale-end-point 0.0845455  --pivot 2.5 \n'
+
+
+      # modified para
+    # mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.4   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0845455  --pivot 2.0 \n'                                                                                          
+
+
+  # modified para 2
+      #mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.3   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0865455  --pivot 2.2 \n'
+
+
+
+
+
+
+# modified para 3
+#      mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.3   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0865455  --pivot 2.5 \n'
+
+
+# modified para 4
+      #mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.4   --dmin-end-point 1.7      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.2  --pivot 1.9 \n'
+      
+
+
+# modified para 5
+      mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.45   --dmin-end-point 1.6      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.011 --weight-scale-end-point 0.15  --pivot 1.9 \n'
+
+
+      
+      
+      
+      
+
+            
+
+      
+      # new recon con old standard
+      #mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '\n'
+
+
+
+
+
+      
+      print ('cmd= ',mystring)
+      return mystring
+
+         
+
+
+
 
 def crea_jobScript(command_string):
 
@@ -129,6 +184,31 @@ def submit_recon(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise
 
    print ("job sottomesso!")
 
+
+
+#####
+def submit_recon_new(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_offset,trig_minicluster_offset,suffix,min_track_hits,min_densy_points,dmin,dmax,weight_scale, truncate_lsb, logfile,n_max,first_ev,work_dir):
+
+
+      cmd_str= crea_cmd_new(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_offset,trig_minicluster_offset,suffix,min_track_hits,min_densy_points,dmin,dmax,weight_scale, truncate_lsb, logfile,n_max,first_ev)
+      crea_jobScript(cmd_str)
+
+      
+      lancia_condorJob(work_dir)
+
+
+      print ("job sottomesso!")
+               
+
+
+   
+
+
+   
+
+
+   
+   
 
 ###################
 def submit_recon_local(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise_offset,trig_minicluster_offset,suffix,min_track_hits,min_densy_points,dmin,dmax,weight_scale, truncate_lsb, logfile,n_max,first_ev,work_dir):

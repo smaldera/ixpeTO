@@ -94,12 +94,12 @@ def find_bins(run,  expr, cut):
     """
     vals = run.values(expr, cut)
     deltabin = 0.0001
-    # _nbinsqt = int(((max(vals) - min(vals)) / deltabin) + 1)
-    _nbinsqt =int(((30 - min(vals)) / deltabin) + 1)
+    _nbinsqt = int(((max(vals) - min(vals)) / deltabin) + 1)
+    #_nbinsqt =int(((30 - min(vals)) / deltabin) + 1)
     
 
     nbinsqt = min([_nbinsqt, 5000000])
-    logger.info('M2L/M2T histo n. bins %s' % nbinsqt)
+    logger.info(expr+' histo n. bins %s' % nbinsqt)
     binning = numpy.linspace(min(vals), max(vals), nbinsqt)
     #binning = numpy.linspace(0, 2, 10)
    
@@ -109,11 +109,11 @@ def find_bins(run,  expr, cut):
 
     cdf=hist.cdf()
     
+    print("type of cdf=",type(cdf))
 
     my_bins=[0]
     N=200000
     k=1
-
     for x in binning:
        # print ("cdf(",x," )=",cdf(x)* hist.weights_sum)
         n=cdf(x)* hist.weights_sum
@@ -121,20 +121,19 @@ def find_bins(run,  expr, cut):
             print ("k=",k,"x=",x," n=",n)
             my_bins.append(x)
             k+=1
+
     print ("my_bins=",my_bins)       
 
 
 
 
-    #hist2 = ixpeHistogram1d(numpy.array(my_bins), vals, xtitle=expr)
+   # hist2 = ixpeHistogram1d(numpy.array(my_bins), vals, xtitle=expr)
     hist.plot(stat_box_position='upper right')
-    plt.ylim(0.99,hist.max_val()*1.1) #!!!!!!!!    
-    plt.xlim(1,18) #!!!!!!!!
-    plt.yscale('log')
-    plt.xscale('log')
+    plt.ylim(0,hist.max_val()*1.1) #!!!!!!!!    
+
 
     for x in my_bins: 
-       plt.axvline(x,c='r',alpha=0.5)
+       plt.axvline(x)
 
     return my_bins
 
@@ -157,26 +156,29 @@ class plotAll_simo(ixpeDqmTask):
 
         #binning = numpy.linspace(0, 2, 10)
         cut_base2=cut_logical_and(cut_base, ecut, track_size_cut )
-        
+        #expr = 'TRK_M2L/TRK_M2T'
+        expr = '(TRK_M2L)**0.5'
+
          
-        expr = 'TRK_M2L/TRK_M2T'
         #self.add_plot('moments ratioALL', hist, figure_name='moments ratioALL')
         my_bins=find_bins(self.run_list, expr, cut_base2)
-        plt.savefig(kwargs.get('output_folder')+'/dist_ratioLW_ALL.png')
-
-
-
-        
+        plt.savefig(kwargs.get('output_folder')+'/dist_lenght_ALL.png')
+                                             
         cut_LW=''
         #for i in range(0,len(binning)-4):
         for i in range(0,len(my_bins)-1):
-      
-            cut_LW="( (  (TRK_M2L/TRK_M2T)>"+str(my_bins[i])+") && ( (TRK_M2L/TRK_M2T)<"+str(my_bins[i+1])+"))"
+                     
+            #cut_LW="( (  (TRK_M2L/TRK_M2T)>"+str(10**(binning[i]))+") && ( (TRK_M2L/TRK_M2T)<"+str(10**(binning[i+1]))+"))"
+            #cut_LW="( (  (TRK_M2L/TRK_M2T)>"+str(my_bins[i])+") && ( (TRK_M2L/TRK_M2T)<"+str(my_bins[i+1])+"))"
+            cut_LW="( (  ("+expr+" )>"+str(my_bins[i])+") && ( ("+expr+")<"+str(my_bins[i+1])+"))"
 
+            
+
+            
              
             print("cut_LW=",cut_LW)
         
-            outFolder=kwargs.get('output_folder')+'/LWbin_'+str(i)+'/'
+            outFolder=kwargs.get('output_folder')+'/TrackLbin_'+str(i)+'/'
 
             #creo outFolder:
             cmd='mkdir -p '+outFolder
@@ -189,13 +191,13 @@ class plotAll_simo(ixpeDqmTask):
             pha_title='Pulse height [ADC counts]'
         
             hist = ixpeHistogram1d(pha_binning, xtitle=pha_title)
-            
+           
                                         
             #cut=cut_base
-            print ("base_cut=",cut_base2)
+            print ("base_cut=",cut_base)
             print ("cut_LW=",cut_LW)
          
-            cut= cut_logical_and(cut_base2,cut_LW)  
+            cut= cut_logical_and(cut_base2,cut_LW )
             print ("cut_final = ",cut)
 
             
@@ -207,7 +209,6 @@ class plotAll_simo(ixpeDqmTask):
             self.add_plot('pha_spectrum_'+str(i), hist, figure_name='pha_spectrum_'+str(i),  stat_box_position=None, label=kwargs.get('label'),  save=False)
 
 
-  
    
             self.save_figure('pha_spectrum_'+str(i), overwrite=True)
             
@@ -219,14 +220,14 @@ class plotAll_simo(ixpeDqmTask):
             ##################################
             # plot dist L/W dopo i tagli:
             
-            nBinsLW =int(((30 - 1) / 0.01) + 1)                        
-            LW_binning=numpy.linspace(1, 30, nBinsLW)            
-            histLW = ixpeHistogram1d(LW_binning, xtitle="L/W")
-            LW = self.run_list.values("TRK_M2L/TRK_M2T", cut) #!!!! qua fa il lavoro!!!
+            nBinsLW =int(((1 - 0) / 0.01) + 1)                        
+            LW_binning=numpy.linspace(0, 1, nBinsLW)            
+            histLW = ixpeHistogram1d(LW_binning, xtitle="TL")
+            LW = self.run_list.values(expr, cut) #!!!! qua fa il lavoro!!!
             histLW.fill(LW)
-            self.add_plot('LW_'+str(i), histLW, figure_name='LW_'+str(i), stat_box_position='upper right',  save=False)
-            self.save_figure('LW_'+str(i), overwrite=True)
-            plt.savefig(outFolder+'LW_'+str(i)+'.png')
+            self.add_plot('TL_'+str(i), histLW, figure_name='TL_'+str(i), stat_box_position='upper right',  save=False)
+            self.save_figure('LT_'+str(i), overwrite=True)
+            plt.savefig(outFolder+'TL_'+str(i)+'.png')
             LW_mean=histLW.mean[0]
             LW_rms=histLW.rms[0]
             print("mean LW=",histLW.mean[0], "rms=",histLW.rms[0])                        
@@ -317,10 +318,10 @@ class plotAll_simo(ixpeDqmTask):
             #scrivi outfile
 
             
-            nomefileout= outFolder+'prova_outLW.txt'
+            nomefileout= outFolder+'prova_outTL.txt'
             print("nomefile_out= ",nomefileout )
             
-            #out_string='aaa' #!!!!!!!!!!!!!!!!!
+            
             out_string=str(pha_mean)+' '+str(pha_rms)+' '+str(phase1)+' '+str(phase1_err)+' '+str(modulation1)+' '+str(modulation1_err)+' '+str(chi2_1)+' '+str(phase2)+' '+str(phase2_err)+' '+str(modulation2)+' '+str(modulation2_err)+' '+str(chi2_2)+' '+str(n_final)+' '+str(n_raw)+' '+str(my_bins[i])+' '+str(my_bins[i+1])+' '+str(LW_mean)+' '+str(LW_rms)
             
     

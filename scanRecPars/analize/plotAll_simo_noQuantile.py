@@ -187,7 +187,7 @@ class plotAll_simo(ixpeDqmTask):
         n_ecut=self.run_list.num_events(cut2)
         
         ecut_efficiency = n_ecut/n_physical
-        #quantile = min(0.8/ecut_efficiency, 1.)
+        quantile = min(0.8/ecut_efficiency, 1.)
 
         
         expr = 'TRK_M2L/TRK_M2T'
@@ -324,7 +324,7 @@ class plotAll_simo(ixpeDqmTask):
         #scrivi outfile
 
         print("out dir", kwargs.get('output_folder'))
-        nomefileout= kwargs.get('output_folder')+'prova_out.txt'
+        nomefileout= kwargs.get('output_folder')+'prova_out_noQ.txt'
         print("nomefile_out ",nomefileout )
 
         
