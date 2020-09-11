@@ -52,7 +52,7 @@ def crea_cmd_new(filenames,output_folder,zero_thr,moma1_thr,moma2_thr,coer_noise
 
 
 # modified para 5
-      mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.45   --dmin-end-point 1.6      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.011 --weight-scale-end-point 0.15  --pivot 1.9 \n'
+      mystring='ixperecon '+filenames+'   --output-folder '+output_folder+' --threshold '+str(zero_thr)+' --moma1-threshold '+str(moma1_thr)+' --moma2-threshold '+str(moma2_thr)+' --coherent-noise-offset '+str(coer_noise_offset)+'  --trigger-minicluster-offset '+str(trig_minicluster_offset)+'  --s '+suffix+'  --min-track-hits '+str(min_track_hits)+'   --min-density-points '+str(min_densy_points)+'   --dmax '+str(dmax)+' --truncate-lsb '+str(truncate_lsb)+'   --log-file '+logfile+' -n '+str(n_max)+ ' -f '+str(first_ev)+  '  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.45   --dmin-end-point 1.6      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.011 --weight-scale-end-point 0.22  --pivot 1.9 \n'
 
 
       
