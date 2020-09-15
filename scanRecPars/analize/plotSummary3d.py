@@ -699,9 +699,9 @@ print("E=",data3d.energy)
 
 
 
-#plot_Dmin(data1Dmin,data2wsDmin, data3d, base_dir)
+plot_Dmin(data1Dmin,data2wsDmin, data3d, base_dir)
 
-#plot_Ws(data1Dmin,data2wsDmin, data3d, base_dir)
+plot_Ws(data1Dmin,data2wsDmin, data3d, base_dir)
 
 #plot_Dmax(data1Dmin,data2wsDmin, data3d, base_dir)
 

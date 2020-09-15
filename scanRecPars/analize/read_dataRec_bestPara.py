@@ -20,7 +20,7 @@ import matplotlib as mpl
 #mpl.rcParams['legend.loc'] = 'upper right'   # default position
 mpl.rcParams['grid.linestyle'] = ":"
 mpl.rcParams['axes.grid'] = True
-#mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
+mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # PARAMETERS:
@@ -30,7 +30,26 @@ base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimi
 
 #params_sets=['best3d','std']
 #params_sets=['ixperecon_para','std']
-params_sets=['ixpereconPara_LW','std']
+#params_sets=['ixpereconPara_LW','std']
+#params_sets=['ixpereconPara_TL','std']
+#params_sets=['ixpereconPara_LxE','std']
+
+#params_sets=['ixpereconPara_LW_new1','std']
+#params_sets=['ixpereconPara_LW_new2','std']
+
+#params_sets=['ixprecon_new','std']
+#params_sets=['oldStd_ixperecon_para','std']
+#params_sets=['my_ixperecon_para','std']
+#params_sets=['my_ixperecon_para_v2','std']
+#params_sets=['my_ixperecon_para_v3','std']
+#params_sets=['my_ixperecon_para_v4','std']
+#params_sets=['my_ixperecon_para_v5','std']
+#params_sets=['oldStd_ixperecon_para','std']
+
+params_sets=['ixpereconPara_LW_fullUpdated','std']
+
+
+
 
 
 index_best3d=0
@@ -379,7 +398,7 @@ plt.legend()
 
 
     
-outfilePlot=base_dir+'summary1.png'
+outfilePlot=base_dir+'summary1_'+params_sets[0]+'.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 
@@ -419,11 +438,11 @@ ratio2Err=(  (1./mod2std_np**2)*(mod2Err_np**2)+((mod2_np/(mod2std_np**2))**2)*(
 
 
 fig2=plt.figure(figsize=(20,10))
-fig2.suptitle("mod ratios", fontsize=16)
+fig2.suptitle("modulation ratios", fontsize=16)
 fig2.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.09,hspace=0.250)
 
 ax1=plt.subplot(111)
-ax1.set_title('modulation')
+#ax1.set_title('modulation')
 
 #plt.errorbar(energy, np.array(mod1)/np.array(mod1std),  fmt='bo--',label='phi1  ratio opt/std ')
 #plt.errorbar(energy, np.array(mod2)/np.array(mod2std),  fmt='ro--',label='phi2  ratio opt/std ')
@@ -432,15 +451,24 @@ ax1.set_title('modulation')
 #plt.errorbar(energy, ratio2, yerr=ratio2Err,  fmt='ro--',label='phi2  ratio best_3d/std ')
 
 
-plt.errorbar(energy, ratio1,  fmt='bo--',label='mod phi2 LW/phi2_std   ')
-plt.errorbar(energy, ratio2,  fmt='ro--',label='mod  phi2_LW / phi1_std ')
+plt.errorbar(energy, ratio1,  fmt='bo--',label='mod phi2_opt / phi2_std   ')
+plt.errorbar(energy, ratio2,  fmt='ro--',label='mod phi2_opt / phi1_std ')
+
+#plt.errorbar(energy, ratio1,  fmt='bo--',label='mod phi2 TL/phi2_std   ')
+#plt.errorbar(energy, ratio2,  fmt='ro--',label='mod  phi2_TL / phi1_std ')
+
+#plt.errorbar(energy, ratio1,  fmt='bo--',label='mod phi2 LxE/phi2_std   ')
+#plt.errorbar(energy, ratio2,  fmt='ro--',label='mod  phi2 LxE / phi1_std ')
+
+
+
 
 
 plt.xlabel('energy [KeV]')
 plt.ylabel('ratio')
 plt.legend()
 
-outfilePlot=base_dir+'modRatios.png'
+outfilePlot=base_dir+'modRatios_'+params_sets[0]+'.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 
@@ -465,7 +493,7 @@ plt.ylabel('phase_opt - phase_std')
 plt.legend()
 
 
-outfilePlot=base_dir+'deletaPhase.png'
+outfilePlot=base_dir+'deletaPhase_'+params_sets[0]+'.png'
 print ("outFile png =",outfilePlot)
 plt.savefig(outfilePlot)
 

@@ -48,6 +48,44 @@ def unisci_phi(energy, phi1,phi2):   # tutti np.array
 
 
 
+def dmin_newRecon(x, xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint):
+    
+
+ # double x = m_mom2long/m_mom2trans;
+  #//static double xEndpoint = 1.;
+  #//static double yEndpoint = 1.2636363636;
+  if (x < xPivot):
+     yPivot = expOffset + deltaY
+     m = (yPivot - yEndpoint) / (xPivot - xEndpoint)
+     q = yPivot - m * xPivot
+     return m * x + q
+  else: 
+    return deltaY * np.exp(-(x - xPivot)/expIndex) + expOffset
+
+
+
+def ws_newRecon(x, xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint):
+    
+
+ # double x = m_mom2long/m_mom2trans;
+  #//static double xEndpoint = 1.;
+  #//static double yEndpoint = 1.2636363636;
+  if (x < xPivot):
+     yPivot = expOffset + deltaY
+     m = (yPivot - yEndpoint) / (xPivot - xEndpoint)
+     q = yPivot - m * xPivot
+     return m * x + q
+  else: 
+    return deltaY * np.exp(-(x - xPivot)/expIndex) + expOffset
+
+
+
+
+
+
+
+
+
 #def plot_Dmin(data1Dmin,data2wsDmin, data3d, base_dir):
 def plot_Dmin(dataLW, base_dir):
 
@@ -69,7 +107,7 @@ def plot_Dmin(dataLW, base_dir):
    # ax1.fill_between(data1Dmin.energy,data1Dmin.best_val_low, data1Dmin.best_val_up,color='gray',alpha=0.1, interpolate=True)
 
     
-    ax1.axhline(y=1.5,label='standard_value', linestyle='--',alpha=0.5)
+    ax1.axhline(y=1.5,label='standard_value',color='gray', linestyle='--',alpha=0.5)
 
     #scan 2d
     #plt.errorbar(data2wsDmin.energy,data2wsDmin.best_var1, fmt='ro',label='best dmin 2d scan')
@@ -80,8 +118,8 @@ def plot_Dmin(dataLW, base_dir):
    # ax1.fill_between(data3d.energy,data3d.best_var1_low, data3d.best_var1_up,color='red',alpha=0.2, interpolate=True)
 
     #scan in bin di LW
-    plt.errorbar(dataLW.energy,dataLW.best_var1, fmt='ro',label='scan Dmin-ws')
-    ax1.fill_between(dataLW.energy,dataLW.best_var1_low, dataLW.best_var1_up,color='red',alpha=0.2, interpolate=True)
+    plt.errorbar(dataLW.energy,dataLW.best_var1, fmt='ko',label='scan Dmin-ws')
+    ax1.fill_between(dataLW.energy,dataLW.best_var1_low, dataLW.best_var1_up,color='gray',alpha=0.2, interpolate=True)
 
 
 
@@ -89,15 +127,28 @@ def plot_Dmin(dataLW, base_dir):
 
     # parametrizzazione
     x=np.linspace(0,10,1000)
+    """
+    #old:
     p0=2.4
     p1=1.15
     p2=0.03
     p3=1.87
     p4=0.63
     p5=0.5
+    """
+    #new:
+    p0=2.05
+    p1=1.15
+    p2=0.03
+    p3=1.87
+    p4=0.3
+    p5=0.645
+
+
+    
     
     y=(p0*(1./(  np.exp(  -(x-p1)/p2) +1. )    ) ) * (  (1.-p5)/(np.exp( (x-p3)/p4)+1) +p5  )
-    plt.plot(x,y, '--',  label='old parametrization',alpha=0.7)
+    plt.plot(x,y, 'k',  label='full parametrization',alpha=0.7)
 
     # new parametization (piatta a bassi L/W)
     
@@ -107,12 +158,118 @@ def plot_Dmin(dataLW, base_dir):
     p3=1.33
 
     y2=( ((p0-p3) /(np.exp( (x-p1)/p2)+1)) +p3  )
-    plt.plot(x,y2, label='new parametrization')
+    plt.plot(x,y2, 'g', label='new parametrization')
+
+
+
+    #parametrizzazione nre_recon
+    #--weight-scale-offset 0.04  --weight-scale-expo-idx  1.5    --weight-scale-expo-delta -0.01   --weight-scale-end-point 0.0845455  --pivot 2.5 \n
+
+    xPivot=2.5
+    deltaY=0.2
+    expIndex=1.6
+    expOffset=1.5 #??????????????
+    xEndpoint=1
+    yEndpoint =1.2636363636000001
+
+    
+    ynew=np.array([0.]*len(x))
+    #print("ynew=",ynew)
+    for i in range (0,len(x)):
+        ynew[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+
+    plt.plot(x,ynew, 'm', label='new recon')
+        
+   # my para 0
+ # --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.4   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0845455  --pivot 2.0 \n'                                               
+   
+    xPivot=2.0 
+    deltaY=0.4 
+    expIndex=0.6
+    expOffset=1.33
+    xEndpoint=1
+    yEndpoint =1.2636363636000001
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+        
+    #plt.plot(x,ynew_my, 'r', label='new recon-simo v0')
+
+    ###########################################################33
+    # my para 1
+    
+#     --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.3   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0865455  --pivot 2.2 \n'                                          
+    xPivot=2.2 
+    deltaY=0.5 
+    expIndex=0.6
+    expOffset=1.33
+    xEndpoint=1
+    yEndpoint =1.2636363636000001
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+        
+    #plt.plot(x,ynew_my, 'b', label='new recon-simo v1')
+    #############################################################
+      # my para 2
+    
+     #  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.3   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0865455  --pivot 2.5 \n'
+
+    xPivot=2.5 
+    deltaY=0.3 
+    expIndex=0.6
+    expOffset=1.33
+    xEndpoint=1
+    yEndpoint =1.2636363636000001
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+             
+    #plt.plot(x,ynew_my, 'g', label='new recon-simo v2')
+  
+    ###################################################
+    # my para 3
+       
+    xPivot=1.9
+    deltaY=0.4 
+    expIndex=0.6
+    expOffset=1.33
+    xEndpoint=1
+    yEndpoint =1.7
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+          
+    #plt.plot(x,ynew_my, 'r', label='new recon-simo v3')
+
+ ###################################################
+    # my para 5
+       
+    xPivot=1.9
+    deltaY=0.45 
+    expIndex=0.6
+    expOffset=1.33
+    xEndpoint=1
+    yEndpoint =1.6
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+          
+    plt.plot(x,ynew_my, 'c', label='new recon-simo v5')
+
+
 
     
     plt.xlim(1,10.5)
     plt.xlabel('elongation (M2L/M2T)')
-    plt.ylabel('best dmin')
+    plt.ylabel('dmin')
     plt.legend(loc='lower right')
     #reorderLegend(ax1,['best dmin',r'1$\sigma$ band' ,'best dmin 2d scan', r'1$\sigma$ band 2d scan',  'best dmin MC', 'standard_value' ])
     #reorderLegend(ax1,['best dmin','best dmin 2d scan','3d scan' , 'best dmin MC', 'standard_value' ])
@@ -135,26 +292,39 @@ def  plot_Ws( dataLW, base_dir):
     fig.subplots_adjust(left=0.14, right=0.97, top=0.9, bottom=0.09,hspace=0.250)
     ax2=plt.subplot(111)
     ax2.set_title('best weight scale')
-   
+    ax2.axhline(y=0.05,label='standard_value',color='gray', linestyle='--',alpha=0.5)
+
     #scan3d
    # plt.errorbar(data3d.energy,data3d.best_var2, fmt='ro',label='3D scan')
    # ax2.fill_between(data3d.energy,data3d.best_var2_low, data3d.best_var2_up,color='red',alpha=0.2, interpolate=True)
 
 
    #scan2d LW
-    plt.errorbar(dataLW.energy,dataLW.best_var2, fmt='ro',label='scan Rmin-ws' )
-    ax2.fill_between(dataLW.energy,dataLW.best_var2_low, dataLW.best_var2_up,color='red',alpha=0.2, interpolate=True)
+    plt.errorbar(dataLW.energy,dataLW.best_var2, fmt='ko',label='scan Rmin-ws' )
+    ax2.fill_between(dataLW.energy,dataLW.best_var2_low, dataLW.best_var2_up,color='gray',alpha=0.2, interpolate=True)
 
     #plt.plot(eMC_ws,wsMC,'ko',mfc='none',markersize=10, label='best ws MC')
    # parametrizzazione
     x=np.linspace(0,10,1000)
-    
+    """
     p0=0.341213
     p1=1.21184
     p2=0.0824731
     p3=0.03
     y=p0*np.exp(-0.5*( ((x-p1)/p2) + np.exp( (p1-x)/p2)    )   )+p3
-    plt.plot(x,y, label='parametrization OLD')
+    """
+        
+    p0= 0.341213 
+    p1= 1.21184
+    p2= 0.0824731
+    p3= 0.028 
+    p4= 0.008
+    p5= 5.5
+    p6= 1
+
+    y=p0*np.exp(-0.5*( ((x-p1)/p2) + np.exp( (p1-x)/p2)    )   )+p3+ (  ( ((p4) /(np.exp( -(x-p5)/p6)+1))  )    ) 
+    
+    plt.plot(x,y,'k', label='parametrization full')
 
 
     # new parametization (piatta a bassi L/W)
@@ -165,30 +335,139 @@ def  plot_Ws( dataLW, base_dir):
     p3=0.03
 
     y2=( ((p0-p3) /(np.exp( (x-p1)/p2)+1)) +p3  )
-    plt.plot(x,y2, label='new parametrization (1)')
+   # plt.plot(x,y2,'b', label='new parametrization (1)')
 
     p3=0.028
     p4= 0.006 
     p5= 4.7
     p6= 0.512
-
-    
+  
     y3=( ((p0-p3) /(np.exp( (x-p1)/p2)+1)) +p3  ) +  ( ((p4) /(np.exp( -(x-p5)/p6)+1))  )
-    plt.plot(x,y3, label='new parametrization (2)')
+    plt.plot(x,y3,'g', label='new parametrization (2)')
 
 
     
 
+    #parametrizzazione ixperecon nuova s.c.
+
+    #parametrizzazione nre_recon
+    #--weight-scale-offset 0.04  --weight-scale-expo-idx  1.5    --weight-scale-expo-delta -0.01   --weight-scale-end-point 0.0845455  --pivot 2.5 \n
+
+   # parametri sc
+    xPivot=2.5
+    deltaY=-0.01
+    expIndex=1.5
+    expOffset=0.04
+    xEndpoint=1
+    yEndpoint =0.0845455
+
+    ynew=np.array([0.]*len(x))
+    #print("ynew=",ynew)
+    for i in range (0,len(x)):
+        ynew[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+        
+    plt.plot(x,ynew, 'm', label='new recon')
     
-
+    ################################################
+     # my para 0
+     # --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.4   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0845455  --pivot 2.0 \n'                                               
+   
+    xPivot=2.0
+    deltaY=-0.012
+    expIndex=10
+    expOffset=0.04
+    xEndpoint=1
+    yEndpoint =0.0845455
     
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+ #   plt.plot(x,ynew_my, 'r', label='new recon - my mod v0')
+    
+    ###########################################################33
+    # my para 1
+    
+    #--dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.3   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0865455  --pivot 2.2 \n'   
 
 
+    xPivot=2.2
+    deltaY=-0.012
+    expIndex=10
+    expOffset=0.04
+    xEndpoint=1
+    yEndpoint =0.0865455
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+  #  plt.plot(x,ynew_my, 'b', label='new recon - my mod v1')
+
+    ##################################################
+    # my para 2
+    
+    #  --dmin-offset 1.33 --dmin-expo-idx 0.6    --dmin-expo-delta 0.3   --dmin-end-point 1.2636363636000001      --weight-scale-offset 0.04  --weight-scale-expo-idx  10.    --weight-scale-expo-delta -0.012 --weight-scale-end-point 0.0865455  --pivot 2.5 \n'
+
+    xPivot=2.5
+    deltaY=-0.012
+    expIndex=10
+    expOffset=0.04
+    xEndpoint=1
+    yEndpoint =0.0865455
+    
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+  #  plt.plot(x,ynew_my, 'g', label='new recon - my mod v2')
+     
+
+
+     ##################################################
+    # my para 3
+    
+    xPivot=1.9
+    deltaY=-0.012
+    expIndex=10
+    expOffset=0.04
+    xEndpoint=1
+    yEndpoint =0.2
+
+        
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+   # plt.plot(x,ynew_my, 'g', label='new recon - my mod v3')
+     
+ ##################################################
+    # my para 5
+    
+    xPivot=1.9
+    deltaY=-0.011
+    expIndex=10
+    expOffset=0.04
+    xEndpoint=1
+    yEndpoint =0.22
+
+        
+    ynew_my=np.array([0.]*len(x))
+    for i in range (0,len(x)):
+        ynew_my[i]=dmin_newRecon(x[i], xPivot, deltaY,  expIndex,  expOffset,  xEndpoint,  yEndpoint)
+        
+    plt.plot(x,ynew_my, 'c', label='new recon - my mod v5')
+     
+
+
+
+    ##########################
 
     
    # plt.xlim(1,7)
     plt.xlabel('elongation (M2L/M2T)')
-    plt.ylabel('best ws')
+    plt.ylabel('weight scale')
     plt.legend()
     
     #reorderLegend(ax2,['best ws','best ws 2d scan', '3d scan',  'best ws MC', 'standard_value' ])
@@ -386,55 +665,56 @@ def plot_Modulation(data1Dmin,data2wsDmin, data3d, dataBest, base_dir):
 ###################################33
 
 
-def plot_ModulationAll(data1Dmin,data2wsDmin, data3d, dataBest, dataBest_para, dataBest_reconPara,   base_dir):
+def plot_ModulationAll( dataBest_reconPara,  dataBest_reconParaLW_new1,  dataBest_reconParaLW_new2, dataBest_reconParaLW_old, dataBest_ixperecon_new,dataBest_ixperecon_my, dataBest_ixperecon_myV2, dataBest_ixperecon_myV3,  dataBest_ixperecon_myV4, dataBest_ixperecon_myV5,dataBest_reconParaLW_FullUpdate, base_dir):
 
      
     fig=plt.figure(figsize=(10,7))
     fig.subplots_adjust(left=0.093, right=0.97, top=0.90, bottom=0.09,hspace=0.34,wspace=0.255)
     ax=plt.subplot(111)
     plt.grid(True,linestyle=':', color='grey') 
-    ax.set_title('mod Phi2 best/ (mod. std - phi1@E<3KeV, phi2@E>3KeV)')
+    ax.set_title('mod Phi2 best/mod. std ( max phi1, phi2)')
 
-    mod_stdAll=unisci_phi(dataBest.energy,dataBest.mod1std,dataBest.mod2std)
+    #mod_stdAll=unisci_phi(dataBest.energy,dataBest_reconPara.mod1std,dataBest.mod2std)
 
-    mod_stdAll_scan=unisci_phi(data3d.energy,data3d.mod1std,data3d.mod2std)
+    #mod_stdAll_scan=unisci_phi(data3d.energy,data3d.mod1std,data3d.mod2std)
  
+
+
+    modStd_max=np.maximum(dataBest_reconPara.mod2std,dataBest_reconPara.mod1std)
     
     
-    plt.errorbar(data3d.energy,data3d.mod2/ mod_stdAll_scan, fmt='ko',label='scan 3D- exact values -  same data as scan', alpha=0.5)
+    plt.errorbar( dataBest_reconPara.energy, dataBest_reconPara.mod2/modStd_max  , fmt='ko--',label='parametrizzazione PHA', alpha=0.4)
+#    plt.errorbar( dataBest_reconParaLW_new1.energy, dataBest_reconParaLW_new1.mod2/modStd_max  , fmt='bo-',label='parametrizzazione M2L/M2T new1', alpha=1)
+    plt.errorbar( dataBest_reconParaLW_new2.energy, dataBest_reconParaLW_new2.mod2/modStd_max, fmt='go-',label='parametrizzazione M2L/M2T new2', alpha=1)
+   # plt.errorbar( dataBest_reconParaLW_old.energy, dataBest_reconParaLW_old.mod2/modStd_max , fmt='ko-',label='parametrizzazione M2L/M2T old', alpha=1)
+   
+   
+
+    plt.errorbar( dataBest_ixperecon_new.energy, dataBest_ixperecon_new.mod2/modStd_max , fmt='ms-',label='parametrizzazione branch ixperecon_new', alpha=1)
+   
+    #plt.errorbar( dataBest_ixperecon_my.energy, dataBest_ixperecon_my.mod2/modStd_max , fmt='rs-',label='parametrizzazione branch ixperecon_new- modificata v0', alpha=1)
+   
+  #  plt.errorbar( dataBest_ixperecon_myV2.energy, dataBest_ixperecon_myV2.mod2/modStd_max , fmt='bP-',label='parametrizzazione branch ixperecon_new- modificata V1', alpha=1)
+   
+  #  plt.errorbar( dataBest_ixperecon_myV3.energy, dataBest_ixperecon_myV3.mod2/modStd_max , fmt='gX-',label='parametrizzazione branch ixperecon_new- modificata V2', alpha=1)
+
+   # plt.errorbar( dataBest_ixperecon_myV4.energy, dataBest_ixperecon_myV4.mod2/modStd_max , fmt='yX-',label='parametrizzazione branch ixperecon_new- modificata V4', alpha=1)
+
+    plt.errorbar( dataBest_ixperecon_myV5.energy, dataBest_ixperecon_myV5.mod2/modStd_max , fmt='cX-',label='parametrizzazione branch ixperecon_new- modificata V5', alpha=1)
  
-    plt.errorbar(dataBest.energy,dataBest.mod2/ mod_stdAll, fmt='bo',label='scan 3D - exact values  ')
-    #plt.errorbar(dataBest_para.energy,dataBest_para.mod2/ mod_stdAll, fmt='bo',label='scan 3D - Etrue parametrization  ')
-    
-    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2/ mod_stdAll, fmt='ro--',label='scan 3D - PHA parametrization  ')
-    
+    plt.errorbar( dataBest_reconParaLW_FullUpdate.energy, dataBest_reconParaLW_FullUpdate.mod2/modStd_max , fmt='kX-',label='parametrizzazione Full updated', alpha=1)
+ 
     plt.xlabel('energy [KeV]')
-    plt.ylabel('mod Phi2_best/ mod. std')
+    #plt.ylabel('mod Phi2_best/ mod. std [max(phi1,phi2)]')
 
     plt.legend()
-    outfilePlot=base_dir+'modComparisonAll.png'
+    outfilePlot=base_dir+'modComparisonAll_LW.png'
     print ("outFile png =",outfilePlot)
     plt.savefig(outfilePlot)               
 
-    ###################
-    # plot phi1-phi2
-  
-    fig=plt.figure(figsize=(10,8))
-    fig.subplots_adjust(left=0.085, right=0.97, top=0.95, bottom=0.09,hspace=0.34,wspace=0.255)
-    ax=plt.subplot(111)
-    plt.grid(True,linestyle=':', color='grey') 
-    ax.set_title('modulation factor')
 
-    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2/dataBest_reconPara.mod2std, fmt='ro--',label='phi2 best/ phi2 std  ')
+
     
-    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2/dataBest_reconPara.mod1std, fmt='bo--',label='phi2 best/ phi1 std  ')
-
-    plt.errorbar(dataBest_reconPara.energy,dataBest_reconPara.mod2std/dataBest_reconPara.mod1std, fmt='go--',label='phi2 std/ phi1 std  ')
-    plt.xlabel('energy [KeV]')
-    plt.legend()
-    outfilePlot=base_dir+'modComparisonPhi1_Phi2.png'
-    print ("outFile png =",outfilePlot)
-    plt.savefig(outfilePlot)               
 
     
     
@@ -679,6 +959,23 @@ dataBest_para=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IX
 dataBest_reconPara=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixperecon_para_v2.txt', version=2)
 
 
+dataBest_reconParaLW_new1=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixpereconPara_LW_new1_v2.txt', version=2)
+dataBest_reconParaLW_new2=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixpereconPara_LW_new2_v2.txt', version=2)
+dataBest_reconParaLW_old=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixpereconPara_LW_v2.txt', version=2)
+
+dataBest_ixperecon_new=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixprecon_new_v2.txt', version=2)
+
+dataBest_ixperecon_my=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_my_ixperecon_para_v2.txt', version=2)
+dataBest_ixperecon_myV2=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_my_ixperecon_para_v2_v2.txt', version=2)
+dataBest_ixperecon_myV3=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_my_ixperecon_para_v3_v2.txt', version=2)
+
+
+dataBest_ixperecon_myV4=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_my_ixperecon_para_v4_v2.txt', version=2)
+
+dataBest_ixperecon_myV5=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_my_ixperecon_para_v5_v2.txt', version=2)
+
+dataBest_reconParaLW_FullUpdate=readDataBest('/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimization/bestParams/outBestParams_ixpereconPara_LW_fullUpdated_v2.txt', version=2)
+
 
 
 # scan in LW
@@ -741,6 +1038,7 @@ creaRootFiles(dataLW, base_dir)
 #plotVsPha(data1Dmin,data2wsDmin, data3d, dataBest, base_dir)
 
 #plot_ModulationAll(data1Dmin,data2wsDmin, data3d, dataBest, dataBest_para, dataBest_reconPara,   base_dir)
+plot_ModulationAll(dataBest_reconPara,  dataBest_reconParaLW_new1,  dataBest_reconParaLW_new2, dataBest_reconParaLW_old, dataBest_ixperecon_new , dataBest_ixperecon_my,dataBest_ixperecon_myV2,  dataBest_ixperecon_myV3,  dataBest_ixperecon_myV4  ,  dataBest_ixperecon_myV5, dataBest_reconParaLW_FullUpdate,  base_dir)
 
 
 plt.show()

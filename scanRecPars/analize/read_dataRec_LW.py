@@ -31,7 +31,7 @@ base_dir='/home/maldera/IXPE/rec_optimization/data1/maldera/IXPE_work/rec_optimi
 var1='dmin'
 var2='weight_scale'
 std_index=87-1
-n_iters=132
+n_iters=219
 maximize='phi2'  # phi1, ph2, both
 x_edges= np.linspace(0., 2.2,12)     #dmin
 y_edges= np.linspace(0., 0.24,13) #weights
@@ -488,22 +488,8 @@ for LW_index in range (0,LW_bins):
         baseRec1.read_file_rec(file_out,file_cfg)
 
   
-    
-
-
-
-
-
-
-
-
-
-
      
     ##############################
-
-
-
         
     baseRec1.find_maxMod_index()
     print ('best_index=',baseRec1.best_index)
